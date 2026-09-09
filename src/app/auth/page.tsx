@@ -80,7 +80,7 @@ export default function AuthPage() {
             {mode === 'signin' ? 'Iniciar Sesión' : 'Crear Cuenta'}
           </h2>
           <p style={{ color: 'var(--text-secondary)', fontSize: '0.875rem', marginTop: '4px' }}>
-            Acceso a la plataforma AYNI / MINKA
+            Acceso a la plataforma oficial AYNI
           </p>
         </div>
 

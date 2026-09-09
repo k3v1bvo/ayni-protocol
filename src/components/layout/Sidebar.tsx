@@ -75,8 +75,8 @@ function SidebarContent({ onClose }: { onClose?: () => void }) {
       <a href="/dashboard" className="sidebar-logo">
         <div className="sidebar-logo-icon">A</div>
         <div className="sidebar-logo-text">
-          <div className="sidebar-logo-name">AYNI / MINKA</div>
-          <div className="sidebar-logo-sub">Base L2 • ETH Bolivia 2026</div>
+          <div className="sidebar-logo-name">AYNI</div>
+          <div className="sidebar-logo-sub">Protocolo Global P2P & Escrow</div>
         </div>
       </a>
 
@@ -134,6 +134,17 @@ function SidebarContent({ onClose }: { onClose?: () => void }) {
             {item.label}
           </Link>
         ))}
+        {/* AYNI Heritage Module */}
+        <Link
+          href="/dashboard/heritage"
+          className={`sidebar-item ${isActive('/dashboard/heritage') ? 'active' : ''}`}
+          onClick={onClose}
+        >
+          <div className="sidebar-item-icon">
+            <ShieldCheck size={16} color="var(--brand-gold)" />
+          </div>
+          Herencias & Bóvedas
+        </Link>
       </div>
 
       {/* Role-specific Nav */}
@@ -160,39 +171,21 @@ function SidebarContent({ onClose }: { onClose?: () => void }) {
         </div>
       )}
 
-      {/* Demo Role Switcher */}
-      <div className="sidebar-section">
-        <div className="sidebar-section-label">Demo — Cambiar Rol</div>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-          {[
-            { id: 'client', label: 'Cliente / Comprador', cls: 'badge-gold' },
-            { id: 'traveler', label: 'Viajero / Transportista', cls: 'badge-cyan' },
-            { id: 'merchant', label: 'Comercio / Artesano', cls: 'badge-emerald' },
-          ].map(r => (
-            <button
-              key={r.id}
-              type="button"
-              onClick={() => { setDemoUser(r.id as 'client' | 'traveler' | 'merchant'); onClose?.(); }}
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '8px',
-                padding: '7px 10px',
-                background: role === r.id ? 'rgba(0,207,255,0.08)' : 'transparent',
-                border: `1px solid ${role === r.id ? 'rgba(0,207,255,0.2)' : 'transparent'}`,
-                borderRadius: '8px',
-                cursor: 'pointer',
-                width: '100%',
-              }}
-            >
-              <span className={`badge ${r.cls}`} style={{ fontSize: '0.65rem' }}>
-                {role === r.id ? '● Activo' : r.id.charAt(0).toUpperCase()}
-              </span>
-              <span style={{ fontSize: '0.78rem', color: role === r.id ? 'var(--brand-cyan)' : 'var(--text-secondary)' }}>
-                {r.label}
-              </span>
-            </button>
-          ))}
+      {/* Protocol Trust & Security Card */}
+      <div className="sidebar-section" style={{ marginTop: 'auto' }}>
+        <div style={{
+          padding: '12px',
+          background: 'linear-gradient(135deg, rgba(0,207,255,0.05) 0%, rgba(245,166,35,0.05) 100%)',
+          border: '1px solid rgba(0,207,255,0.12)',
+          borderRadius: '10px',
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '6px' }}>
+            <span style={{ width: 6, height: 6, borderRadius: '50%', background: 'var(--brand-emerald)', boxShadow: '0 0 6px var(--brand-emerald)' }} />
+            <span style={{ fontSize: '0.72rem', fontWeight: 600, color: 'var(--brand-cyan)' }}>Red AYNI Protocol L2</span>
+          </div>
+          <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)', lineHeight: 1.4 }}>
+            Escrow Inteligente Activo • Auditoría Criptográfica OTP
+          </div>
         </div>
       </div>
 

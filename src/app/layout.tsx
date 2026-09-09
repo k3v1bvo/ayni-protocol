@@ -3,9 +3,9 @@ import './globals.css';
 import { AuthProvider } from '@/context/AuthContext';
 
 export const metadata: Metadata = {
-  title: 'AYNI / MINKA — Plataforma P2P de Crowdshipping y Comercio',
-  description: 'Ecosistema descentralizado de logística colaborativa, marketplace de artesanías y remesas seguras. Buildathon ETH Bolivia 2026.',
-  keywords: ['crowdshipping', 'remesas', 'P2P', 'marketplace', 'artesanías', 'Bolivia', 'Base L2', 'Web3'],
+  title: 'AYNI — Protocolo Global P2P de Crowdshipping, Comercio & Herencias Cripto',
+  description: 'Plataforma descentralizada de logística colaborativa, marketplace de productos nativos y condimentos para la diáspora, y bóvedas de herencia protegidas por Smart Contracts.',
+  keywords: ['AYNI', 'crowdshipping', 'remesas', 'P2P', 'marketplace', 'condimentos', 'herencias cripto', 'smart contracts', 'Base L2', 'Web3'],
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

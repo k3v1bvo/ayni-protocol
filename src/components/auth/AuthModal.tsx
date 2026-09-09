@@ -96,13 +96,11 @@ export function AuthModal({ isOpen, onClose, initialMode = 'signin' }: AuthModal
 
         {/* Logo & Title */}
         <div style={{ textAlign: 'center', marginBottom: '24px' }}>
-          <div style={{ fontFamily: 'var(--font-display)', fontSize: '1.5rem', fontWeight: 800, marginBottom: '4px' }}>
+          <div style={{ fontFamily: 'var(--font-display)', fontSize: '1.75rem', fontWeight: 800, marginBottom: '4px' }}>
             <span className="gradient-text-gold">AYNI</span>
-            <span style={{ color: 'var(--text-muted)', fontWeight: 300, margin: '0 6px' }}>/</span>
-            <span className="gradient-text-cyan">MINKA</span>
           </div>
           <p style={{ color: 'var(--text-secondary)', fontSize: '0.875rem' }}>
-            {mode === 'signin' ? 'Bienvenido de vuelta a la red P2P' : 'Únete al ecosistema descentralizado'}
+            {mode === 'signin' ? 'Bienvenido de vuelta a la red P2P' : 'Crea tu cuenta en el ecosistema descentralizado'}
           </p>
         </div>
 
@@ -215,23 +213,10 @@ export function AuthModal({ isOpen, onClose, initialMode = 'signin' }: AuthModal
           </button>
         </form>
 
-        {/* Demo Quick Access */}
-        <div style={{ marginTop: '20px', paddingTop: '16px', borderTop: '1px solid var(--border-subtle)' }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', marginBottom: '10px', fontSize: '0.75rem', color: 'var(--brand-gold)' }}>
-            <Sparkles size={13} /> Acceso Demo (Hackathon ETH Bolivia 2026)
-          </div>
-          <div style={{ display: 'flex', gap: '8px', justifyContent: 'center' }}>
-            {ROLES.map(r => (
-              <button
-                key={r.id}
-                type="button"
-                onClick={() => handleDemo(r.id as UserRole)}
-                className={`badge ${r.id === 'client' ? 'badge-gold' : r.id === 'traveler' ? 'badge-cyan' : 'badge-emerald'}`}
-                style={{ cursor: 'pointer', border: 'none', padding: '6px 12px', fontSize: '0.75rem' }}
-              >
-                {r.emoji} {r.label}
-              </button>
-            ))}
+        {/* Security Trust Note */}
+        <div style={{ marginTop: '20px', paddingTop: '16px', borderTop: '1px solid var(--border-subtle)', textAlign: 'center' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+            <span>🔒 Protocolo seguro • Cifrado de extremo a extremo • Red Base L2</span>
           </div>
         </div>
       </div>

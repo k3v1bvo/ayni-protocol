@@ -6,6 +6,7 @@ import { Search, Filter, ShoppingBag, Heart, Star, MapPin, Package, Tag, Sparkle
 
 const CATEGORIES = [
   { id: 'all', label: 'Todos', icon: '🌎' },
+  { id: 'condiments', label: 'Condimentos & Sabores Patrios', icon: '🌶️' },
   { id: 'textiles', label: 'Textiles & Tejidos', icon: '🧶' },
   { id: 'medical', label: 'Insumos Médicos', icon: '💊' },
   { id: 'tech', label: 'Tecnología', icon: '📱' },
@@ -150,7 +151,91 @@ const PRODUCTS = [
     image: 'https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?w=400&h=300&fit=crop&q=80',
     tags: ['suplementos', 'omega3', 'vitaminas'],
     available_routes: 2,
-    description: 'Kit farmacéutico premium europeo. Certificado por la Agencia Europea de Medicamentos.',
+  },
+  {
+    id: 'P009',
+    title: 'Ají Amarillo & Panca en Vainas Deshidratadas (250g)',
+    store: 'Sabores & Especias del Valle',
+    storeLocation: 'Cochabamba, Bolivia',
+    storeRating: 4.96,
+    price: 14.50,
+    currency: 'USDC',
+    category: 'condiments',
+    origin: '🇧🇴 Bolivia',
+    weight: '0.25 kg',
+    inStock: true,
+    image: '/images/ayni_condiments_diaspora.jpg',
+    tags: ['ají amarillo', 'panca', 'diáspora', 'condimentos'],
+    available_routes: 6,
+    description: 'Vainas enteras deshidratadas al sol andino, seleccionadas a mano y selladas al vacío para conservar su pungencia y aroma natural. Especial para compatriotas en el exterior.',
+  },
+  {
+    id: 'P010',
+    title: 'Llajwa Artesanal Deshidratada con Quirquiña y Locoto (Pack x3)',
+    store: 'Tradiciones del Altiplano',
+    storeLocation: 'La Paz, Bolivia',
+    storeRating: 4.98,
+    price: 12.00,
+    currency: 'USDC',
+    category: 'condiments',
+    origin: '🇧🇴 Bolivia',
+    weight: '0.18 kg',
+    inStock: true,
+    image: '/images/ayni_condiments_diaspora.jpg',
+    tags: ['llajwa', 'locoto', 'quirquiña', 'nostalgia'],
+    available_routes: 8,
+    description: 'El auténtico sabor picante boliviano. Rehidrata en 30 segundos con agua tibia y aceite. Ideal para quienes extrañan la mesa familiar viviendo en Europa o América del Norte.',
+  },
+  {
+    id: 'P011',
+    title: 'Sal Rosada Ancestral de Salar con Finas Hierbas Andinas (400g)',
+    store: 'Uyuni Mineral Organics',
+    storeLocation: 'Potosí, Bolivia',
+    storeRating: 4.89,
+    price: 11.50,
+    currency: 'USDC',
+    category: 'condiments',
+    origin: '🇧🇴 Bolivia',
+    weight: '0.40 kg',
+    inStock: true,
+    image: '/images/ayni_condiments_diaspora.jpg',
+    tags: ['sal rosada', 'uyuni', 'especias', 'gourmet'],
+    available_routes: 4,
+    description: 'Cristales puros de sal extraídos de las profundidades del Salar de Uyuni mezclados con hierbas aromáticas de montaña. Frasco hermético con sello de seguridad aduanero.',
+  },
+  {
+    id: 'P012',
+    title: 'Pasta Concentrada de Rocoto & Huacatay Fresco (Frasco 250g)',
+    store: 'Especias Andinas Sin Fronteras',
+    storeLocation: 'Santa Cruz, Bolivia',
+    storeRating: 4.92,
+    price: 15.00,
+    currency: 'USDC',
+    category: 'condiments',
+    origin: '🇧🇴 Bolivia',
+    weight: '0.35 kg',
+    inStock: true,
+    image: '/images/ayni_condiments_diaspora.jpg',
+    tags: ['rocoto', 'huacatay', 'pasta', 'artesanal'],
+    available_routes: 5,
+    description: 'Base esencial para guisos, sopas y marinados típicos sudamericanos. Elaboración artesanal sin conservantes industriales, envasado al calor.',
+  },
+  {
+    id: 'P013',
+    title: 'Mix de Condimentos de la Chiquitanía (Comino, Palillo y Pipi de Mono)',
+    store: 'Especias del Oriente Boliviano',
+    storeLocation: 'Santa Cruz, Bolivia',
+    storeRating: 4.85,
+    price: 13.50,
+    currency: 'USDC',
+    category: 'condiments',
+    origin: '🇧🇴 Bolivia',
+    weight: '0.22 kg',
+    inStock: true,
+    image: '/images/ayni_condiments_diaspora.jpg',
+    tags: ['comino', 'pipi de mono', 'oriente', 'condimentos'],
+    available_routes: 4,
+    description: 'Especias nativas tostadas a fuego lento en fogón de leña. La mezcla perfecta para empanadas, carnes y asados con sazón 100% auténtica.',
   },
 ];
 
@@ -258,6 +343,72 @@ export default function MarketplacePage() {
           </button>
         ))}
       </div>
+
+      {/* Special Diaspora Spices Banner */}
+      {(selectedCategory === 'all' || selectedCategory === 'condiments') && (
+        <div style={{
+          marginBottom: '24px',
+          background: 'linear-gradient(135deg, rgba(245,166,35,0.08) 0%, rgba(255,77,109,0.05) 50%, rgba(0,207,255,0.05) 100%)',
+          border: '1px solid rgba(245,166,35,0.25)',
+          borderRadius: '16px',
+          padding: '20px 24px',
+          display: 'flex',
+          gap: '24px',
+          alignItems: 'center',
+          flexWrap: 'wrap',
+          position: 'relative',
+          overflow: 'hidden',
+        }}>
+          <div style={{
+            position: 'absolute',
+            right: '-40px',
+            top: '-40px',
+            width: '180px',
+            height: '180px',
+            borderRadius: '50%',
+            background: 'radial-gradient(circle, rgba(245,166,35,0.15) 0%, transparent 70%)',
+            pointerEvents: 'none',
+          }} />
+
+          <div style={{
+            width: '110px',
+            height: '80px',
+            borderRadius: '12px',
+            overflow: 'hidden',
+            flexShrink: 0,
+            border: '1px solid rgba(255,255,255,0.1)',
+            boxShadow: '0 4px 14px rgba(0,0,0,0.4)',
+          }}>
+            <img
+              src="/images/ayni_condiments_diaspora.jpg"
+              alt="Condimentos y Especias de Origen"
+              style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+            />
+          </div>
+
+          <div style={{ flex: '1', minWidth: '260px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
+              <span className="badge badge-gold" style={{ fontSize: '0.72rem' }}>🌶️ Especial Diáspora</span>
+              <span style={{ fontSize: '0.75rem', color: 'var(--brand-cyan)', fontWeight: 600 }}>Envíos Internacionales con Viajeros</span>
+            </div>
+            <div style={{ fontWeight: 700, fontSize: '1rem', color: 'var(--text-primary)', marginBottom: '4px' }}>
+              ¿Vives en el extranjero y extrañas los condimentos y sazones de tu país?
+            </div>
+            <p style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', lineHeight: 1.45, margin: 0 }}>
+              Encarga ají amarillo en vainas, llajwa deshidratada ancestral, locoto en polvo, sales minerales del salar y especias autóctonas envasadas al vacío y con sellos aduaneros. Un viajero las transporta seguro hasta tu ciudad en cualquier parte del mundo.
+            </p>
+          </div>
+
+          <button
+            type="button"
+            onClick={() => setSelectedCategory('condiments')}
+            className="btn btn-sm btn-gold"
+            style={{ flexShrink: 0 }}
+          >
+            Ver solo Condimentos 🌶️
+          </button>
+        </div>
+      )}
 
       {/* Results Count */}
       <div style={{ color: 'var(--text-muted)', fontSize: '0.82rem', marginBottom: '16px' }}>

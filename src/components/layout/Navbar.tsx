@@ -62,16 +62,12 @@ export function Navbar() {
             </div>
             <div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                <span style={{ fontSize: '1.35rem', fontWeight: 800, letterSpacing: '-0.02em' }} className="gradient-text-gold">
+                <span style={{ fontSize: '1.4rem', fontWeight: 800, letterSpacing: '-0.02em' }} className="gradient-text-gold">
                   AYNI
-                </span>
-                <span style={{ color: 'var(--text-muted)', fontWeight: 300 }}>/</span>
-                <span style={{ fontSize: '1.15rem', fontWeight: 700, color: 'var(--ayni-cyan)' }}>
-                  MINKA
                 </span>
               </div>
               <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)', letterSpacing: '0.08em', textTransform: 'uppercase' }}>
-                ETH Bolivia 2026 • Base L2
+                Protocolo Global P2P & Escrow
               </div>
             </div>
           </Link>
@@ -145,7 +141,7 @@ export function Navbar() {
                       </div>
 
                       <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', padding: '6px 8px' }}>
-                        Cambiar rol (Modo Demo):
+                        Cambiar perfil activo:
                       </div>
 
                       {(['traveler', 'client', 'merchant', 'admin'] as UserRole[]).map(r => (

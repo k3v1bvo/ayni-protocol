@@ -237,8 +237,9 @@ export default function DashboardPage() {
             <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
               {role === 'client' && [
                 { label: 'Nuevo pedido de compra a pie', href: '/dashboard/orders/new', color: 'var(--brand-cyan)' },
-                { label: 'Explorar marketplace', href: '/dashboard/marketplace', color: 'var(--brand-emerald)' },
-                { label: 'Ver rutas disponibles', href: '/dashboard/trips', color: 'var(--brand-gold)' },
+                { label: 'Condimentos & Sabores Patrios', href: '/dashboard/marketplace', color: 'var(--brand-gold)' },
+                { label: 'Ver rutas disponibles', href: '/dashboard/trips', color: 'var(--brand-cyan)' },
+                { label: 'Bóveda de Herencia Cripto (Heritage)', href: '/dashboard/heritage', color: 'var(--brand-purple)' },
               ].map((a, i) => (
                 <Link key={i} href={a.href} style={{
                   display: 'flex', alignItems: 'center', justifyContent: 'space-between',
