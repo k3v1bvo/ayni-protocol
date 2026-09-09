@@ -6,7 +6,7 @@ import Link from 'next/link';
 import { useAuth } from '@/context/AuthContext';
 import {
   LayoutDashboard, Plane, ShoppingBag, Package, ShieldCheck, BarChart3,
-  Store, Star, LogOut, Bell, Search, Menu, X, ChevronRight, Sparkles, Wallet, Settings
+  Store, Star, LogOut, Bell, Search, Menu, X, ChevronRight, Sparkles, Wallet, Settings, Gift, Users
 } from 'lucide-react';
 
 interface SidebarProps { mobileOpen: boolean; onClose: () => void; }
@@ -15,6 +15,7 @@ const NAV_ITEMS = {
   common: [
     { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
     { href: '/dashboard/marketplace', label: 'Marketplace', icon: Store },
+    { href: '/dashboard/remesas', label: 'Remesas & Regalos', icon: Gift },
   ],
   client: [
     { href: '/dashboard/orders', label: 'Mis Pedidos', icon: ShoppingBag },
@@ -33,7 +34,7 @@ const NAV_ITEMS = {
   ],
   admin: [
     { href: '/dashboard/reports', label: 'Reportes & IA', icon: BarChart3 },
-    { href: '/dashboard/users', label: 'Usuarios', icon: ShieldCheck },
+    { href: '/dashboard/users', label: 'Gestión Usuarios', icon: Users },
   ],
 };
 
@@ -41,6 +42,7 @@ function SidebarContent({ onClose }: { onClose?: () => void }) {
   const pathname = usePathname();
   const router = useRouter();
   const { user, role, signOut, setDemoUser } = useAuth();
+  const [showRoleMenu, setShowRoleMenu] = useState(false);
 
   const roleItems = NAV_ITEMS[role] || [];
 
@@ -109,8 +111,60 @@ function SidebarContent({ onClose }: { onClose?: () => void }) {
               </div>
             </div>
           </div>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <span className={getRoleBadgeClass()}>{getRoleLabel()}</span>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', position: 'relative' }}>
+            <button
+              type="button"
+              onClick={() => setShowRoleMenu(!showRoleMenu)}
+              className={getRoleBadgeClass()}
+              style={{ cursor: 'pointer', border: 'none', display: 'inline-flex', alignItems: 'center', gap: '4px' }}
+              title="Cambiar rol para probar permisos"
+            >
+              {getRoleLabel()} <ChevronRight size={12} style={{ transform: showRoleMenu ? 'rotate(90deg)' : 'none', transition: 'transform 0.2s' }} />
+            </button>
+
+            {showRoleMenu && (
+              <div style={{
+                position: 'absolute',
+                left: 0,
+                top: 'calc(100% + 6px)',
+                background: '#0a0f20',
+                border: '1px solid var(--border-default)',
+                borderRadius: '8px',
+                padding: '4px',
+                zIndex: 100,
+                width: '150px',
+                boxShadow: '0 10px 30px rgba(0,0,0,0.7)',
+              }}>
+                <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)', padding: '4px 8px' }}>
+                  Cambiar rol activo:
+                </div>
+                {(['client', 'traveler', 'merchant', 'admin'] as const).map(r => (
+                  <button
+                    key={r}
+                    type="button"
+                    onClick={() => { setDemoUser(r); setShowRoleMenu(false); }}
+                    style={{
+                      width: '100%',
+                      textAlign: 'left',
+                      padding: '6px 10px',
+                      background: role === r ? 'rgba(0,207,255,0.1)' : 'transparent',
+                      border: 'none',
+                      borderRadius: '4px',
+                      color: role === r ? 'var(--brand-cyan)' : 'var(--text-secondary)',
+                      fontSize: '0.78rem',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                    }}
+                  >
+                    <span>{r === 'client' ? 'Cliente' : r === 'traveler' ? 'Viajero' : r === 'merchant' ? 'Comercio' : 'Auditor'}</span>
+                    {role === r && <span style={{ fontSize: '0.7rem' }}>✓</span>}
+                  </button>
+                ))}
+              </div>
+            )}
+
             <span style={{ fontSize: '0.75rem', color: 'var(--brand-gold)', fontWeight: 600 }}>
               ★ {user.reputation_score?.toFixed(1)}
             </span>

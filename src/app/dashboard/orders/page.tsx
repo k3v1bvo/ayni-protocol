@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
+import Link from 'next/link';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { verifyOtpCode } from '@/lib/utils/otp';
 import {
@@ -97,14 +98,14 @@ export default function OrdersPage() {
 
   return (
     <DashboardLayout>
-      <div className="page-header">
+      <div className="page-header" style={{ flexWrap: 'wrap', gap: '14px' }}>
         <div className="page-title-group">
           <div className="page-title">Gestión de Pedidos</div>
           <div className="page-subtitle">Encargos activos, en tránsito y completados con validación OTP</div>
         </div>
-        <button className="btn btn-primary">
+        <Link href="/dashboard/orders/new" className="btn btn-primary" style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
           <Package size={16} /> Nuevo Pedido
-        </button>
+        </Link>
       </div>
 
       {/* Filter Tabs */}
@@ -231,7 +232,7 @@ export default function OrdersPage() {
                         <KeyRound size={18} /> Código OTP de Entrega (6 dígitos)
                       </div>
 
-                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
+                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '20px' }}>
                         {/* Buyer side */}
                         <div>
                           <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginBottom: '8px' }}>

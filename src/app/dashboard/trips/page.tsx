@@ -1,12 +1,14 @@
 'use client';
 
 import React, { useState } from 'react';
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { calculateOrderFees } from '@/lib/constants/fees';
 import { useAuth } from '@/context/AuthContext';
 import {
   Plane, Search, Filter, MapPin, Weight, Calendar, Star, Plus,
-  ChevronRight, ArrowRight, Clock, Shield, CheckCircle2
+  ChevronRight, ArrowRight, Clock, Shield, CheckCircle2, X
 } from 'lucide-react';
 
 const TRIPS_DATA = [
@@ -73,13 +75,27 @@ const TRIPS_DATA = [
 ];
 
 export default function TripsPage() {
+  const router = useRouter();
   const { role } = useAuth();
   const [search, setSearch] = useState('');
   const [selectedTrip, setSelectedTrip] = useState<typeof TRIPS_DATA[0] | null>(null);
   const [orderKg, setOrderKg] = useState(2);
   const [orderAmount, setOrderAmount] = useState(200);
+  const [submittingOrder, setSubmittingOrder] = useState(false);
+  const [orderCreatedNotice, setOrderCreatedNotice] = useState<string | null>(null);
 
   const fee = calculateOrderFees(orderAmount);
+
+  const handleCreateOrder = async () => {
+    setSubmittingOrder(true);
+    await new Promise(r => setTimeout(r, 1000));
+    const randomTx = '0x' + Array.from({ length: 64 }, () => Math.floor(Math.random() * 16).toString(16)).join('');
+    setSubmittingOrder(false);
+    setOrderCreatedNotice(randomTx);
+    setTimeout(() => {
+      router.push('/dashboard/orders');
+    }, 1800);
+  };
 
   const filtered = TRIPS_DATA.filter(t =>
     !search ||
@@ -95,7 +111,7 @@ export default function TripsPage() {
 
   return (
     <DashboardLayout>
-      <div className="page-header">
+      <div className="page-header" style={{ flexWrap: 'wrap', gap: '14px' }}>
         <div className="page-title-group">
           <div className="page-title">
             {role === 'traveler' ? 'Encargos Disponibles' : 'Rutas y Viajeros Disponibles'}
@@ -106,11 +122,9 @@ export default function TripsPage() {
               : 'Elige un viajero verificado y envía tu pedido o compra asistida'}
           </div>
         </div>
-        {role === 'traveler' && (
-          <button className="btn btn-primary">
-            <Plus size={16} /> Publicar mi Ruta
-          </button>
-        )}
+        <Link href="/dashboard/my-trips/new" className="btn btn-primary" style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
+          <Plus size={16} /> Publicar mi Ruta
+        </Link>
       </div>
 
       {/* Search bar */}
@@ -313,12 +327,46 @@ export default function TripsPage() {
               </div>
             </div>
 
-            <button className="btn btn-primary" style={{ width: '100%', padding: '12px' }}>
-              <Shield size={16} /> Crear Encargo y Bloquear Fondos
-            </button>
-            <button type="button" className="btn btn-ghost btn-sm" style={{ width: '100%', marginTop: '8px' }} onClick={() => setSelectedTrip(null)}>
-              Cancelar
-            </button>
+            {orderCreatedNotice ? (
+              <div style={{ background: 'rgba(0,214,143,0.1)', border: '1px solid rgba(0,214,143,0.3)', borderRadius: '10px', padding: '16px', textAlign: 'center' }}>
+                <CheckCircle2 size={32} color="var(--brand-emerald)" style={{ margin: '0 auto 8px' }} />
+                <div style={{ fontWeight: 700, color: 'var(--text-primary)', fontSize: '0.95rem' }}>¡Encargo Registrado en Escrow!</div>
+                <div style={{ fontSize: '0.72rem', color: 'var(--brand-cyan)', fontFamily: 'monospace', wordBreak: 'break-all', marginTop: '4px' }}>
+                  Tx: {orderCreatedNotice}
+                </div>
+                <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '8px' }}>
+                  Redirigiendo a Mis Pedidos...
+                </div>
+              </div>
+            ) : (
+              <>
+                <button
+                  type="button"
+                  onClick={handleCreateOrder}
+                  disabled={submittingOrder}
+                  className="btn btn-primary"
+                  style={{ width: '100%', padding: '12px', justifyContent: 'center' }}
+                >
+                  {submittingOrder ? (
+                    <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <span className="spinner" /> Bloqueando Fondos en Escrow...
+                    </span>
+                  ) : (
+                    <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <Shield size={16} /> Crear Encargo y Bloquear Fondos
+                    </span>
+                  )}
+                </button>
+                <button
+                  type="button"
+                  className="btn btn-ghost btn-sm"
+                  style={{ width: '100%', marginTop: '8px' }}
+                  onClick={() => setSelectedTrip(null)}
+                >
+                  Cancelar
+                </button>
+              </>
+            )}
           </div>
         )}
       </div>

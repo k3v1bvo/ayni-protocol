@@ -3,6 +3,8 @@
 import React, { useState } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { AppSidebar } from '@/components/layout/Sidebar';
+import { BottomNav } from '@/components/layout/BottomNav';
+import { CartDrawer } from '@/components/marketplace/CartDrawer';
 import { Bell, Search, Menu } from 'lucide-react';
 
 export function DashboardLayout({ children }: { children: React.ReactNode }) {
@@ -24,16 +26,16 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
         <div className="topbar">
           <button
             type="button"
-            className="btn btn-ghost btn-sm"
+            className="btn btn-ghost btn-sm mobile-menu-trigger"
             onClick={() => setMobileOpen(true)}
-            style={{ display: 'none' }}
             id="mobile-menu-btn"
+            aria-label="Abrir menú"
           >
-            <Menu size={18} />
+            <Menu size={20} />
           </button>
 
           {/* Search */}
-          <div style={{ flex: 1, maxWidth: 420 }}>
+          <div className="topbar-search" style={{ flex: 1, maxWidth: 420 }}>
             <div className="input-icon-wrap">
               <Search size={16} className="input-icon" />
               <input
@@ -48,7 +50,12 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginLeft: 'auto' }}>
             {/* Notifications */}
             <div style={{ position: 'relative' }}>
-              <button type="button" className="btn btn-ghost btn-sm" style={{ padding: '8px' }}>
+              <button
+                type="button"
+                className="btn btn-ghost btn-sm"
+                style={{ padding: '8px' }}
+                onClick={() => alert('Tienes 3 notificaciones activas: 1 entrega verificada por IA, 1 remesa liberada y 1 encargo disponible en tu ruta.')}
+              >
                 <Bell size={18} />
               </button>
               <span className="notif-dot" style={{ position: 'absolute', top: '-4px', right: '-4px' }}>3</span>
@@ -93,6 +100,12 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
           {children}
         </div>
       </div>
+
+      {/* Cart Drawer */}
+      <CartDrawer />
+
+      {/* Mobile Bottom Navigation Bar */}
+      <BottomNav />
     </div>
   );
 }

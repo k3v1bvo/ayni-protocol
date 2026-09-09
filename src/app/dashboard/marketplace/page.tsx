@@ -1,8 +1,10 @@
 'use client';
 
 import React, { useState } from 'react';
+import Link from 'next/link';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
-import { Search, Filter, ShoppingBag, Heart, Star, MapPin, Package, Tag, Sparkles, ChevronDown, Plus } from 'lucide-react';
+import { useCart } from '@/context/CartContext';
+import { Search, Filter, ShoppingBag, Heart, Star, MapPin, Package, Tag, Sparkles, ChevronDown, Plus, Check, X, ShieldCheck, ArrowRight } from 'lucide-react';
 
 const CATEGORIES = [
   { id: 'all', label: 'Todos', icon: '🌎' },
@@ -240,10 +242,13 @@ const PRODUCTS = [
 ];
 
 export default function MarketplacePage() {
+  const { addItem, totalItems, setIsCartOpen } = useCart();
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [searchTerm, setSearchTerm] = useState('');
   const [wishlist, setWishlist] = useState<Set<string>>(new Set());
   const [sortBy, setSortBy] = useState<'price_asc' | 'price_desc' | 'rating' | 'routes'>('routes');
+  const [selectedProduct, setSelectedProduct] = useState<typeof PRODUCTS[0] | null>(null);
+  const [addedItemNotice, setAddedItemNotice] = useState<string | null>(null);
 
   const toggleWishlist = (id: string) => {
     setWishlist(prev => {
@@ -252,6 +257,20 @@ export default function MarketplacePage() {
       else next.add(id);
       return next;
     });
+  };
+
+  const handleAddToCart = (product: typeof PRODUCTS[0]) => {
+    addItem({
+      id: product.id,
+      title: product.title,
+      price: product.price,
+      origin_city: product.origin,
+      weight_kg: parseFloat(product.weight) || 0.5,
+      image_url: product.image,
+      category: product.category,
+    });
+    setAddedItemNotice(product.title);
+    setTimeout(() => setAddedItemNotice(null), 2500);
   };
 
   const filtered = PRODUCTS
@@ -266,8 +285,31 @@ export default function MarketplacePage() {
 
   return (
     <DashboardLayout>
+      {/* Toast feedback when adding item */}
+      {addedItemNotice && (
+        <div style={{
+          position: 'fixed',
+          bottom: '24px',
+          right: '24px',
+          background: '#0d1629',
+          border: '1px solid var(--border-cyan)',
+          boxShadow: '0 10px 30px rgba(0,0,0,0.6)',
+          borderRadius: '12px',
+          padding: '12px 20px',
+          zIndex: 100,
+          display: 'flex',
+          alignItems: 'center',
+          gap: '10px',
+          color: 'var(--text-primary)',
+          fontSize: '0.85rem',
+        }}>
+          <Check size={16} color="var(--brand-cyan)" />
+          <span>¡<strong>{addedItemNotice}</strong> añadido al carrito!</span>
+        </div>
+      )}
+
       {/* Header */}
-      <div className="page-header">
+      <div className="page-header" style={{ flexWrap: 'wrap', gap: '16px' }}>
         <div className="page-title-group">
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '4px' }}>
             <div className="page-title">Marketplace AYNI</div>
@@ -276,12 +318,23 @@ export default function MarketplacePage() {
             </span>
           </div>
           <div className="page-subtitle">
-            Artesanías, insumos médicos, tecnología y más — Compra con viajeros verificados
+            Artesanías, insumos médicos, tecnología y condimentos patrios — Compra protegida por Escrow
           </div>
         </div>
-        <button className="btn btn-gold">
-          <Plus size={16} /> Publicar Producto
-        </button>
+
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
+          <button
+            type="button"
+            onClick={() => setIsCartOpen(true)}
+            className="btn btn-primary"
+            style={{ display: 'flex', alignItems: 'center', gap: '8px' }}
+          >
+            <ShoppingBag size={16} /> Ver Carrito ({totalItems})
+          </button>
+          <Link href="/dashboard/products/new" className="btn btn-gold">
+            <Plus size={16} /> Publicar Producto
+          </Link>
+        </div>
       </div>
 
       {/* Search & Filters Bar */}
@@ -502,14 +555,21 @@ export default function MarketplacePage() {
               <div style={{ display: 'flex', gap: '8px', marginTop: '4px' }}>
                 <button
                   type="button"
+                  onClick={() => handleAddToCart(product)}
                   className="btn btn-primary btn-sm"
                   disabled={!product.inStock}
                   style={{ flex: 1, opacity: product.inStock ? 1 : 0.5 }}
                 >
                   <ShoppingBag size={14} />
-                  {product.inStock ? 'Encargar' : 'Sin stock'}
+                  {product.inStock ? 'Añadir al Carrito' : 'Sin stock'}
                 </button>
-                <button type="button" className="btn btn-ghost btn-sm" style={{ padding: '7px 10px' }}>
+                <button
+                  type="button"
+                  onClick={() => setSelectedProduct(product)}
+                  className="btn btn-ghost btn-sm"
+                  style={{ padding: '7px 10px' }}
+                  title="Ver detalles de origen y trazabilidad"
+                >
                   <Package size={14} />
                 </button>
               </div>
@@ -526,6 +586,92 @@ export default function MarketplacePage() {
             Intenta con otra categoría o término de búsqueda
           </div>
         </div>
+      )}
+
+      {/* Product Details & Escrow Modal */}
+      {selectedProduct && (
+        <>
+          <div className="cart-overlay" onClick={() => setSelectedProduct(null)} />
+          <div className="modal-content" style={{ maxWidth: '520px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '16px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <span className="badge badge-gold">Trazabilidad de Origen</span>
+                <span className="badge badge-cyan">{selectedProduct.origin}</span>
+              </div>
+              <button
+                type="button"
+                onClick={() => setSelectedProduct(null)}
+                className="btn btn-ghost btn-sm"
+                style={{ width: 32, height: 32, borderRadius: '50%', padding: 0 }}
+              >
+                <X size={16} />
+              </button>
+            </div>
+
+            <div style={{ borderRadius: '12px', overflow: 'hidden', height: '180px', marginBottom: '16px', border: '1px solid var(--border-default)' }}>
+              <img
+                src={selectedProduct.image}
+                alt={selectedProduct.title}
+                style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+              />
+            </div>
+
+            <h3 style={{ fontSize: '1.2rem', fontWeight: 800, color: 'var(--text-primary)', marginBottom: '6px' }}>
+              {selectedProduct.title}
+            </h3>
+
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '12px' }}>
+              <span>Tienda: <strong>{selectedProduct.store}</strong></span>
+              <span>•</span>
+              <span style={{ color: 'var(--brand-gold)' }}>★ {selectedProduct.storeRating}</span>
+              <span>•</span>
+              <span>Peso: {selectedProduct.weight}</span>
+            </div>
+
+            <p style={{ fontSize: '0.875rem', color: 'var(--text-secondary)', lineHeight: 1.5, marginBottom: '16px' }}>
+              {selectedProduct.description}
+            </p>
+
+            <div style={{ background: 'rgba(0, 207, 255, 0.05)', border: '1px solid var(--border-cyan)', borderRadius: '10px', padding: '12px', marginBottom: '20px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.8rem', fontWeight: 700, color: 'var(--brand-cyan)', marginBottom: '4px' }}>
+                <ShieldCheck size={16} /> Protección de Escrow AYNI
+              </div>
+              <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', lineHeight: 1.4 }}>
+                Tu pago queda protegido en un Smart Contract hasta que el viajero te entregue el producto físico y confirmes el código OTP de verificación.
+              </div>
+            </div>
+
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingTop: '12px', borderTop: '1px solid var(--border-subtle)' }}>
+              <div>
+                <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Precio unitario:</div>
+                <div style={{ fontSize: '1.35rem', fontWeight: 800, color: 'var(--brand-gold)' }}>
+                  ${selectedProduct.price.toFixed(2)} USDC
+                </div>
+              </div>
+
+              <div style={{ display: 'flex', gap: '10px' }}>
+                <button
+                  type="button"
+                  onClick={() => setSelectedProduct(null)}
+                  className="btn btn-outline"
+                >
+                  Cerrar
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    handleAddToCart(selectedProduct);
+                    setSelectedProduct(null);
+                  }}
+                  className="btn btn-primary"
+                  style={{ display: 'flex', alignItems: 'center', gap: '6px' }}
+                >
+                  <ShoppingBag size={15} /> Añadir al Carrito
+                </button>
+              </div>
+            </div>
+          </div>
+        </>
       )}
     </DashboardLayout>
   );

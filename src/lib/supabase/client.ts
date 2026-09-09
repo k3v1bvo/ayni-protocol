@@ -18,3 +18,6 @@ export function getSupabaseBrowserClient() {
   }
   return browserClient;
 }
+
+export const supabase = getSupabaseBrowserClient();
+
