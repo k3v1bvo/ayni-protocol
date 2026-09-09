@@ -22,31 +22,37 @@ DECLARE
 BEGIN
 
     -- 2. INSERTAR USUARIOS EN auth.users (Contraseña: Password123!)
-    -- Nota: Supabase Auth usa bcrypt en encrypted_password
+    -- Nota: Supabase Auth usa bcrypt en encrypted_password y requiere raw_app_meta_data
     INSERT INTO auth.users (
-        id, instance_id, aud, role, email, encrypted_password, email_confirmed_at, raw_user_meta_data, created_at, updated_at
+        id, instance_id, aud, role, email, encrypted_password, email_confirmed_at, raw_app_meta_data, raw_user_meta_data, created_at, updated_at
     ) VALUES 
     (
         client_uuid, '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated',
         'cliente@ayni.app', crypt('Password123!', gen_salt('bf')), now(),
+        '{"provider": "email", "providers": ["email"]}'::jsonb,
         '{"full_name": "Ana María Quispe", "role": "client"}'::jsonb, now(), now()
     ),
     (
         traveler_uuid, '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated',
         'viajero@ayni.app', crypt('Password123!', gen_salt('bf')), now(),
+        '{"provider": "email", "providers": ["email"]}'::jsonb,
         '{"full_name": "Alejandro Mamani", "role": "traveler"}'::jsonb, now(), now()
     ),
     (
         merchant_uuid, '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated',
         'comercio@ayni.app', crypt('Password123!', gen_salt('bf')), now(),
+        '{"provider": "email", "providers": ["email"]}'::jsonb,
         '{"full_name": "Demetrio Flores (Sabores & Artesanías)", "role": "merchant"}'::jsonb, now(), now()
     ),
     (
         admin_uuid, '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated',
         'admin@ayni.app', crypt('Password123!', gen_salt('bf')), now(),
+        '{"provider": "email", "providers": ["email"]}'::jsonb,
         '{"full_name": "Auditor Oficial AYNI", "role": "admin"}'::jsonb, now(), now()
     )
-    ON CONFLICT (id) DO NOTHING;
+    ON CONFLICT (id) DO UPDATE SET
+        raw_app_meta_data = EXCLUDED.raw_app_meta_data,
+        encrypted_password = EXCLUDED.encrypted_password;
 
     -- 3. ACTUALIZAR DETALLES EN public.profiles
     INSERT INTO public.profiles (id, full_name, email, role, phone, country, reputation_score, guarantee_balance, verified_id, wallet_address)

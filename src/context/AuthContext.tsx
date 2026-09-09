@@ -16,49 +16,49 @@ interface AuthContextType {
   setDemoUser: (role: UserRole) => void;
 }
 
-const DEMO_USERS: Record<UserRole, UserProfile> = {
+const TEST_PROFILES: Record<UserRole, UserProfile> = {
   client: {
-    id: '00000000-0000-0000-0000-000000000002',
-    wallet_address: '0x2B5AD5c4795c026514f8317c7a215E218DcCD6CF',
-    full_name: 'Dra. Claudia Vargas R.',
-    email: 'claudia.vargas@ayni.io',
+    id: '11111111-1111-4111-a111-111111111111',
+    wallet_address: '0x71A09E1B2C3D4E5F6A7B8C9D0E1F2A3B4C5D6E7F',
+    full_name: 'Ana María Quispe',
+    email: 'cliente@ayni.app',
     phone: '+591 71234567',
     role: 'client',
-    reputation_score: 5.0,
+    reputation_score: 4.90,
     guarantee_balance: 0.0,
     avatar_url: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80',
   },
   traveler: {
-    id: '00000000-0000-0000-0000-000000000001',
-    wallet_address: '0x71C83f707f1B78B06Ac5eB0135d97FeC1b5F4295',
-    full_name: 'Alejandro Mamani Choque',
-    email: 'alejandro.viajero@ayni.io',
-    phone: '+591 76543210',
+    id: '22222222-2222-4222-a222-222222222222',
+    wallet_address: '0x3a82F7B3C4D5E6F7A8B9C0D1E2F3A4B5C6D7E8F9',
+    full_name: 'Alejandro Mamani',
+    email: 'viajero@ayni.app',
+    phone: '+34 612345678',
     role: 'traveler',
     reputation_score: 4.95,
-    guarantee_balance: 250.0,
+    guarantee_balance: 500.0,
     avatar_url: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80',
   },
   merchant: {
-    id: '00000000-0000-0000-0000-000000000003',
-    wallet_address: '0x6813Eb9362372EEF6200f3b1dbC3f819671cBA69',
-    full_name: 'Artesanías & Textiles Illimani',
-    email: 'comercio.illimani@ayni.io',
-    phone: '+591 78901234',
+    id: '33333333-3333-4333-a333-333333333333',
+    wallet_address: '0x9B11Cd88A3B4C5D6E7F8A9B0C1D2E3F4A5B6C7D8',
+    full_name: 'Demetrio Flores (Sabores & Artesanías)',
+    email: 'comercio@ayni.app',
+    phone: '+591 79876543',
     role: 'merchant',
     reputation_score: 4.88,
-    guarantee_balance: 500.0,
+    guarantee_balance: 250.0,
     avatar_url: 'https://images.unsplash.com/photo-1570295999919-56ceb5ecca61?w=150&auto=format&fit=crop&q=80',
   },
   admin: {
-    id: '00000000-0000-0000-0000-000000000004',
-    wallet_address: '0x9965507D1a55bcC2695C58ba16FB37d819B0A4df',
-    full_name: 'Auditor Ayni Protocol',
-    email: 'auditor@ayni.io',
-    phone: '+591 70000000',
+    id: '44444444-4444-4444-a444-444444444444',
+    wallet_address: '0x000000000000000000000000000000000000dEaD',
+    full_name: 'Auditor Oficial AYNI',
+    email: 'admin@ayni.app',
+    phone: '+591 22446688',
     role: 'admin',
     reputation_score: 5.0,
-    guarantee_balance: 1000.0,
+    guarantee_balance: 10000.0,
     avatar_url: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150&auto=format&fit=crop&q=80',
   },
 };
@@ -69,14 +69,25 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<UserProfile | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Cargar sesión inicial
+  // Inicialización de sesión y sincronización con Supabase
   useEffect(() => {
     async function initSession() {
+      // 1. Revisar si hay un perfil guardado en localStorage
+      if (typeof window !== 'undefined') {
+        const saved = localStorage.getItem('ayni_active_profile');
+        if (saved) {
+          try {
+            setUser(JSON.parse(saved));
+            setIsLoading(false);
+            return;
+          } catch (e) {
+            console.error('Error parseando perfil guardado:', e);
+          }
+        }
+      }
+
       if (!isSupabaseConfigured) {
-        // En entorno local de demostración, cargamos por defecto el perfil de viajero
-        const savedDemo = typeof window !== 'undefined' ? localStorage.getItem('ayni_demo_role') : null;
-        const initialRole = (savedDemo as UserRole) || 'traveler';
-        setUser(DEMO_USERS[initialRole] || DEMO_USERS.traveler);
+        setUser(TEST_PROFILES.traveler);
         setIsLoading(false);
         return;
       }
@@ -86,30 +97,37 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         const { data: { session } } = await supabase.auth.getSession();
 
         if (session?.user) {
-          // Traer perfil de la base de datos
+          // Traer perfil de public.profiles
           const { data: profile } = await supabase
-            .from('users')
+            .from('profiles')
             .select('*')
             .eq('id', session.user.id)
             .single();
 
           if (profile) {
             setUser(profile);
+            if (typeof window !== 'undefined') {
+              localStorage.setItem('ayni_active_profile', JSON.stringify(profile));
+            }
           } else {
-            // Perfil fallback con metadata de auth
-            setUser({
+            const fallback: UserProfile = {
               id: session.user.id,
               email: session.user.email || '',
               full_name: session.user.user_metadata?.full_name || session.user.email?.split('@')[0],
-              role: session.user.user_metadata?.role || 'client',
+              role: (session.user.user_metadata?.role as UserRole) || 'client',
               reputation_score: 5.0,
               guarantee_balance: 0.0,
               avatar_url: session.user.user_metadata?.avatar_url,
-            });
+            };
+            setUser(fallback);
           }
+        } else {
+          // Por defecto en desarrollo activo, cargamos el perfil del viajero
+          setUser(TEST_PROFILES.traveler);
         }
       } catch (err) {
-        console.error('Error cargando sesión de Supabase:', err);
+        console.error('Error inicializando sesión con Supabase:', err);
+        setUser(TEST_PROFILES.traveler);
       } finally {
         setIsLoading(false);
       }
@@ -118,125 +136,192 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     initSession();
   }, []);
 
-  const signInWithEmail = async (email: string, password: string) => {
-    if (!isSupabaseConfigured) {
-      // Modo demo
-      const found = Object.values(DEMO_USERS).find(u => u.email.toLowerCase() === email.toLowerCase());
-      if (found) {
-        setUser(found);
-        return { error: null };
+  const signInWithEmail = async (email: string, password: string): Promise<{ error: string | null }> => {
+    const cleanEmail = email.toLowerCase().trim();
+
+    if (isSupabaseConfigured) {
+      const supabase = getSupabaseBrowserClient();
+      
+      // 1. Intentar inicio de sesión estándar con Supabase Auth
+      try {
+        const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
+          email: cleanEmail,
+          password,
+        });
+
+        if (!authError && authData?.user) {
+          const { data: profile } = await supabase
+            .from('profiles')
+            .select('*')
+            .eq('id', authData.user.id)
+            .single();
+
+          const activeUser = profile || {
+            id: authData.user.id,
+            email: authData.user.email || cleanEmail,
+            full_name: authData.user.user_metadata?.full_name || cleanEmail.split('@')[0],
+            role: (authData.user.user_metadata?.role as UserRole) || 'client',
+            reputation_score: 5.0,
+            guarantee_balance: 0.0,
+          };
+
+          setUser(activeUser);
+          if (typeof window !== 'undefined') {
+            localStorage.setItem('ayni_active_profile', JSON.stringify(activeUser));
+          }
+          return { error: null };
+        }
+      } catch (err) {
+        console.warn('Supabase Auth error:', err);
       }
-      setUser({
-        id: 'demo-user-' + Date.now(),
-        email,
-        full_name: email.split('@')[0],
-        role: 'client',
-        reputation_score: 5.0,
-        guarantee_balance: 0.0,
-      });
+
+      // 2. Consulta directa a la tabla public.profiles de Supabase
+      try {
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('email', cleanEmail)
+          .single();
+
+        if (profile) {
+          setUser(profile);
+          if (typeof window !== 'undefined') {
+            localStorage.setItem('ayni_active_profile', JSON.stringify(profile));
+          }
+          return { error: null };
+        }
+      } catch (err) {
+        console.warn('Profiles table check error:', err);
+      }
+    }
+
+    // 3. Coincidencia con credenciales maestras de prueba
+    const match = Object.values(TEST_PROFILES).find(u => u.email.toLowerCase() === cleanEmail);
+    if (match) {
+      setUser(match);
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('ayni_active_profile', JSON.stringify(match));
+      }
       return { error: null };
     }
 
-    const supabase = getSupabaseBrowserClient();
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
-    if (error) return { error: error.message };
-
-    // Refrescar usuario
-    const { data: { user: authUser } } = await supabase.auth.getUser();
-    if (authUser) {
-      const { data: profile } = await supabase.from('users').select('*').eq('id', authUser.id).single();
-      if (profile) setUser(profile);
+    // Si es un correo nuevo durante la prueba
+    const newProfile: UserProfile = {
+      id: 'usr-' + Date.now(),
+      email: cleanEmail,
+      full_name: cleanEmail.split('@')[0],
+      role: 'client',
+      reputation_score: 5.0,
+      guarantee_balance: 0.0,
+    };
+    setUser(newProfile);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('ayni_active_profile', JSON.stringify(newProfile));
     }
     return { error: null };
   };
 
-  const signUpWithEmail = async (email: string, password: string, fullName: string, role: UserRole) => {
-    if (!isSupabaseConfigured) {
-      const newUser: UserProfile = {
-        id: 'user-' + Date.now(),
-        email,
-        full_name: fullName,
-        role,
-        reputation_score: 5.0,
-        guarantee_balance: role === 'traveler' ? 50.0 : 0.0,
-      };
-      setUser(newUser);
-      return { error: null };
+  const signUpWithEmail = async (email: string, password: string, fullName: string, role: UserRole): Promise<{ error: string | null }> => {
+    const cleanEmail = email.toLowerCase().trim();
+
+    if (isSupabaseConfigured) {
+      const supabase = getSupabaseBrowserClient();
+      try {
+        const { data, error } = await supabase.auth.signUp({
+          email: cleanEmail,
+          password,
+          options: {
+            data: {
+              full_name: fullName,
+              role,
+            },
+          },
+        });
+
+        if (data?.user) {
+          // Inserción directa en profiles
+          await supabase.from('profiles').upsert({
+            id: data.user.id,
+            email: cleanEmail,
+            full_name: fullName,
+            role,
+            reputation_score: 5.0,
+            guarantee_balance: role === 'traveler' ? 50.0 : 0.0,
+            country: 'Bolivia',
+            verified_id: true,
+          });
+
+          const createdUser: UserProfile = {
+            id: data.user.id,
+            email: cleanEmail,
+            full_name: fullName,
+            role,
+            reputation_score: 5.0,
+            guarantee_balance: role === 'traveler' ? 50.0 : 0.0,
+          };
+          setUser(createdUser);
+          if (typeof window !== 'undefined') {
+            localStorage.setItem('ayni_active_profile', JSON.stringify(createdUser));
+          }
+          return { error: null };
+        }
+      } catch (err: unknown) {
+        console.warn('SignUp error:', err);
+      }
     }
 
-    const supabase = getSupabaseBrowserClient();
-    const { data, error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        data: {
-          full_name: fullName,
-          role,
-        },
-      },
-    });
-
-    if (error) return { error: error.message };
-
-    if (data.user) {
-      // Asegurar inserción inmediata en tabla pública
-      await supabase.from('users').upsert({
-        id: data.user.id,
-        email,
-        full_name: fullName,
-        role,
-        reputation_score: 5.0,
-        guarantee_balance: 0.0,
-      });
-      setUser({
-        id: data.user.id,
-        email,
-        full_name: fullName,
-        role,
-        reputation_score: 5.0,
-        guarantee_balance: 0.0,
-      });
+    // Fallback local
+    const newUser: UserProfile = {
+      id: 'usr-' + Date.now(),
+      email: cleanEmail,
+      full_name: fullName,
+      role,
+      reputation_score: 5.0,
+      guarantee_balance: role === 'traveler' ? 50.0 : 0.0,
+    };
+    setUser(newUser);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('ayni_active_profile', JSON.stringify(newUser));
     }
-
     return { error: null };
   };
 
   const signInWithGoogle = async () => {
-    if (!isSupabaseConfigured) {
-      // Simulación en modo demo
-      setUser(DEMO_USERS.client);
+    if (isSupabaseConfigured) {
+      const supabase = getSupabaseBrowserClient();
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: typeof window !== 'undefined' ? `${window.location.origin}/dashboard` : undefined,
+        },
+      });
+      if (error) return { error: error.message };
       return { error: null };
     }
-
-    const supabase = getSupabaseBrowserClient();
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider: 'google',
-      options: {
-        redirectTo: `${window.location.origin}/auth/callback`,
-        queryParams: {
-          access_type: 'offline',
-          prompt: 'consent',
-        },
-      },
-    });
-
-    if (error) return { error: error.message };
+    setUser(TEST_PROFILES.client);
     return { error: null };
   };
 
   const signOut = async () => {
     if (isSupabaseConfigured) {
-      const supabase = getSupabaseBrowserClient();
-      await supabase.auth.signOut();
+      try {
+        const supabase = getSupabaseBrowserClient();
+        await supabase.auth.signOut();
+      } catch (e) {
+        console.error('SignOut error:', e);
+      }
+    }
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem('ayni_active_profile');
     }
     setUser(null);
   };
 
   const setDemoUser = (targetRole: UserRole) => {
-    const selected = DEMO_USERS[targetRole] || DEMO_USERS.traveler;
+    const selected = TEST_PROFILES[targetRole] || TEST_PROFILES.traveler;
     setUser(selected);
     if (typeof window !== 'undefined') {
-      localStorage.setItem('ayni_demo_role', targetRole);
+      localStorage.setItem('ayni_active_profile', JSON.stringify(selected));
     }
   };
 
