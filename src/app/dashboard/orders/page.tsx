@@ -220,7 +220,14 @@ export default function OrdersPage() {
                       <div style={{ fontWeight: 800, fontSize: '1.15rem', color: 'var(--brand-gold)' }}>${order.total_escrow_usd?.toFixed(2)}</div>
                       <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>Total Escrow</div>
                     </div>
-                    <div style={{ display: 'flex', gap: '6px' }}>
+                    <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+                      <Link 
+                        href={`/dashboard/tracking/${order.order_code || order.id}`} 
+                        className="btn btn-ghost btn-sm" 
+                        style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '0.75rem', color: 'var(--brand-cyan)' }}
+                      >
+                        <Truck size={13} /> Tracking
+                      </Link>
                       <button type="button" onClick={() => setDetailOrder(order)} className="btn btn-ghost btn-sm" style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
                         <Eye size={13} /> Detalle
                       </button>

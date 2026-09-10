@@ -5,9 +5,10 @@ import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import {
   ShieldCheck, HeartPulse, Users, Clock, Plus, CheckCircle2,
   Copy, ExternalLink, AlertTriangle, Sparkles, Key, Lock, RefreshCw, X,
-  ArrowUpRight, Trash2, ShieldAlert, Cpu, Activity, History, Sliders
+  ArrowUpRight, Trash2, ShieldAlert, Cpu, Activity, History, Sliders, Wifi
 } from 'lucide-react';
 import { sanitizeText, sanitizeEmail, sanitizeAmount } from '@/lib/utils/sanitizer';
+import { TangemConnector } from '@/components/web3/TangemConnector';
 
 interface Beneficiary {
   id: string;
@@ -76,6 +77,7 @@ export default function HeritagePage() {
   // Modals
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isDepositModalOpen, setIsDepositModalOpen] = useState(false);
+  const [isTangemModalOpen, setIsTangemModalOpen] = useState(false);
   const [customIntervalModal, setCustomIntervalModal] = useState(false);
   const [customDaysInput, setCustomDaysInput] = useState('180');
   const [depositAmount, setDepositAmount] = useState('500');
@@ -128,7 +130,7 @@ export default function HeritagePage() {
     }
   };
 
-  const handleHeartbeat = () => {
+  const handleHeartbeat = (methodName?: string) => {
     const txHash = '0x' + Array.from({ length: 64 }, () => Math.floor(Math.random() * 16).toString(16)).join('');
     setDaysRemaining(inactivityInterval);
     setHeartbeatTx(txHash);
@@ -140,7 +142,7 @@ export default function HeritagePage() {
       id: `hb-${Date.now()}`,
       timestamp: formattedDate,
       txHash,
-      method: 'Web3 Ping L2 (Passkey)',
+      method: methodName || 'Web3 Ping L2 (Passkey)',
       status: 'confirmed',
     };
     const updated = [newRecord, ...heartbeats];
@@ -485,18 +487,35 @@ export default function HeritagePage() {
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '8px' }}>
             <button
               type="button"
-              onClick={handleHeartbeat}
+              onClick={() => handleHeartbeat()}
               className="btn btn-primary"
               style={{
                 display: 'flex',
                 alignItems: 'center',
                 gap: '8px',
-                padding: '12px 22px',
+                padding: '10px 20px',
                 boxShadow: '0 0 20px rgba(0,207,255,0.3)',
               }}
             >
               <RefreshCw size={16} /> Confirmar que sigo activo (Ping L2)
             </button>
+
+            <button
+              type="button"
+              onClick={() => setIsTangemModalOpen(true)}
+              className="btn btn-outline btn-sm"
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px',
+                borderColor: 'var(--brand-cyan)',
+                color: 'var(--brand-cyan)',
+                fontSize: '0.75rem',
+              }}
+            >
+              <Wifi size={13} /> Ping con Tarjeta Tangem (NFC EAL6+)
+            </button>
+
             {heartbeatSuccess && (
               <div style={{ fontSize: '0.78rem', color: 'var(--brand-emerald)', display: 'flex', alignItems: 'center', gap: '6px' }}>
                 <CheckCircle2 size={15} /> ¡Presencia confirmada en Base L2! Tx: {heartbeatTx?.slice(0, 10)}...
@@ -1040,6 +1059,16 @@ export default function HeritagePage() {
             </div>
           </div>
         )}
+        {/* Modal Tangem para Heritage */}
+        <TangemConnector
+          isOpen={isTangemModalOpen}
+          onClose={() => setIsTangemModalOpen(false)}
+          actionTitle="Ping Dead Man's Switch con Tarjeta Tangem"
+          actionDescription="Aproxima tu tarjeta Tangem física o escanea con la app móvil para firmar tu prueba de vida descentralizada en Base L2."
+          onSuccess={(addr, tx) => {
+            handleHeartbeat('Tangem NFC Card Tap (EAL6+)');
+          }}
+        />
       </div>
     </DashboardLayout>
   );

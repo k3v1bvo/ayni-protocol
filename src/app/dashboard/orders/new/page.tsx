@@ -8,8 +8,9 @@ import { isSupabaseConfigured } from '@/lib/supabase/client';
 import { sanitizeText, sanitizeAmount } from '@/lib/utils/sanitizer';
 import { calculateOrderFees } from '@/lib/constants/fees';
 import { playSuccessSound } from '@/lib/notifications/sound';
-import { ShoppingBag, ArrowLeft, CheckCircle2, Sparkles, AlertTriangle, Loader2, DollarSign, ShieldCheck, Copy } from 'lucide-react';
+import { ShoppingBag, ArrowLeft, CheckCircle2, Sparkles, AlertTriangle, Loader2, DollarSign, ShieldCheck, Copy, Truck } from 'lucide-react';
 import Link from 'next/link';
+import { PaymentModal } from '@/components/checkout/PaymentModal';
 
 export default function NewOrderPage() {
   const router = useRouter();
@@ -26,29 +27,39 @@ export default function NewOrderPage() {
   const [createdOtp, setCreatedOtp] = useState<string | null>(null);
   const [createdCode, setCreatedCode] = useState<string | null>(null);
 
+  const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
+  const [createdTx, setCreatedTx] = useState<string | null>(null);
+
   const price = sanitizeAmount(productPrice, 0.5, 50000);
   const fee = sanitizeAmount(travelerFee, 0, 5000);
   const platformFee = Math.round(price * 0.05 * 100) / 100;
   const guaranteeFund = Math.round(price * 0.02 * 100) / 100;
   const totalEscrow = Math.round((price + fee + platformFee + guaranteeFund) * 100) / 100;
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handlePreSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMsg(null);
-    setSubmitting(true);
 
     const cleanDesc = sanitizeText(description, 500);
     if (!cleanDesc) {
       setErrorMsg('La descripción del encargo es obligatoria.');
-      setSubmitting(false);
       return;
     }
 
     if (price <= 0) {
       setErrorMsg('El precio del producto debe ser mayor a 0.');
-      setSubmitting(false);
       return;
     }
+
+    setIsPaymentModalOpen(true);
+  };
+
+  const handlePaymentSuccess = async ({ txHash, otpCode, method }: { txHash: string; otpCode: string; method: string }) => {
+    setIsPaymentModalOpen(false);
+    setSubmitting(true);
+
+    const cleanDesc = sanitizeText(description, 500);
+    const code = `ORD-${Date.now().toString(36).toUpperCase()}-${Math.random().toString(36).slice(2, 5).toUpperCase()}`;
 
     const payload = {
       client_id: user?.id,
@@ -93,16 +104,38 @@ export default function NewOrderPage() {
       ...payload,
       total_escrow_usd: totalEscrow,
       otp_hash: 'demo',
-      otp_plain_simulated: otp,
+      otp_plain_simulated: otpCode,
+      smart_contract_tx: txHash,
       status: 'funded',
       created_at: new Date().toISOString(),
     });
     localStorage.setItem('ayni_orders', JSON.stringify(existing));
-    setCreatedOtp(otp);
+    setCreatedOtp(otpCode);
     setCreatedCode(code);
+    setCreatedTx(txHash);
     setSubmitted(true);
     setSubmitting(false);
     playSuccessSound();
+
+    // Disparar notificación por correo
+    if (user?.email) {
+      try {
+        fetch('/api/notifications/email', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            to: user.email,
+            subject: `¡Orden ${code} Asegurada en Escrow!`,
+            type: 'order_funded',
+            data: {
+              orderCode: code,
+              otp: otpCode,
+              amount: totalEscrow,
+            }
+          })
+        }).catch(() => {});
+      } catch {}
+    }
   };
 
   if (submitted) {
@@ -142,9 +175,14 @@ export default function NewOrderPage() {
             </div>
           )}
 
-          <Link href="/dashboard/orders" className="btn btn-primary" style={{ marginTop: '12px' }}>
-            Ver Mis Pedidos
-          </Link>
+          <div style={{ display: 'flex', gap: '10px', marginTop: '12px' }}>
+            <Link href={`/dashboard/tracking/${createdCode}`} className="btn btn-primary" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <Truck size={15} /> Rastrear Envío en Vivo
+            </Link>
+            <Link href="/dashboard/orders" className="btn btn-outline">
+              Ver Mis Pedidos
+            </Link>
+          </div>
         </div>
       </DashboardLayout>
     );
@@ -170,7 +208,7 @@ export default function NewOrderPage() {
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '24px' }}>
         {/* Form */}
         <div className="card" style={{ padding: '28px' }}>
-          <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+          <form onSubmit={handlePreSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
             <div className="input-group">
               <label className="input-label">Tipo de Encargo</label>
               <select value={orderType} onChange={e => setOrderType(e.target.value)} className="input">
@@ -206,9 +244,14 @@ export default function NewOrderPage() {
               </div>
             </div>
 
-            <button type="submit" disabled={submitting} className="btn btn-primary" style={{ marginTop: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
-              {submitting ? <Loader2 size={16} style={{ animation: 'spin 1s linear infinite' }} /> : <ShieldCheck size={16} />}
-              {submitting ? 'Creando...' : 'Crear Pedido & Bloquear Escrow'}
+            <button
+              type="submit"
+              disabled={submitting}
+              className="btn btn-primary"
+              style={{ width: '100%', padding: '14px', fontSize: '1rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}
+            >
+              {submitting ? <Loader2 size={18} className="spin" /> : <ShieldCheck size={18} />}
+              {submitting ? 'Procesando...' : `Continuar al Pago Escrow ($${totalEscrow} USDC)`}
             </button>
           </form>
         </div>
@@ -249,6 +292,18 @@ export default function NewOrderPage() {
           </div>
         </div>
       </div>
+
+      {/* Payment Modal */}
+      <PaymentModal
+        isOpen={isPaymentModalOpen}
+        onClose={() => setIsPaymentModalOpen(false)}
+        onPaymentSuccess={handlePaymentSuccess}
+        orderTitle={description.slice(0, 40) || 'Encargo Internacional'}
+        productPriceUsdc={price}
+        travelerFeeUsdc={fee}
+        originCity="España"
+        destinationCity="Bolivia"
+      />
     </DashboardLayout>
   );
 }

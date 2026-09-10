@@ -93,6 +93,45 @@ export default function DisputesPage() {
   const [newReason, setNewReason] = useState('');
   const [newEvidence, setNewEvidence] = useState('');
 
+  // AI Dispute Analysis state (Chainlink Functions + Gemini Vision)
+  const [isAiAnalyzing, setIsAiAnalyzing] = useState(false);
+  const [aiVerdict, setAiVerdict] = useState<{
+    verdict: string;
+    confidenceScore: string;
+    rationale: string;
+    oracleProvider: string;
+    recommendedPayout?: { buyerAmount: number; sellerAmount: number };
+  } | null>(null);
+
+  const handleRunAiAudit = async () => {
+    if (!selectedDispute) return;
+    setIsAiAnalyzing(true);
+    try {
+      const res = await fetch('/api/disputes/ai-analyze', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          order_id: selectedDispute.order_id,
+          dispute_reason: selectedDispute.reason,
+          evidence_description: selectedDispute.evidence_description,
+          buyer_name: selectedDispute.client_name,
+          traveler_name: selectedDispute.traveler_name,
+          amount_usd: selectedDispute.amount_usd,
+          evidence_images: selectedDispute.evidence_images,
+        }),
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        setAiVerdict(data);
+        setResolutionNote(`[${data.oracleProvider}] Dictamen: ${data.rationale}`);
+      }
+    } catch (e) {
+      console.error('Error running AI audit:', e);
+    }
+    setIsAiAnalyzing(false);
+  };
+
   useEffect(() => {
     try {
       const saved = localStorage.getItem('ayni_disputes');
@@ -455,9 +494,61 @@ export default function DisputesPage() {
               </div>
             )}
 
-            {/* If not yet resolved, show decision buttons */}
+            {/* AI Analysis Trigger Box (Chainlink Functions + Gemini Vision) */}
             {selectedDispute.status === 'open' || selectedDispute.status === 'investigating' ? (
-              <div>
+              <div style={{ marginBottom: '16px' }}>
+                <div style={{
+                  padding: '14px',
+                  background: 'linear-gradient(135deg, rgba(0,207,255,0.08) 0%, rgba(155,114,255,0.08) 100%)',
+                  border: '1px solid rgba(0,207,255,0.25)',
+                  borderRadius: '12px',
+                  marginBottom: '16px',
+                }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px', flexWrap: 'wrap', gap: '8px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      <Sparkles size={16} color="var(--brand-cyan)" />
+                      <span style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--brand-cyan)' }}>
+                        Oráculo IA Descentralizado (Chainlink Functions)
+                      </span>
+                    </div>
+                    <button
+                      type="button"
+                      disabled={isAiAnalyzing}
+                      onClick={handleRunAiAudit}
+                      className="btn btn-sm btn-primary"
+                      style={{ fontSize: '0.75rem', display: 'flex', alignItems: 'center', gap: '4px' }}
+                    >
+                      {isAiAnalyzing ? <RefreshCw size={12} className="spin" /> : <Sparkles size={12} />}
+                      {isAiAnalyzing ? 'Analizando en Chainlink...' : '⚡ Evaluar con IA en < 5s'}
+                    </button>
+                  </div>
+
+                  {aiVerdict ? (
+                    <div style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', lineHeight: 1.4 }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
+                        <span className="badge badge-emerald" style={{ fontSize: '0.72rem' }}>
+                          Veredicto: {aiVerdict.verdict === 'buyer_wins' ? 'Comprador Gana' : aiVerdict.verdict === 'seller_wins' ? 'Vendedor Gana' : 'Split 50/50'}
+                        </span>
+                        <span className="badge badge-cyan" style={{ fontSize: '0.72rem' }}>
+                          Confianza: {aiVerdict.confidenceScore}
+                        </span>
+                      </div>
+                      <p style={{ margin: '0 0 6px', color: 'var(--text-primary)' }}>
+                        {aiVerdict.rationale}
+                      </p>
+                      {aiVerdict.recommendedPayout && (
+                        <div style={{ fontSize: '0.75rem', color: 'var(--brand-gold)' }}>
+                          Distribución sugerida: Comprador ${aiVerdict.recommendedPayout.buyerAmount} USDC | Vendedor ${aiVerdict.recommendedPayout.sellerAmount} USDC
+                        </div>
+                      )}
+                    </div>
+                  ) : (
+                    <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)', margin: 0 }}>
+                      Pulsa el botón para ejecutar el modelo pericial de visión OCR y reputación on-chain antes de dictar sentencia.
+                    </p>
+                  )}
+                </div>
+
                 <label className="label">Dictamen & Justificación del Mediador:</label>
                 <textarea
                   rows={2}
