@@ -265,7 +265,7 @@ export default function RemesasPage() {
         gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
         gap: '16px',
       }}>
-        <div className="card" style={{ padding: '20px' }}>
+        <div className="card card-kinetic sc-stagger-item" style={{ padding: '20px', '--stagger': 0 } as React.CSSProperties}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '10px' }}>
             <span style={{ fontSize: '0.825rem', color: 'var(--text-muted)', fontWeight: 600 }}>Total Enviado</span>
             <div className="avatar-placeholder" style={{ width: 34, height: 34, background: 'rgba(0, 207, 255, 0.1)', color: 'var(--brand-cyan)' }}>
@@ -280,7 +280,7 @@ export default function RemesasPage() {
           </div>
         </div>
 
-        <div className="card" style={{ padding: '20px' }}>
+        <div className="card card-kinetic sc-stagger-item" style={{ padding: '20px', '--stagger': 1 } as React.CSSProperties}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '10px' }}>
             <span style={{ fontSize: '0.825rem', color: 'var(--text-muted)', fontWeight: 600 }}>En Custodia Smart Contract</span>
             <div className="avatar-placeholder" style={{ width: 34, height: 34, background: 'rgba(245, 166, 35, 0.1)', color: 'var(--brand-gold)' }}>
@@ -295,7 +295,7 @@ export default function RemesasPage() {
           </div>
         </div>
 
-        <div className="card" style={{ padding: '20px' }}>
+        <div className="card card-kinetic sc-stagger-item" style={{ padding: '20px', '--stagger': 2 } as React.CSSProperties}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '10px' }}>
             <span style={{ fontSize: '0.825rem', color: 'var(--text-muted)', fontWeight: 600 }}>Regalos Programados</span>
             <div className="avatar-placeholder" style={{ width: 34, height: 34, background: 'rgba(155, 114, 255, 0.1)', color: 'var(--brand-purple)' }}>
@@ -310,7 +310,7 @@ export default function RemesasPage() {
           </div>
         </div>
 
-        <div className="card" style={{ padding: '20px' }}>
+        <div className="card card-kinetic sc-stagger-item" style={{ padding: '20px', '--stagger': 3 } as React.CSSProperties}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '10px' }}>
             <span style={{ fontSize: '0.825rem', color: 'var(--text-muted)', fontWeight: 600 }}>Comisión Promedio</span>
             <div className="avatar-placeholder" style={{ width: 34, height: 34, background: 'rgba(0, 214, 143, 0.1)', color: 'var(--brand-emerald)' }}>
@@ -367,18 +367,19 @@ export default function RemesasPage() {
 
       {/* Remittances List */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-        {filteredRemittances.map(rem => (
+        {filteredRemittances.map((rem, i) => (
           <div
             key={rem.id}
-            className="card"
+            className="card card-kinetic sc-stagger-item"
             style={{
               padding: '20px',
               display: 'flex',
               flexDirection: 'column',
               gap: '16px',
-              border: rem.occasion_type === 'navidad' ? '1px solid rgba(245, 166, 35, 0.3)' : undefined,
-              background: rem.occasion_type === 'navidad' ? 'linear-gradient(135deg, rgba(245,166,35,0.03) 0%, rgba(15,21,39,0.9) 100%)' : undefined,
-            }}
+              '--stagger': i % 8,
+              border: rem.occasion_type === 'navidad' ? '1px solid rgba(245, 166, 35, 0.35)' : undefined,
+              background: rem.occasion_type === 'navidad' ? 'linear-gradient(135deg, rgba(245,166,35,0.04) 0%, rgba(15,21,39,0.95) 100%)' : undefined,
+            } as React.CSSProperties}
           >
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '12px' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>

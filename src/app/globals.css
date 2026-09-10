@@ -387,6 +387,53 @@ body {
   border-color: rgba(255, 255, 255, 0.18);
 }
 
+.btn-outline {
+  background: transparent;
+  color: var(--text-primary);
+  border: 1px solid var(--border-default);
+  transition: all var(--ease-smooth);
+}
+.btn-outline:hover {
+  background: rgba(0, 207, 255, 0.08);
+  border-color: var(--border-cyan);
+  color: var(--brand-cyan);
+  transform: translateY(-1px);
+}
+
+.btn-shimmer {
+  position: relative;
+  overflow: hidden;
+}
+.btn-shimmer::after {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: linear-gradient(
+    60deg,
+    transparent 20%,
+    rgba(255, 255, 255, 0.18) 50%,
+    transparent 80%
+  );
+  transform: rotate(30deg);
+  animation: shimmerEffect 4s infinite;
+}
+@keyframes shimmerEffect {
+  0% { transform: translate(-100%, -100%) rotate(30deg); }
+  20%, 100% { transform: translate(100%, 100%) rotate(30deg); }
+}
+
+.card-kinetic {
+  transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.35s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.35s ease;
+}
+.card-kinetic:hover {
+  transform: translateY(-4px);
+  border-color: rgba(0, 207, 255, 0.4);
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.6), 0 0 30px rgba(0, 207, 255, 0.12);
+}
+
 .btn-danger {
   background: rgba(255, 77, 109, 0.15);
   color: #ff6b87;

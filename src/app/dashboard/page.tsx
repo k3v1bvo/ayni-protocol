@@ -80,17 +80,43 @@ export default function DashboardPage() {
 
   return (
     <DashboardLayout>
+      {/* Network & Protocol Status Pill */}
+      <div style={{
+        display: 'inline-flex',
+        alignItems: 'center',
+        gap: '12px',
+        background: 'rgba(0, 207, 255, 0.05)',
+        border: '1px solid rgba(0, 207, 255, 0.2)',
+        borderRadius: '9999px',
+        padding: '5px 14px',
+        fontSize: '0.75rem',
+        color: 'var(--text-secondary)',
+        marginBottom: '16px',
+        flexWrap: 'wrap',
+      }}>
+        <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', color: 'var(--brand-emerald)', fontWeight: 600 }}>
+          <span style={{ width: 7, height: 7, borderRadius: '50%', background: 'var(--brand-emerald)', boxShadow: '0 0 8px var(--brand-emerald)' }} />
+          Base L2 Mainnet
+        </span>
+        <span style={{ color: 'rgba(255,255,255,0.2)' }}>•</span>
+        <span>Gas: &lt;0.001 Gwei</span>
+        <span style={{ color: 'rgba(255,255,255,0.2)' }}>•</span>
+        <span style={{ color: 'var(--brand-cyan)' }}>TimeLock Escrow Verificado</span>
+        <span style={{ color: 'rgba(255,255,255,0.2)' }}>•</span>
+        <span style={{ color: 'var(--brand-gold)' }}>IA Gemini Vision Online</span>
+      </div>
+
       {/* Welcome Header */}
-      <div style={{ marginBottom: '32px' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '6px' }}>
-          <h1 style={{ fontFamily: 'var(--font-display)', fontSize: '1.75rem', fontWeight: 700, letterSpacing: '-0.02em' }}>
+      <div style={{ marginBottom: '28px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '6px', flexWrap: 'wrap' }}>
+          <h1 style={{ fontFamily: 'var(--font-display)', fontSize: '1.85rem', fontWeight: 800, letterSpacing: '-0.02em' }}>
             {getGreeting()}, {user?.full_name?.split(' ')[0] || 'Usuario'} 👋
           </h1>
           {role === 'traveler' && <span className="badge badge-cyan">Viajero Verificado</span>}
           {role === 'merchant' && <span className="badge badge-emerald">Comerciante Local</span>}
           {role === 'client' && <span className="badge badge-gold">Cliente</span>}
         </div>
-        <p style={{ color: 'var(--text-secondary)' }}>
+        <p style={{ color: 'var(--text-secondary)', fontSize: '0.925rem' }}>
           {role === 'traveler' && 'Tus viajes activos y encargos pendientes de entrega están aquí.'}
           {role === 'merchant' && 'Gestiona tu tienda, productos y pedidos recibidos de viajeros.'}
           {role === 'client' && 'Tus pedidos activos, rutas disponibles y novedades del marketplace.'}
@@ -102,8 +128,11 @@ export default function DashboardPage() {
         {stats.map((s, i) => (
           <div
             key={i}
-            className="stat-card"
-            style={{ '--stat-glow': s.glow } as React.CSSProperties}
+            className="stat-card card-kinetic sc-stagger-item"
+            style={{
+              '--stat-glow': s.glow,
+              '--stagger': i,
+            } as React.CSSProperties}
           >
             <div className="stat-icon" style={{ background: s.iconBg }}>
               <s.icon size={22} color={s.color} />
@@ -121,7 +150,7 @@ export default function DashboardPage() {
         {/* Left Column */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
           {/* Recent Orders / Activity */}
-          <div className="card">
+          <div className="card card-kinetic">
             <div style={{ padding: '20px 24px', borderBottom: '1px solid var(--border-subtle)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <div>
                 <div style={{ fontWeight: 700, fontSize: '1rem' }}>
@@ -165,7 +194,7 @@ export default function DashboardPage() {
           </div>
 
           {/* AI Audit Panel */}
-          <div className="card card-glow-cyan" style={{ padding: '24px' }}>
+          <div className="card card-glow-cyan card-kinetic" style={{ padding: '24px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '16px' }}>
               <div style={{ width: 44, height: 44, borderRadius: 12, background: 'rgba(155,114,255,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--brand-purple)' }}>
                 <Sparkles size={22} />
@@ -195,7 +224,7 @@ export default function DashboardPage() {
         {/* Right Column */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
           {/* Available Routes */}
-          <div className="card">
+          <div className="card card-kinetic">
             <div style={{ padding: '18px 20px', borderBottom: '1px solid var(--border-subtle)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <div style={{ fontWeight: 700, fontSize: '0.95rem' }}>Rutas Disponibles</div>
               <Link href="/dashboard/trips" className="btn btn-ghost btn-sm">Ver todas</Link>

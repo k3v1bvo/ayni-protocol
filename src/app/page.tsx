@@ -195,6 +195,7 @@ export default function LandingPage() {
 
           <nav style={{ display: 'flex', gap: '6px', flex: 1, justifyContent: 'center' }} className="nav-desktop">
             {[
+              { label: 'Cómo Funciona', href: '#como-funciona' },
               { label: 'Marketplace & Condimentos', href: '#pilares' },
               { label: 'Modelo de Negocio', href: '#modelo-negocio' },
               { label: 'Herencias Cripto', href: '#herencias' },
@@ -373,6 +374,87 @@ export default function LandingPage() {
                 <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginTop: '4px' }}>{s.label}</div>
               </div>
             ))}
+          </div>
+        </div>
+      </section>
+
+      {/* CINEMATIC TIMELINE SECTION - SCROLL-CRAFT ENGINE */}
+      <section id="como-funciona" style={{ padding: '90px 0', borderTop: '1px solid var(--border-subtle)', position: 'relative' }}>
+        <div className="container">
+          <div style={{ textAlign: 'center', marginBottom: '60px' }}>
+            <div className="badge badge-cyan" style={{ marginBottom: '12px' }}>
+              <Zap size={12} /> Flujo de Ejecución en Tres Fases
+            </div>
+            <h2 style={{ fontFamily: 'var(--font-display)', fontSize: 'clamp(2rem, 4.5vw, 3.2rem)', fontWeight: 800, letterSpacing: '-0.03em' }}>
+              Cómo Funciona el <span className="gradient-text-cyan">Protocolo AYNI</span>
+            </h2>
+            <p style={{ color: 'var(--text-secondary)', maxWidth: '680px', margin: '14px auto 0', fontSize: '1.05rem', lineHeight: 1.6 }}>
+              Una coreografía descentralizada entre Smart Contracts de Base L2, IA de visión computacional y validación criptográfica en mano.
+            </p>
+          </div>
+
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
+            gap: '28px',
+            position: 'relative',
+          }}>
+            {/* Step 1 */}
+            <div className="card card-kinetic" style={{ padding: '36px 28px', display: 'flex', flexDirection: 'column', gap: '18px', borderTop: '3px solid var(--brand-cyan)' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <span className="badge badge-cyan" style={{ fontSize: '0.75rem' }}>Fase 01 • Origen</span>
+                <span style={{ fontFamily: 'var(--font-display)', fontSize: '2rem', fontWeight: 900, color: 'var(--brand-cyan)', opacity: 0.6 }}>01</span>
+              </div>
+              <div>
+                <h3 style={{ fontSize: '1.25rem', fontWeight: 800, color: 'var(--text-primary)', marginBottom: '8px' }}>
+                  Depósito Escrow en Base L2
+                </h3>
+                <p style={{ fontSize: '0.9rem', color: 'var(--text-secondary)', lineHeight: 1.65 }}>
+                  El cliente crea su pedido de encargo, insumo médico o remesa familiar. Los fondos en USDC quedan bloqueados de forma no custodial bajo un contrato inteligente inmutable. Nadie puede tocarlos sin autorización.
+                </p>
+              </div>
+              <div style={{ marginTop: 'auto', paddingTop: '16px', borderTop: '1px solid var(--border-subtle)', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.75rem', color: 'var(--brand-cyan)' }}>
+                <Lock size={14} /> Smart Contract TimeLock Activo
+              </div>
+            </div>
+
+            {/* Step 2 */}
+            <div className="card card-kinetic" style={{ padding: '36px 28px', display: 'flex', flexDirection: 'column', gap: '18px', borderTop: '3px solid var(--brand-gold)' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <span className="badge badge-gold" style={{ fontSize: '0.75rem' }}>Fase 02 • Tránsito</span>
+                <span style={{ fontFamily: 'var(--font-display)', fontSize: '2rem', fontWeight: 900, color: 'var(--brand-gold)', opacity: 0.6 }}>02</span>
+              </div>
+              <div>
+                <h3 style={{ fontSize: '1.25rem', fontWeight: 800, color: 'var(--text-primary)', marginBottom: '8px' }}>
+                  Compra & Auditoría Multimodal IA
+                </h3>
+                <p style={{ fontSize: '0.9rem', color: 'var(--text-secondary)', lineHeight: 1.65 }}>
+                  El viajero emparejado adquiere el producto en la tienda física o artesano nativo. Sube la foto del recibo y del empaque al vacío: el oráculo de IA (Gemini Vision) audita fecha, monto y sellos aduaneros en segundos.
+                </p>
+              </div>
+              <div style={{ marginTop: 'auto', paddingTop: '16px', borderTop: '1px solid var(--border-subtle)', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.75rem', color: 'var(--brand-gold)' }}>
+                <Sparkles size={14} /> Gemini Vision OCR & Certificación 98.8%
+              </div>
+            </div>
+
+            {/* Step 3 */}
+            <div className="card card-kinetic" style={{ padding: '36px 28px', display: 'flex', flexDirection: 'column', gap: '18px', borderTop: '3px solid var(--brand-emerald)' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <span className="badge badge-emerald" style={{ fontSize: '0.75rem' }}>Fase 03 • Destino</span>
+                <span style={{ fontFamily: 'var(--font-display)', fontSize: '2rem', fontWeight: 900, color: 'var(--brand-emerald)', opacity: 0.6 }}>03</span>
+              </div>
+              <div>
+                <h3 style={{ fontSize: '1.25rem', fontWeight: 800, color: 'var(--text-primary)', marginBottom: '8px' }}>
+                  Entrega Física & Liquidación OTP
+                </h3>
+                <p style={{ fontSize: '0.9rem', color: 'var(--text-secondary)', lineHeight: 1.65 }}>
+                  Al entregar la encomienda en el destino, el comprador revela su código criptográfico OTP de un solo uso. El viajero lo valida en la app y el Smart Contract libera el 70% de ganancias inmediatamente en su wallet.
+                </p>
+              </div>
+              <div style={{ marginTop: 'auto', paddingTop: '16px', borderTop: '1px solid var(--border-subtle)', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.75rem', color: 'var(--brand-emerald)' }}>
+                <ShieldCheck size={14} /> Hash Keccak-256 • Gas Base L2 &lt;$0.01
+              </div>
+            </div>
           </div>
         </div>
       </section>
