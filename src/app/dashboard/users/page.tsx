@@ -1,211 +1,234 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
-import { ShieldCheck, UserCheck, Star, Users, Search, CheckCircle2, UserX } from 'lucide-react';
+import { useAuth } from '@/context/AuthContext';
+import { isSupabaseConfigured } from '@/lib/supabase/client';
+import {
+  Users, Search, Shield, Loader2, CheckCircle2, AlertTriangle,
+  Sparkles, ChevronDown, Mail, Phone, Wallet, Star, UserCheck, UserX
+} from 'lucide-react';
 
-interface UserRecord {
+interface UserItem {
   id: string;
-  name: string;
+  full_name: string;
   email: string;
-  role: 'client' | 'traveler' | 'merchant' | 'admin';
-  roleLabel: string;
-  badge: string;
-  reputation: number;
-  country: string;
-  wallet: string;
-  verified: boolean;
+  role: string;
+  reputation_score: number;
+  wallet_address?: string;
+  phone?: string;
+  country?: string;
+  verified_id?: boolean;
+  created_at?: string;
 }
 
-const DEFAULT_USERS: UserRecord[] = [
-  {
-    id: 'USR-01',
-    name: 'Ana María Quispe',
-    email: 'cliente@ayni.app',
-    role: 'client',
-    roleLabel: 'Cliente',
-    badge: 'badge-gold',
-    reputation: 4.90,
-    country: 'Bolivia',
-    wallet: '0x71A0...6E7F',
-    verified: true,
-  },
-  {
-    id: 'USR-02',
-    name: 'Alejandro Mamani',
-    email: 'viajero@ayni.app',
-    role: 'traveler',
-    roleLabel: 'Viajero',
-    badge: 'badge-cyan',
-    reputation: 4.95,
-    country: 'España / Bolivia',
-    wallet: '0x3a82...E8F9',
-    verified: true,
-  },
-  {
-    id: 'USR-03',
-    name: 'Demetrio Flores',
-    email: 'comercio@ayni.app',
-    role: 'merchant',
-    roleLabel: 'Comercio',
-    badge: 'badge-emerald',
-    reputation: 4.88,
-    country: 'Bolivia',
-    wallet: '0x9B11...C7D8',
-    verified: true,
-  },
-  {
-    id: 'USR-04',
-    name: 'Auditor Oficial AYNI',
-    email: 'admin@ayni.app',
-    role: 'admin',
-    roleLabel: 'Auditor / Admin',
-    badge: 'badge-purple',
-    reputation: 5.00,
-    country: 'Bolivia',
-    wallet: '0x0000...dEaD',
-    verified: true,
-  },
-];
+export default function AdminUsersPage() {
+  const { role } = useAuth();
+  const [users, setUsers] = useState<UserItem[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [searchQ, setSearchQ] = useState('');
+  const [filterRole, setFilterRole] = useState('all');
+  const [notice, setNotice] = useState<string | null>(null);
+  const [total, setTotal] = useState(0);
 
-export default function UsersPage() {
-  const [users, setUsers] = useState<UserRecord[]>(DEFAULT_USERS);
-  const [search, setSearch] = useState('');
-  const [roleFilter, setRoleFilter] = useState('all');
-  const [feedback, setFeedback] = useState<string | null>(null);
+  useEffect(() => { loadUsers(); }, [searchQ, filterRole]);
 
-  const handleToggleVerification = (id: string) => {
-    setUsers(prev => prev.map(u => {
-      if (u.id === id) {
-        const next = !u.verified;
-        setFeedback(`Estado de verificación de ${u.name} actualizado: ${next ? 'Verificado ✓' : 'Suspendido ⏸'}`);
-        setTimeout(() => setFeedback(null), 3000);
-        return { ...u, verified: next };
-      }
-      return u;
-    }));
+  async function loadUsers() {
+    setLoading(true);
+    if (isSupabaseConfigured) {
+      try {
+        const params = new URLSearchParams();
+        if (searchQ) params.set('search', searchQ);
+        if (filterRole !== 'all') params.set('role', filterRole);
+        params.set('limit', '100');
+
+        const res = await fetch(`/api/admin/users?${params}`);
+        if (res.ok) {
+          const { users: data, total: t } = await res.json();
+          setUsers(data || []);
+          setTotal(t || 0);
+          setLoading(false);
+          return;
+        }
+      } catch (e) { console.warn(e); }
+    }
+
+    // Fallback demo data
+    setUsers([
+      { id: '1', full_name: 'Carlos Quispe', email: 'carlos@ayni.app', role: 'client', reputation_score: 4.85, country: 'Bolivia', verified_id: true, created_at: '2026-08-15' },
+      { id: '2', full_name: 'María Rodríguez', email: 'maria@ayni.app', role: 'traveler', reputation_score: 4.92, country: 'España', verified_id: true, created_at: '2026-08-20' },
+      { id: '3', full_name: 'Doña Elena Textiles', email: 'elena@ayni.app', role: 'merchant', reputation_score: 4.78, country: 'Bolivia', verified_id: true, created_at: '2026-09-01' },
+    ]);
+    setTotal(3);
+    setLoading(false);
+  }
+
+  const handleRoleChange = async (userId: string, newRole: string) => {
+    if (isSupabaseConfigured) {
+      try {
+        const res = await fetch('/api/admin/users', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ id: userId, role: newRole }),
+        });
+        if (res.ok) {
+          setUsers(prev => prev.map(u => u.id === userId ? { ...u, role: newRole } : u));
+          setNotice(`Rol actualizado a ${newRole}.`);
+          setTimeout(() => setNotice(null), 3000);
+          return;
+        }
+      } catch (e) { console.warn(e); }
+    }
+
+    setUsers(prev => prev.map(u => u.id === userId ? { ...u, role: newRole } : u));
+    setNotice(`Rol actualizado localmente.`);
+    setTimeout(() => setNotice(null), 3000);
   };
 
-  const filtered = users.filter(u => {
-    const matchesRole = roleFilter === 'all' || u.role === roleFilter;
-    const matchesSearch = !search ||
-      u.name.toLowerCase().includes(search.toLowerCase()) ||
-      u.email.toLowerCase().includes(search.toLowerCase()) ||
-      u.country.toLowerCase().includes(search.toLowerCase());
-    return matchesRole && matchesSearch;
-  });
+  const handleToggleSuspend = async (userId: string, currentlyActive: boolean) => {
+    if (isSupabaseConfigured) {
+      try {
+        const res = await fetch('/api/admin/users', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ id: userId, suspended: currentlyActive }),
+        });
+        if (res.ok) {
+          setUsers(prev => prev.map(u => u.id === userId ? { ...u, verified_id: !currentlyActive } : u));
+          setNotice(currentlyActive ? 'Usuario suspendido.' : 'Usuario reactivado.');
+          setTimeout(() => setNotice(null), 3000);
+          return;
+        }
+      } catch (e) { console.warn(e); }
+    }
+
+    setUsers(prev => prev.map(u => u.id === userId ? { ...u, verified_id: !currentlyActive } : u));
+    setNotice(currentlyActive ? 'Usuario suspendido.' : 'Usuario reactivado.');
+    setTimeout(() => setNotice(null), 3000);
+  };
+
+  const getRoleBadge = (r: string) => {
+    const map: Record<string, { label: string; cls: string }> = {
+      client: { label: '🛍️ Cliente', cls: 'badge-gold' },
+      traveler: { label: '✈️ Viajero', cls: 'badge-cyan' },
+      merchant: { label: '🏪 Comerciante', cls: 'badge-emerald' },
+      admin: { label: '🛡️ Admin', cls: 'badge-purple' },
+    };
+    return map[r] || { label: r, cls: 'badge-gold' };
+  };
+
+  if (role !== 'admin') {
+    return (
+      <DashboardLayout>
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '50vh', textAlign: 'center' }}>
+          <Shield size={48} color="var(--brand-red)" style={{ marginBottom: '16px' }} />
+          <h2 style={{ fontWeight: 700, fontSize: '1.3rem' }}>Acceso Denegado</h2>
+          <p style={{ color: 'var(--text-secondary)' }}>Solo administradores pueden acceder a esta sección.</p>
+        </div>
+      </DashboardLayout>
+    );
+  }
 
   return (
     <DashboardLayout>
-      <div className="page-header">
+      <div className="page-header" style={{ marginBottom: '24px' }}>
         <div className="page-title-group">
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '4px' }}>
-            <div className="page-title">Gestión de Usuarios del Protocolo</div>
-            <span className="badge badge-purple">
-              <Users size={11} /> Red Descentralizada
-            </span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '4px', flexWrap: 'wrap' }}>
+            <div className="page-title">Gestión de Usuarios</div>
+            <span className="badge badge-purple"><Sparkles size={11} /> Admin</span>
+            <span className="badge badge-cyan" style={{ fontSize: '0.7rem' }}>{total} registrados</span>
           </div>
-          <div className="page-subtitle">
-            Directorio de clientes, viajeros verificados, artesanos y comercios registrados.
-          </div>
+          <div className="page-subtitle">Administra perfiles, roles y accesos de todos los usuarios de la plataforma.</div>
         </div>
       </div>
 
-      {feedback && (
-        <div className="alert alert-success" style={{ marginBottom: '20px' }}>
-          <CheckCircle2 size={16} /> {feedback}
-        </div>
+      {notice && (
+        <div className="alert alert-success" style={{ marginBottom: '16px' }}><CheckCircle2 size={16} /> {notice}</div>
       )}
 
-      {/* Filter and Search Bar */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px', marginBottom: '24px' }}>
-        <div className="tab-bar" style={{ margin: 0 }}>
-          {[
-            { id: 'all', label: 'Todos' },
-            { id: 'client', label: 'Clientes' },
-            { id: 'traveler', label: 'Viajeros' },
-            { id: 'merchant', label: 'Comercios' },
-            { id: 'admin', label: 'Auditores' },
-          ].map(r => (
-            <button
-              key={r.id}
-              type="button"
-              className={`tab-item ${roleFilter === r.id ? 'active' : ''}`}
-              onClick={() => setRoleFilter(r.id)}
-            >
-              {r.label}
-            </button>
-          ))}
+      {/* Filters */}
+      <div style={{ display: 'flex', gap: '12px', marginBottom: '20px', flexWrap: 'wrap' }}>
+        <div style={{ position: 'relative', flex: '1 1 200px', maxWidth: '300px' }}>
+          <Search size={16} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
+          <input type="text" placeholder="Buscar por nombre o email..." value={searchQ} onChange={e => setSearchQ(e.target.value)} className="input" style={{ paddingLeft: '36px' }} />
         </div>
-
-        <div className="input-icon-wrap" style={{ maxWidth: '320px', width: '100%' }}>
-          <Search size={16} className="input-icon" />
-          <input
-            type="search"
-            placeholder="Buscar usuario o país..."
-            className="input"
-            style={{ paddingLeft: '40px' }}
-            value={search}
-            onChange={e => setSearch(e.target.value)}
-          />
-        </div>
+        <select value={filterRole} onChange={e => setFilterRole(e.target.value)} className="input" style={{ maxWidth: '200px' }}>
+          <option value="all">Todos los roles</option>
+          <option value="client">Clientes</option>
+          <option value="traveler">Viajeros</option>
+          <option value="merchant">Comerciantes</option>
+          <option value="admin">Admins</option>
+        </select>
       </div>
 
-      <div className="card" style={{ padding: '24px' }}>
-        <div style={{ overflowX: 'auto' }}>
-          <table className="table" style={{ width: '100%' }}>
-            <thead>
-              <tr>
-                <th>Usuario</th>
-                <th>Rol</th>
-                <th>País</th>
-                <th>Reputación</th>
-                <th>Billetera EVM</th>
-                <th>Estado</th>
-                <th style={{ textAlign: 'right' }}>Acciones</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filtered.map(u => (
-                <tr key={u.id}>
-                  <td>
-                    <div style={{ fontWeight: 600, color: 'var(--text-primary)' }}>{u.name}</div>
-                    <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{u.email}</div>
-                  </td>
-                  <td>
-                    <span className={`badge ${u.badge}`}>{u.roleLabel}</span>
-                  </td>
-                  <td style={{ fontSize: '0.85rem' }}>{u.country}</td>
-                  <td style={{ fontWeight: 700, color: 'var(--brand-gold)' }}>★ {u.reputation.toFixed(2)}</td>
-                  <td>
-                    <span style={{ fontFamily: 'monospace', fontSize: '0.78rem', color: 'var(--brand-cyan)' }}>
-                      {u.wallet}
-                    </span>
-                  </td>
-                  <td>
-                    <span
-                      className={`badge ${u.verified ? 'badge-emerald' : 'badge-gold'}`}
-                      style={{ fontSize: '0.7rem' }}
+      {loading ? (
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '30vh', gap: '10px', color: 'var(--text-muted)' }}>
+          <Loader2 size={20} style={{ animation: 'spin 1s linear infinite' }} /> Cargando usuarios...
+        </div>
+      ) : (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+          {users.map(u => {
+            const rb = getRoleBadge(u.role);
+            const isActive = u.verified_id !== false;
+            return (
+              <div key={u.id} className="card card-kinetic" style={{ padding: '16px 20px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
+                  {/* User Info */}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flex: 1, minWidth: '200px' }}>
+                    <div style={{
+                      width: 40, height: 40, borderRadius: '50%',
+                      background: 'linear-gradient(135deg, rgba(0,207,255,0.15), rgba(245,166,35,0.15))',
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      color: 'var(--brand-cyan)', fontWeight: 700, fontSize: '0.9rem',
+                    }}>
+                      {u.full_name?.charAt(0)?.toUpperCase() || '?'}
+                    </div>
+                    <div>
+                      <div style={{ fontWeight: 700, fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        {u.full_name}
+                        {!isActive && <span style={{ fontSize: '0.65rem', color: 'var(--brand-red)' }}>⊘ Suspendido</span>}
+                      </div>
+                      <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>{u.email}</div>
+                    </div>
+                  </div>
+
+                  {/* Role Badge */}
+                  <span className={`badge ${rb.cls}`} style={{ fontSize: '0.72rem' }}>{rb.label}</span>
+
+                  {/* Reputation */}
+                  <div style={{ textAlign: 'center' }}>
+                    <div style={{ fontWeight: 700, color: 'var(--brand-gold)', fontSize: '0.9rem' }}>★ {u.reputation_score?.toFixed(2)}</div>
+                    <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)' }}>Rep.</div>
+                  </div>
+
+                  {/* Actions */}
+                  <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
+                    <select
+                      value={u.role}
+                      onChange={e => handleRoleChange(u.id, e.target.value)}
+                      className="input"
+                      style={{ fontSize: '0.75rem', padding: '4px 8px', maxWidth: '130px' }}
                     >
-                      {u.verified ? '✓ Verificado' : '⏸ En Revisión'}
-                    </span>
-                  </td>
-                  <td style={{ textAlign: 'right' }}>
+                      <option value="client">Cliente</option>
+                      <option value="traveler">Viajero</option>
+                      <option value="merchant">Comerciante</option>
+                      <option value="admin">Admin</option>
+                    </select>
                     <button
                       type="button"
-                      onClick={() => handleToggleVerification(u.id)}
+                      onClick={() => handleToggleSuspend(u.id, isActive)}
                       className="btn btn-ghost btn-sm"
-                      style={{ fontSize: '0.74rem' }}
+                      style={{ fontSize: '0.72rem', color: isActive ? 'var(--brand-red)' : 'var(--brand-emerald)' }}
                     >
-                      {u.verified ? 'Suspender' : 'Verificar'}
+                      {isActive ? <><UserX size={13} /> Suspender</> : <><UserCheck size={13} /> Activar</>}
                     </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+                  </div>
+                </div>
+              </div>
+            );
+          })}
         </div>
-      </div>
+      )}
     </DashboardLayout>
   );
 }

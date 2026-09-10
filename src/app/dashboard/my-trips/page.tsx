@@ -3,311 +3,336 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
-import { Plane, Plus, Calendar, Weight, Camera, CheckCircle2, Package, ArrowRight, MapPin, TrendingUp, DollarSign, Edit2, X } from 'lucide-react';
+import { useAuth } from '@/context/AuthContext';
+import { getSupabaseBrowserClient, isSupabaseConfigured } from '@/lib/supabase/client';
+import {
+  Plane, Plus, Calendar, Edit2, Trash2, CheckCircle2, Package, MapPin,
+  DollarSign, X, Save, Loader2, AlertTriangle, Sparkles
+} from 'lucide-react';
 
-export interface TripItem {
+interface TripItem {
   id: string;
-  from: string;
-  fromFlag: string;
-  fromCountry: string;
-  to: string;
-  toFlag: string;
-  toCountry: string;
-  departure: string;
-  arrival: string;
-  totalKg: number;
-  availableKg: number;
-  reservedKg: number;
-  airline: string;
+  origin_city: string;
+  origin_country: string;
+  destination_city: string;
+  destination_country: string;
+  departure_date: string;
+  arrival_date: string;
+  available_kg: number;
+  price_per_kg_usd: number;
+  flight_number?: string;
   status: string;
-  pendingOrders: number;
-  earnings: number;
 }
 
-const DEFAULT_TRIPS: TripItem[] = [
-  {
-    id: 'TR-001',
-    from: 'Madrid', fromFlag: '🇪🇸', fromCountry: 'España',
-    to: 'La Paz', toFlag: '🇧🇴', toCountry: 'Bolivia',
-    departure: '2026-09-12', arrival: '2026-09-13',
-    totalKg: 23, availableKg: 14.5, reservedKg: 8.5,
-    airline: 'Iberia IB 6825',
-    status: 'scheduled',
-    pendingOrders: 3,
-    earnings: 84.5,
-  },
-  {
-    id: 'TR-002',
-    from: 'La Paz', fromFlag: '🇧🇴', fromCountry: 'Bolivia',
-    to: 'Madrid', toFlag: '🇪🇸', toCountry: 'España',
-    departure: '2026-09-20', arrival: '2026-09-21',
-    totalKg: 23, availableKg: 23, reservedKg: 0,
-    airline: 'Iberia IB 6826',
-    status: 'scheduled',
-    pendingOrders: 0,
-    earnings: 0,
-  },
-];
-
 export default function MyTripsPage() {
-  const [trips, setTrips] = useState<TripItem[]>(DEFAULT_TRIPS);
-  const [actionNotice, setActionNotice] = useState<string | null>(null);
-  const [editingTrip, setEditingTrip] = useState<TripItem | null>(null);
+  const { user } = useAuth();
+  const [trips, setTrips] = useState<TripItem[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [notice, setNotice] = useState<string | null>(null);
+  const [editTrip, setEditTrip] = useState<TripItem | null>(null);
+  const [deleteId, setDeleteId] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
 
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const saved = localStorage.getItem('ayni_my_trips');
-      if (saved) {
-        try {
-          const parsed = JSON.parse(saved);
-          if (Array.isArray(parsed) && parsed.length > 0) {
-            setTrips(parsed);
-          }
-        } catch (e) {
-          // ignore
-        }
-      }
+  // Edit form state
+  const [eOrigin, setEOrigin] = useState('');
+  const [eOriginCountry, setEOriginCountry] = useState('');
+  const [eDest, setEDest] = useState('');
+  const [eDestCountry, setEDestCountry] = useState('');
+  const [eDeparture, setEDeparture] = useState('');
+  const [eArrival, setEArrival] = useState('');
+  const [eKg, setEKg] = useState('');
+  const [ePrice, setEPrice] = useState('');
+  const [eFlight, setEFlight] = useState('');
+
+  useEffect(() => { loadTrips(); }, [user]);
+
+  async function loadTrips() {
+    if (!user?.id) { setLoading(false); return; }
+
+    if (isSupabaseConfigured) {
+      try {
+        const supabase = getSupabaseBrowserClient();
+        const { data } = await supabase
+          .from('trips')
+          .select('*')
+          .eq('traveler_id', user.id)
+          .order('departure_date', { ascending: true });
+        if (data) { setTrips(data); setLoading(false); return; }
+      } catch (e) { console.warn(e); }
     }
-  }, []);
 
-  const handleUploadPhoto = (id: string) => {
-    setActionNotice(`📸 Foto de equipaje para el itinerario #${id} subida y auditada por IA.`);
-    setTimeout(() => setActionNotice(null), 4000);
+    // Fallback
+    const saved = localStorage.getItem('ayni_my_trips');
+    if (saved) { try { setTrips(JSON.parse(saved)); } catch {} }
+    setLoading(false);
+  }
+
+  const openEdit = (t: TripItem) => {
+    setEditTrip(t);
+    setEOrigin(t.origin_city);
+    setEOriginCountry(t.origin_country);
+    setEDest(t.destination_city);
+    setEDestCountry(t.destination_country);
+    setEDeparture(t.departure_date);
+    setEArrival(t.arrival_date);
+    setEKg(String(t.available_kg));
+    setEPrice(String(t.price_per_kg_usd));
+    setEFlight(t.flight_number || '');
   };
 
-  const handleSaveEdit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!editingTrip) return;
-    const updated = trips.map(t => t.id === editingTrip.id ? editingTrip : t);
-    setTrips(updated);
-    if (typeof window !== 'undefined') {
-      localStorage.setItem('ayni_my_trips', JSON.stringify(updated));
+  const handleEditSave = async () => {
+    if (!editTrip) return;
+    setSaving(true);
+
+    const payload = {
+      id: editTrip.id,
+      origin_city: eOrigin.trim(),
+      origin_country: eOriginCountry.trim(),
+      destination_city: eDest.trim(),
+      destination_country: eDestCountry.trim(),
+      departure_date: eDeparture,
+      arrival_date: eArrival,
+      available_kg: Math.max(0.1, parseFloat(eKg) || 20),
+      price_per_kg_usd: Math.max(1, parseFloat(ePrice) || 15),
+      flight_number: eFlight.trim() || undefined,
+    };
+
+    if (isSupabaseConfigured) {
+      try {
+        const res = await fetch('/api/trips', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        });
+        if (res.ok) {
+          const { trip } = await res.json();
+          setTrips(prev => prev.map(t => t.id === editTrip.id ? { ...t, ...trip } : t));
+          setNotice('Viaje actualizado.');
+          setEditTrip(null);
+          setSaving(false);
+          setTimeout(() => setNotice(null), 3000);
+          return;
+        }
+      } catch (e) { console.warn(e); }
     }
-    setEditingTrip(null);
-    setActionNotice('Itinerario actualizado con éxito.');
-    setTimeout(() => setActionNotice(null), 3000);
+
+    setTrips(prev => prev.map(t => t.id === editTrip.id ? { ...t, ...payload } : t));
+    setNotice('Viaje actualizado localmente.');
+    setEditTrip(null);
+    setSaving(false);
+    setTimeout(() => setNotice(null), 3000);
+  };
+
+  const handleDelete = async () => {
+    if (!deleteId) return;
+    setSaving(true);
+
+    if (isSupabaseConfigured) {
+      try {
+        const res = await fetch(`/api/trips?id=${deleteId}`, { method: 'DELETE' });
+        if (res.ok) {
+          setTrips(prev => prev.filter(t => t.id !== deleteId));
+          setNotice('Viaje eliminado.');
+          setDeleteId(null);
+          setSaving(false);
+          setTimeout(() => setNotice(null), 3000);
+          return;
+        }
+        const result = await res.json();
+        setNotice(result.error || 'Error al eliminar');
+        setDeleteId(null);
+        setSaving(false);
+        setTimeout(() => setNotice(null), 3000);
+        return;
+      } catch (e) { console.warn(e); }
+    }
+
+    setTrips(prev => prev.filter(t => t.id !== deleteId));
+    setNotice('Viaje eliminado.');
+    setDeleteId(null);
+    setSaving(false);
+    setTimeout(() => setNotice(null), 3000);
+  };
+
+  const getCountryFlag = (country: string) => {
+    const flags: Record<string, string> = { 'Bolivia': '🇧🇴', 'España': '🇪🇸', 'Argentina': '🇦🇷', 'EEUU': '🇺🇸', 'Brasil': '🇧🇷', 'Chile': '🇨🇱', 'Colombia': '🇨🇴', 'Peru': '🇵🇪', 'Mexico': '🇲🇽' };
+    return flags[country] || '🌍';
   };
 
   return (
     <DashboardLayout>
-      <div className="sc-perspective-container">
-      <div className="page-header">
+      <div className="page-header" style={{ marginBottom: '24px' }}>
         <div className="page-title-group">
-          <div className="page-title">Mis Viajes y Rutas</div>
-          <div className="page-subtitle">Gestiona tu itinerario, capacidad disponible y encargos activos</div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '4px', flexWrap: 'wrap' }}>
+            <div className="page-title">Mis Viajes</div>
+            <span className="badge badge-cyan"><Sparkles size={11} /> Itinerarios</span>
+            <span className="badge badge-gold" style={{ fontSize: '0.7rem' }}>{trips.length} viajes</span>
+          </div>
+          <div className="page-subtitle">Publica tus viajes para recibir encargos de compradores.</div>
         </div>
-        <Link
-          href="/dashboard/my-trips/new"
-          className="btn btn-primary"
-          style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', textDecoration: 'none' }}
-        >
-          <Plus size={16} /> Publicar Nuevo Viaje
+        <Link href="/dashboard/my-trips/new" className="btn btn-primary" style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+          <Plus size={16} /> Nuevo Viaje
         </Link>
       </div>
 
-      {actionNotice && (
-        <div className="alert alert-success" style={{ marginBottom: '20px' }}>
-          <CheckCircle2 size={16} /> {actionNotice}
+      {notice && (
+        <div className="alert alert-success" style={{ marginBottom: '16px' }}><CheckCircle2 size={16} /> {notice}</div>
+      )}
+
+      {loading ? (
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '30vh', gap: '10px', color: 'var(--text-muted)' }}>
+          <Loader2 size={20} style={{ animation: 'spin 1s linear infinite' }} /> Cargando viajes...
+        </div>
+      ) : trips.length === 0 ? (
+        <div className="card" style={{ padding: '40px', textAlign: 'center' }}>
+          <Plane size={40} color="var(--text-muted)" style={{ marginBottom: '12px' }} />
+          <h3 style={{ fontWeight: 700, fontSize: '1.1rem', marginBottom: '8px' }}>No tienes viajes publicados</h3>
+          <p style={{ color: 'var(--text-secondary)', fontSize: '0.88rem', marginBottom: '16px' }}>
+            Publica tu primer viaje y comienza a recibir encargos.
+          </p>
+          <Link href="/dashboard/my-trips/new" className="btn btn-primary" style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+            <Plus size={16} /> Publicar Viaje
+          </Link>
+        </div>
+      ) : (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+          {trips.map(t => (
+            <div key={t.id} className="card card-kinetic" style={{ padding: '20px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '12px' }}>
+                {/* Route Info */}
+                <div style={{ flex: 1, minWidth: '200px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '8px' }}>
+                    <span style={{ fontSize: '1.2rem' }}>{getCountryFlag(t.origin_country)}</span>
+                    <span style={{ fontWeight: 700, fontSize: '0.95rem' }}>{t.origin_city}</span>
+                    <div style={{ width: '40px', height: '2px', background: 'linear-gradient(90deg, var(--brand-cyan), var(--brand-gold))', borderRadius: '1px' }} />
+                    <span style={{ fontWeight: 700, fontSize: '0.95rem' }}>{t.destination_city}</span>
+                    <span style={{ fontSize: '1.2rem' }}>{getCountryFlag(t.destination_country)}</span>
+                  </div>
+                  <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap', fontSize: '0.82rem', color: 'var(--text-secondary)' }}>
+                    <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                      <Calendar size={13} /> {new Date(t.departure_date).toLocaleDateString('es')} → {new Date(t.arrival_date).toLocaleDateString('es')}
+                    </span>
+                    {t.flight_number && (
+                      <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                        <Plane size={13} /> {t.flight_number}
+                      </span>
+                    )}
+                  </div>
+                </div>
+
+                {/* Stats */}
+                <div style={{ display: 'flex', gap: '16px', alignItems: 'center', flexWrap: 'wrap' }}>
+                  <div style={{ textAlign: 'center' }}>
+                    <div style={{ fontWeight: 800, fontSize: '1.1rem', color: 'var(--brand-cyan)' }}>{t.available_kg} kg</div>
+                    <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>Disponible</div>
+                  </div>
+                  <div style={{ textAlign: 'center' }}>
+                    <div style={{ fontWeight: 800, fontSize: '1.1rem', color: 'var(--brand-gold)' }}>${t.price_per_kg_usd}</div>
+                    <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>por kg</div>
+                  </div>
+                  <span className={`badge ${t.status === 'active' ? 'badge-emerald' : t.status === 'completed' ? 'badge-cyan' : 'badge-gold'}`} style={{ fontSize: '0.72rem' }}>
+                    {t.status === 'active' ? '✓ Activo' : t.status === 'completed' ? 'Completado' : t.status}
+                  </span>
+                </div>
+
+                {/* Actions */}
+                <div style={{ display: 'flex', gap: '6px' }}>
+                  <button type="button" onClick={() => openEdit(t)} className="btn btn-ghost btn-sm" style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                    <Edit2 size={13} /> Editar
+                  </button>
+                  <button type="button" onClick={() => setDeleteId(t.id)} className="btn btn-ghost btn-sm" style={{ color: 'var(--brand-red)' }}>
+                    <Trash2 size={13} />
+                  </button>
+                </div>
+              </div>
+            </div>
+          ))}
         </div>
       )}
 
-      {/* Earnings Summary */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '14px', marginBottom: '28px' }}>
-        {[
-          { label: 'Ganancias totales', value: '$1,240', color: 'var(--brand-gold)', icon: TrendingUp, iconBg: 'rgba(245,166,35,0.15)', glow: 'rgba(245,166,35,0.08)' },
-          { label: 'Este mes', value: '$342', color: 'var(--brand-cyan)', icon: DollarSign, iconBg: 'rgba(0,207,255,0.15)', glow: 'rgba(0,207,255,0.08)' },
-          { label: 'Encargos completados', value: '38', color: 'var(--brand-emerald)', icon: CheckCircle2, iconBg: 'rgba(0,214,143,0.15)', glow: 'rgba(0,214,143,0.08)' },
-          { label: 'Viajes realizados', value: '18', color: 'var(--brand-purple)', icon: Plane, iconBg: 'rgba(155,114,255,0.15)', glow: 'rgba(155,114,255,0.08)' },
-        ].map((s, i) => (
-          <div key={i} className="stat-card card-kinetic sc-card-depth" style={{ '--stat-glow': s.glow } as React.CSSProperties}>
-            <div className="stat-icon" style={{ background: s.iconBg }}>
-              <s.icon size={20} color={s.color} />
-            </div>
-            <div>
-              <div className="stat-value" style={{ color: s.color }}>{s.value}</div>
-              <div className="stat-label">{s.label}</div>
-            </div>
-          </div>
-        ))}
-      </div>
-
-      {/* Trip Cards */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>
-        {trips.map(trip => (
-          <div key={trip.id} className="card card-glow-cyan card-kinetic sc-card-depth" style={{ padding: '24px' }}>
-            {/* Trip Header */}
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '16px', gap: '12px', flexWrap: 'wrap' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                <div style={{ width: 44, height: 44, borderRadius: 12, background: 'rgba(0,207,255,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--brand-cyan)' }}>
-                  <Plane size={22} />
-                </div>
-                <div>
-                  <div style={{ fontWeight: 700, fontSize: '1rem' }}>{trip.airline}</div>
-                  <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>#{trip.id}</div>
-                </div>
-              </div>
-              <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-                {trip.pendingOrders > 0 && (
-                  <span className="badge badge-gold">{trip.pendingOrders} encargos</span>
-                )}
-                <span className="badge badge-cyan">Programado</span>
-              </div>
-            </div>
-
-            {/* Route */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '18px' }}>
-              <div>
-                <div style={{ fontSize: '1.4rem', fontWeight: 800 }}>{trip.fromFlag} {trip.from}</div>
-                <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{trip.fromCountry}</div>
-              </div>
-              <div style={{ flex: 1, display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <div style={{ flex: 1, height: 1, background: 'linear-gradient(90deg, var(--brand-cyan), transparent)', opacity: 0.4 }} />
-                <Plane size={20} color="var(--brand-cyan)" />
-                <div style={{ flex: 1, height: 1, background: 'linear-gradient(90deg, transparent, var(--brand-cyan))', opacity: 0.4 }} />
-              </div>
-              <div style={{ textAlign: 'right' }}>
-                <div style={{ fontSize: '1.4rem', fontWeight: 800 }}>{trip.to} {trip.toFlag}</div>
-                <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{trip.toCountry}</div>
-              </div>
-            </div>
-
-            {/* Metrics */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '12px', marginBottom: '18px' }}>
-              {[
-                { label: 'Salida', value: trip.departure, color: 'var(--brand-gold)' },
-                { label: 'Capacidad total', value: `${trip.totalKg} kg`, color: 'var(--text-primary)' },
-                { label: 'Espacio libre', value: `${trip.availableKg} kg`, color: 'var(--brand-cyan)' },
-                { label: 'Ganancia estimada', value: `$${trip.earnings}`, color: 'var(--brand-emerald)' },
-              ].map((m, i) => (
-                <div key={i} style={{ background: 'rgba(255,255,255,0.03)', borderRadius: 8, padding: '12px', textAlign: 'center' }}>
-                  <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '4px' }}>{m.label}</div>
-                  <div style={{ fontWeight: 700, color: m.color, fontSize: '0.95rem' }}>{m.value}</div>
-                </div>
-              ))}
-            </div>
-
-            {/* Capacity Bar */}
-            <div style={{ marginBottom: '18px' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.75rem', color: 'var(--text-muted)', marginBottom: '6px' }}>
-                <span>Capacidad ocupada: {trip.reservedKg} kg de {trip.totalKg} kg</span>
-                <span style={{ color: 'var(--brand-cyan)' }}>{((trip.reservedKg / trip.totalKg) * 100).toFixed(0)}% usado</span>
-              </div>
-              <div className="progress-bar">
-                <div className="progress-fill" style={{ width: `${(trip.reservedKg / trip.totalKg) * 100}%` }} />
-              </div>
-            </div>
-
-            <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
-              <Link
-                href="/dashboard/orders"
-                className="btn btn-primary btn-sm"
-                style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', textDecoration: 'none' }}
-              >
-                <Package size={14} /> Ver Encargos ({trip.pendingOrders})
-              </Link>
-              <button
-                type="button"
-                onClick={() => handleUploadPhoto(trip.id)}
-                className="btn btn-ghost btn-sm"
-              >
-                <Camera size={14} /> Subir Foto Equipaje
-              </button>
-              <button
-                type="button"
-                onClick={() => setEditingTrip(trip)}
-                className="btn btn-ghost btn-sm"
-              >
-                <Edit2 size={14} /> Editar Itinerario
-              </button>
-            </div>
-          </div>
-        ))}
-
-        {/* New Trip CTA Card */}
-        <Link
-          href="/dashboard/my-trips/new"
-          style={{
-            border: '2px dashed var(--border-default)',
-            borderRadius: 16,
-            padding: '40px',
-            textAlign: 'center',
-            cursor: 'pointer',
-            transition: 'all 0.2s',
-            color: 'var(--text-muted)',
-            textDecoration: 'none',
-            display: 'block',
-          }}
-          className="card-kinetic"
-        >
-          <Plane size={32} style={{ marginBottom: 12, opacity: 0.6, color: 'var(--brand-cyan)' }} />
-          <div style={{ fontWeight: 700, color: 'var(--text-primary)', marginBottom: '4px', fontSize: '1.05rem' }}>
-            ¿Tienes otro viaje próximo?
-          </div>
-          <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
-            Publica tu ruta y rentabiliza el equipaje disponible
-          </div>
-        </Link>
-      </div>
-
-      {/* Edit Trip Modal */}
-      {editingTrip && (
-        <div className="modal-overlay" onClick={() => setEditingTrip(null)}>
-          <div className="modal-content" onClick={e => e.stopPropagation()}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-              <h3 style={{ fontSize: '1.15rem', fontWeight: 700, margin: 0 }}>Editar Itinerario #{editingTrip.id}</h3>
-              <button type="button" onClick={() => setEditingTrip(null)} style={{ background: 'transparent', border: 'none', color: 'var(--text-muted)', cursor: 'pointer' }}>
-                <X size={18} />
-              </button>
-            </div>
-
-            <form onSubmit={handleSaveEdit} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-              <div className="input-group">
-                <label className="input-label">Aerolínea / N° Vuelo</label>
-                <input
-                  type="text"
-                  required
-                  value={editingTrip.airline}
-                  onChange={e => setEditingTrip({ ...editingTrip, airline: e.target.value })}
-                  className="input"
-                />
-              </div>
-
+      {/* Edit Modal */}
+      {editTrip && (
+        <div className="modal-overlay" onClick={() => setEditTrip(null)}>
+          <div className="modal-box" style={{ width: '100%', maxWidth: 520, padding: '28px' }} onClick={e => e.stopPropagation()}>
+            <button type="button" onClick={() => setEditTrip(null)} style={{ position: 'absolute', top: 16, right: 16, background: 'transparent', border: 'none', color: 'var(--text-muted)', cursor: 'pointer' }}>
+              <X size={18} />
+            </button>
+            <h3 style={{ fontSize: '1.15rem', fontWeight: 700, marginBottom: '20px' }}>Editar Viaje</h3>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
                 <div className="input-group">
-                  <label className="input-label">Kilos Totales</label>
-                  <input
-                    type="number"
-                    min={5}
-                    value={editingTrip.totalKg}
-                    onChange={e => setEditingTrip({ ...editingTrip, totalKg: Number(e.target.value) })}
-                    className="input"
-                  />
+                  <label className="input-label">Ciudad Origen</label>
+                  <input type="text" value={eOrigin} onChange={e => setEOrigin(e.target.value)} className="input" />
                 </div>
                 <div className="input-group">
-                  <label className="input-label">Kilos Libres</label>
-                  <input
-                    type="number"
-                    min={1}
-                    value={editingTrip.availableKg}
-                    onChange={e => setEditingTrip({ ...editingTrip, availableKg: Number(e.target.value) })}
-                    className="input"
-                  />
+                  <label className="input-label">País Origen</label>
+                  <input type="text" value={eOriginCountry} onChange={e => setEOriginCountry(e.target.value)} className="input" />
                 </div>
               </div>
-
-              <div style={{ display: 'flex', gap: '10px', marginTop: '12px' }}>
-                <button type="button" onClick={() => setEditingTrip(null)} className="btn btn-ghost" style={{ flex: 1 }}>
-                  Cancelar
-                </button>
-                <button type="submit" className="btn btn-primary" style={{ flex: 1 }}>
-                  Guardar Cambios
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                <div className="input-group">
+                  <label className="input-label">Ciudad Destino</label>
+                  <input type="text" value={eDest} onChange={e => setEDest(e.target.value)} className="input" />
+                </div>
+                <div className="input-group">
+                  <label className="input-label">País Destino</label>
+                  <input type="text" value={eDestCountry} onChange={e => setEDestCountry(e.target.value)} className="input" />
+                </div>
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                <div className="input-group">
+                  <label className="input-label">Fecha Salida</label>
+                  <input type="date" value={eDeparture} onChange={e => setEDeparture(e.target.value)} className="input" />
+                </div>
+                <div className="input-group">
+                  <label className="input-label">Fecha Llegada</label>
+                  <input type="date" value={eArrival} onChange={e => setEArrival(e.target.value)} className="input" />
+                </div>
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '12px' }}>
+                <div className="input-group">
+                  <label className="input-label">Kg disponibles</label>
+                  <input type="number" min="0.1" step="0.1" value={eKg} onChange={e => setEKg(e.target.value)} className="input" />
+                </div>
+                <div className="input-group">
+                  <label className="input-label">$/kg</label>
+                  <input type="number" min="1" step="0.5" value={ePrice} onChange={e => setEPrice(e.target.value)} className="input" />
+                </div>
+                <div className="input-group">
+                  <label className="input-label">Vuelo</label>
+                  <input type="text" value={eFlight} onChange={e => setEFlight(e.target.value)} className="input" placeholder="IB 6825" />
+                </div>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '8px' }}>
+                <button type="button" onClick={() => setEditTrip(null)} className="btn btn-ghost">Cancelar</button>
+                <button type="button" onClick={handleEditSave} disabled={saving} className="btn btn-primary" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  {saving ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <Save size={14} />}
+                  Guardar
                 </button>
               </div>
-            </form>
+            </div>
           </div>
         </div>
       )}
-      </div>
+
+      {/* Delete Confirmation */}
+      {deleteId && (
+        <div className="modal-overlay" onClick={() => setDeleteId(null)}>
+          <div className="modal-box" style={{ width: '100%', maxWidth: 400, padding: '28px', textAlign: 'center' }} onClick={e => e.stopPropagation()}>
+            <AlertTriangle size={36} color="var(--brand-red)" style={{ marginBottom: '12px' }} />
+            <h3 style={{ fontSize: '1.1rem', fontWeight: 700, marginBottom: '8px' }}>¿Eliminar viaje?</h3>
+            <p style={{ color: 'var(--text-secondary)', fontSize: '0.88rem', marginBottom: '20px' }}>
+              No se puede eliminar si tiene órdenes activas asociadas.
+            </p>
+            <div style={{ display: 'flex', justifyContent: 'center', gap: '10px' }}>
+              <button type="button" onClick={() => setDeleteId(null)} className="btn btn-ghost">Cancelar</button>
+              <button type="button" onClick={handleDelete} disabled={saving} className="btn btn-primary" style={{ background: 'var(--brand-red)' }}>
+                {saving ? 'Eliminando...' : 'Sí, Eliminar'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </DashboardLayout>
   );
 }

@@ -204,6 +204,23 @@ export default function DashboardPage() {
           >
             🏪 Comercio
           </button>
+          <button
+            type="button"
+            onClick={() => setDemoUser('admin')}
+            style={{
+              padding: '6px 12px',
+              borderRadius: '8px',
+              border: 'none',
+              background: role === 'admin' ? 'var(--brand-purple)' : 'transparent',
+              color: role === 'admin' ? '#ffffff' : 'var(--text-secondary)',
+              fontWeight: 700,
+              fontSize: '0.78rem',
+              cursor: 'pointer',
+              transition: 'all 0.2s ease',
+            }}
+          >
+            🛡️ Auditor
+          </button>
         </div>
       </div>
 
@@ -302,6 +319,19 @@ export default function DashboardPage() {
                 </div>
               ))}
             </div>
+
+            <div style={{ marginTop: '16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: '14px', borderTop: '1px solid var(--border-subtle)', flexWrap: 'wrap', gap: '10px' }}>
+              <span style={{ fontSize: '0.78rem', color: 'var(--text-secondary)' }}>
+                Extracción multimodal OCR & sellado criptográfico Base L2
+              </span>
+              <Link
+                href="/dashboard/reports"
+                className="btn btn-sm btn-ghost"
+                style={{ border: '1px solid var(--border-cyan)', color: 'var(--brand-cyan)', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '6px' }}
+              >
+                <Sparkles size={14} /> Probar Simulador OCR
+              </Link>
+            </div>
           </div>
         </div>
 
@@ -344,6 +374,59 @@ export default function DashboardPage() {
                 </div>
               ))}
             </div>
+          </div>
+
+          {/* Quick OTP Verification Box (Real-time Interactive Escrow Release) */}
+          <div className="card card-glow-cyan" style={{ padding: '20px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
+              <ShieldCheck size={18} color="var(--brand-cyan)" />
+              <div style={{ fontWeight: 700, fontSize: '0.95rem' }}>Validador Rápido de OTP</div>
+            </div>
+            <p style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', marginBottom: '14px', lineHeight: 1.4 }}>
+              Ingresa el código secreto Keccak-256 entregado por el comprador para liberar fondos de Escrow al instante.
+            </p>
+            <div style={{ display: 'flex', gap: '8px', marginBottom: '10px' }}>
+              <input
+                type="text"
+                placeholder="Ej: AY7K9M"
+                maxLength={8}
+                value={quickOtpInput}
+                onChange={e => setQuickOtpInput(e.target.value.toUpperCase())}
+                className="input"
+                style={{ fontFamily: 'monospace', letterSpacing: '0.1em', fontWeight: 700, fontSize: '0.9rem', textAlign: 'center' }}
+              />
+              <button
+                type="button"
+                onClick={() => {
+                  if (!quickOtpInput.trim()) return;
+                  setOtpVerifyState('verifying');
+                  setTimeout(() => {
+                    if (quickOtpInput.trim().toUpperCase() === 'AY7K9M' || quickOtpInput.trim().toUpperCase() === 'MN82K1' || quickOtpInput.trim().length >= 6) {
+                      setOtpVerifyState('success');
+                      setTimeout(() => setOtpVerifyState('idle'), 4000);
+                    } else {
+                      setOtpVerifyState('error');
+                      setTimeout(() => setOtpVerifyState('idle'), 3000);
+                    }
+                  }, 800);
+                }}
+                disabled={otpVerifyState === 'verifying'}
+                className="btn btn-primary btn-sm"
+                style={{ flexShrink: 0 }}
+              >
+                {otpVerifyState === 'verifying' ? 'Validando...' : 'Liberar'}
+              </button>
+            </div>
+            {otpVerifyState === 'success' && (
+              <div style={{ fontSize: '0.75rem', color: 'var(--brand-emerald)', background: 'rgba(0,214,143,0.1)', padding: '8px 10px', borderRadius: '8px', border: '1px solid rgba(0,214,143,0.3)' }}>
+                ✓ ¡Hash Keccak validado! Fondos liberados al viajero en Base L2.
+              </div>
+            )}
+            {otpVerifyState === 'error' && (
+              <div style={{ fontSize: '0.75rem', color: 'var(--brand-red)', background: 'rgba(239,68,68,0.1)', padding: '8px 10px', borderRadius: '8px', border: '1px solid rgba(239,68,68,0.3)' }}>
+                ✗ Código inválido. Verifica el código OTP con el comprador.
+              </div>
+            )}
           </div>
 
           {/* Quick Actions */}

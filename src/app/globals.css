@@ -58,10 +58,12 @@
   --radius-xl: 24px;
   --radius-full: 9999px;
 
-  /* Transitions */
+  /* Scroll-Craft & Transitions */
+  --sc-p: 0;
   --ease-fast: 0.12s ease;
   --ease-smooth: 0.25s cubic-bezier(0.4, 0, 0.2, 1);
   --ease-bounce: 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+  --ease-spring: 0.32s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -351,10 +353,20 @@ body {
   border-radius: var(--radius-md);
   border: none;
   cursor: pointer;
-  transition: all var(--ease-smooth);
+  transition: all 0.32s cubic-bezier(0.16, 1, 0.3, 1);
   text-decoration: none;
   white-space: nowrap;
   user-select: none;
+}
+
+button:active, .btn:active, [role="button"]:active {
+  transform: scale(0.97);
+  transition: transform 0.12s ease;
+}
+
+button:focus-visible, .btn:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--bg-app), 0 0 0 4px var(--brand-cyan);
 }
 
 .btn-sm { padding: 7px 14px; font-size: 0.8rem; }
@@ -1806,3 +1818,260 @@ button:focus-visible, .btn:focus-visible, a:focus-visible, input:focus-visible {
   border: 1.5px solid rgba(255, 255, 255, 0.1);
   color: var(--text-muted);
 }
+
+/* =====================================================
+   SCROLL-CRAFT 3D SPATIAL & KINETIC ENGINE UTILITIES
+   ===================================================== */
+.sc-perspective-container {
+  perspective: 1200px;
+  transform-style: preserve-3d;
+}
+
+.sc-card-depth {
+  transform: translateZ(0);
+  transition: transform 0.32s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.32s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.32s cubic-bezier(0.16, 1, 0.3, 1);
+  will-change: transform;
+}
+
+.sc-card-depth:hover {
+  transform: translateY(-4px) translateZ(14px) rotateX(1.5deg) rotateY(-1deg);
+  box-shadow: 0 20px 48px rgba(0, 0, 0, 0.7), 0 0 32px rgba(0, 207, 255, 0.18);
+  border-color: rgba(0, 207, 255, 0.35);
+}
+
+.sc-layer-3d {
+  transform: translateZ(24px);
+  transform-style: preserve-3d;
+}
+
+.sc-timeline-progress {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 3px;
+  background: linear-gradient(90deg, var(--brand-cyan), var(--brand-gold), var(--brand-emerald));
+  transform-origin: left;
+  transform: scaleX(var(--sc-p, 0));
+  z-index: 9999;
+  pointer-events: none;
+  box-shadow: 0 0 12px rgba(0, 207, 255, 0.6);
+  transition: transform 0.05s linear;
+}
+
+.biometric-pulse {
+  animation: biometricBeat 1.8s cubic-bezier(0.16, 1, 0.3, 1) infinite;
+}
+
+@keyframes laserScan {
+  0% {
+    top: 0%;
+    opacity: 0.9;
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    top: 95%;
+    opacity: 0.9;
+  }
+}
+
+/* =====================================================
+   MODALS
+   ===================================================== */
+
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(5, 8, 16, 0.82);
+  backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9000;
+  padding: 16px;
+  animation: fadeIn 0.2s ease-out;
+}
+
+.modal-box {
+  position: relative;
+  background: var(--bg-card);
+  border-radius: 20px;
+  border: 1px solid var(--border-default);
+  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.6), 0 0 40px rgba(0, 207, 255, 0.06);
+  animation: modalSlideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+@keyframes modalSlideUp {
+  from { opacity: 0; transform: translateY(20px) scale(0.97); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+/* =====================================================
+   ALERTS
+   ===================================================== */
+
+.alert {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 18px;
+  border-radius: 12px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  line-height: 1.5;
+  animation: fadeIn 0.3s ease-out;
+}
+
+.alert-success {
+  background: rgba(0, 214, 143, 0.08);
+  border: 1px solid rgba(0, 214, 143, 0.2);
+  color: var(--brand-emerald);
+}
+
+.alert-error {
+  background: rgba(255, 77, 109, 0.08);
+  border: 1px solid rgba(255, 77, 109, 0.2);
+  color: var(--brand-red);
+}
+
+.alert-warning {
+  background: rgba(245, 166, 35, 0.08);
+  border: 1px solid rgba(245, 166, 35, 0.2);
+  color: var(--brand-gold);
+}
+
+.alert-info {
+  background: rgba(0, 207, 255, 0.08);
+  border: 1px solid rgba(0, 207, 255, 0.2);
+  color: var(--brand-cyan);
+}
+
+/* =====================================================
+   FORM INPUTS (extended)
+   ===================================================== */
+
+.input-group {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.input-label {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  display: flex;
+  align-items: center;
+}
+
+select.input {
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%234d5f80' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  padding-right: 36px;
+}
+
+textarea.input {
+  font-family: var(--font-sans);
+  min-height: 60px;
+}
+
+/* =====================================================
+   BTN VARIANTS (extended)
+   ===================================================== */
+
+.btn-sm {
+  padding: 6px 12px;
+  font-size: 0.78rem;
+  border-radius: 8px;
+}
+
+.btn-ghost {
+  background: transparent;
+  border: 1px solid var(--border-default);
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border-radius: 10px;
+  padding: 8px 14px;
+  font-size: 0.82rem;
+  font-weight: 500;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.btn-ghost:hover {
+  background: rgba(255, 255, 255, 0.04);
+  border-color: var(--border-cyan);
+  color: var(--text-primary);
+}
+
+/* =====================================================
+   RESPONSIVE — Mobile First Fixes
+   ===================================================== */
+
+@media (max-width: 768px) {
+  .page-header {
+    flex-direction: column;
+    gap: 12px;
+    align-items: stretch;
+  }
+
+  .modal-box {
+    max-width: calc(100vw - 32px) !important;
+    border-radius: 16px;
+  }
+
+  .card {
+    padding: 16px !important;
+  }
+
+  /* Stack grids to single column on mobile */
+  [style*="gridTemplateColumns: repeat(auto-fit"] {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .page-title {
+    font-size: 1.2rem;
+  }
+
+  .page-subtitle {
+    font-size: 0.78rem;
+  }
+
+  .modal-overlay {
+    padding: 8px;
+    align-items: flex-end;
+  }
+
+  .modal-box {
+    max-height: 85vh;
+    border-radius: 20px 20px 0 0;
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+
+  .btn {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+/* Badge variant for red */
+.badge-red {
+  background: rgba(255, 77, 109, 0.12);
+  color: var(--brand-red);
+  border: 1px solid rgba(255, 77, 109, 0.2);
+}
+

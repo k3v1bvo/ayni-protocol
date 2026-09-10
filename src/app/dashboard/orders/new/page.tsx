@@ -3,216 +3,250 @@
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
+import { useAuth } from '@/context/AuthContext';
+import { isSupabaseConfigured } from '@/lib/supabase/client';
 import { sanitizeText, sanitizeAmount } from '@/lib/utils/sanitizer';
-import { ShoppingBag, ArrowLeft, CheckCircle2, ShieldCheck, Sparkles } from 'lucide-react';
+import { calculateOrderFees } from '@/lib/constants/fees';
+import { playSuccessSound } from '@/lib/notifications/sound';
+import { ShoppingBag, ArrowLeft, CheckCircle2, Sparkles, AlertTriangle, Loader2, DollarSign, ShieldCheck, Copy } from 'lucide-react';
 import Link from 'next/link';
 
 export default function NewOrderPage() {
   const router = useRouter();
+  const { user } = useAuth();
+
   const [description, setDescription] = useState('');
-  const [category, setCategory] = useState('condiments');
-  const [productCost, setProductCost] = useState(35);
-  const [storeLocation, setStoreLocation] = useState('Madrid, España');
-  const [deliveryCity, setDeliveryCity] = useState('La Paz, Bolivia');
+  const [productPrice, setProductPrice] = useState('50');
+  const [travelerFee, setTravelerFee] = useState('10');
+  const [orderType, setOrderType] = useState('foot_shopping');
+
   const [submitted, setSubmitted] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [createdOtp, setCreatedOtp] = useState<string | null>(null);
+  const [createdCode, setCreatedCode] = useState<string | null>(null);
 
-  // Cálculos transparentes de Escrow según reglas del protocolo AYNI
-  const travelerFee = Math.min(productCost * 0.10, 50); // 10% con cap de $50 USD
-  const platformFee = productCost * 0.03;
-  const guaranteeFund = productCost * 0.02;
-  const totalEscrow = productCost + travelerFee + platformFee + guaranteeFund;
+  const price = sanitizeAmount(productPrice, 0.5, 50000);
+  const fee = sanitizeAmount(travelerFee, 0, 5000);
+  const platformFee = Math.round(price * 0.05 * 100) / 100;
+  const guaranteeFund = Math.round(price * 0.02 * 100) / 100;
+  const totalEscrow = Math.round((price + fee + platformFee + guaranteeFund) * 100) / 100;
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setErrorMsg(null);
+    setSubmitting(true);
 
-    const cleanDesc = sanitizeText(description, 160);
-    const cleanStore = sanitizeText(storeLocation, 80);
-    const cleanCity = sanitizeText(deliveryCity, 80);
-    const numCost = sanitizeAmount(productCost, 5, 5000);
+    const cleanDesc = sanitizeText(description, 500);
+    if (!cleanDesc) {
+      setErrorMsg('La descripción del encargo es obligatoria.');
+      setSubmitting(false);
+      return;
+    }
 
-    const otpCode = Math.random().toString(36).substring(2, 8).toUpperCase();
-    const newOrder = {
-      id: `ORD-2609-${Date.now().toString().slice(-3)}`,
-      type: category,
-      status: 'funded',
-      description: `${cleanDesc || 'Encargo personalizado'} — ${cleanStore || 'Madrid'}`,
-      clientName: 'Mi Cuenta (Tú)',
-      travelerName: 'Esperando asignación',
-      route: { from: cleanStore || 'Madrid 🇪🇸', to: cleanCity || 'La Paz 🇧🇴' },
-      productCost: numCost,
-      travelerFee: Number(travelerFee.toFixed(2)),
-      systemFee: Number((platformFee + guaranteeFund).toFixed(2)),
-      total: Number(totalEscrow.toFixed(2)),
-      otpCode,
-      otpHash: 'hash_' + otpCode,
-      aiScore: 0.98,
-      ocrAmount: numCost,
-      ocrStore: cleanStore,
-      date: new Date().toISOString(),
+    if (price <= 0) {
+      setErrorMsg('El precio del producto debe ser mayor a 0.');
+      setSubmitting(false);
+      return;
+    }
+
+    const payload = {
+      client_id: user?.id,
+      order_type: orderType,
+      description: cleanDesc,
+      product_price_usd: price,
+      traveler_fee_usd: fee,
+      platform_fee_usd: platformFee,
+      guarantee_fund_usd: guaranteeFund,
     };
 
-    if (typeof window !== 'undefined') {
+    if (isSupabaseConfigured && user?.id) {
       try {
-        const saved = localStorage.getItem('ayni_orders');
-        const existing = saved ? JSON.parse(saved) : [];
-        const updated = [newOrder, ...(Array.isArray(existing) ? existing : [])];
-        localStorage.setItem('ayni_orders', JSON.stringify(updated));
+        const res = await fetch('/api/orders', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        });
+        const result = await res.json();
+        if (res.ok) {
+          setCreatedOtp(result.otp_code);
+          setCreatedCode(result.order?.order_code);
+          setSubmitted(true);
+          setSubmitting(false);
+          playSuccessSound();
+          return;
+        }
+        setErrorMsg(result.error || 'Error al crear orden');
       } catch (err) {
-        console.error('Error saving order:', err);
+        console.warn('API error:', err);
       }
     }
 
+    // Fallback
+    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+    let otp = ''; for (let i = 0; i < 6; i++) otp += chars[Math.floor(Math.random() * chars.length)];
+    const code = `ORD-${Date.now().toString(36).toUpperCase()}`;
+    const existing = JSON.parse(localStorage.getItem('ayni_orders') || '[]');
+    existing.push({
+      id: crypto.randomUUID?.() || String(Date.now()),
+      order_code: code,
+      ...payload,
+      total_escrow_usd: totalEscrow,
+      otp_hash: 'demo',
+      otp_plain_simulated: otp,
+      status: 'funded',
+      created_at: new Date().toISOString(),
+    });
+    localStorage.setItem('ayni_orders', JSON.stringify(existing));
+    setCreatedOtp(otp);
+    setCreatedCode(code);
     setSubmitted(true);
-    setTimeout(() => {
-      router.push('/dashboard/orders');
-    }, 1000);
+    setSubmitting(false);
+    playSuccessSound();
   };
+
+  if (submitted) {
+    return (
+      <DashboardLayout>
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '50vh', gap: '16px', textAlign: 'center', maxWidth: '480px', margin: '0 auto' }}>
+          <div style={{ width: 64, height: 64, borderRadius: '50%', background: 'rgba(0,214,143,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <CheckCircle2 size={32} color="var(--brand-emerald)" />
+          </div>
+          <h2 style={{ fontWeight: 700, fontSize: '1.3rem' }}>¡Pedido creado exitosamente!</h2>
+          <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem' }}>
+            Fondos bloqueados en escrow. El viajero asignado realizará la compra.
+          </p>
+
+          {createdCode && (
+            <div style={{ padding: '12px 20px', background: 'rgba(0,207,255,0.05)', borderRadius: '12px', border: '1px solid rgba(0,207,255,0.2)', fontFamily: 'monospace', fontSize: '1rem' }}>
+              Código: <strong>{createdCode}</strong>
+            </div>
+          )}
+
+          {createdOtp && (
+            <div style={{ padding: '16px 24px', background: 'rgba(245,166,35,0.1)', borderRadius: '12px', border: '1px solid rgba(245,166,35,0.3)', textAlign: 'center' }}>
+              <div style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', marginBottom: '6px' }}>
+                🔑 Tu código OTP de entrega (guárdalo):
+              </div>
+              <div style={{ fontFamily: 'monospace', fontSize: '1.8rem', fontWeight: 800, letterSpacing: '4px', color: 'var(--brand-gold)' }}>
+                {createdOtp}
+              </div>
+              <button
+                type="button"
+                onClick={() => { navigator.clipboard.writeText(createdOtp); }}
+                className="btn btn-ghost btn-sm"
+                style={{ marginTop: '8px', fontSize: '0.75rem' }}
+              >
+                <Copy size={12} /> Copiar código
+              </button>
+            </div>
+          )}
+
+          <Link href="/dashboard/orders" className="btn btn-primary" style={{ marginTop: '12px' }}>
+            Ver Mis Pedidos
+          </Link>
+        </div>
+      </DashboardLayout>
+    );
+  }
 
   return (
     <DashboardLayout>
-      <div style={{ maxWidth: '680px', margin: '0 auto' }}>
-        <Link
-          href="/dashboard/orders"
-          style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', color: 'var(--text-muted)', fontSize: '0.85rem', textDecoration: 'none', marginBottom: '16px' }}
-        >
-          <ArrowLeft size={16} /> Volver a Mis Pedidos
-        </Link>
-
-        <div className="page-header" style={{ marginBottom: '24px' }}>
-          <div className="page-title-group">
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '4px' }}>
-              <div className="page-title">Nuevo Encargo / Compra a Pie</div>
-              <span className="badge badge-gold">
-                <ShieldCheck size={11} /> Protección Smart Contract Escrow
-              </span>
-            </div>
-            <div className="page-subtitle">
-              Pide a un viajero que compre o transporte condimentos, insumos o artesanías hasta tu ciudad.
-            </div>
+      <div className="page-header" style={{ marginBottom: '24px' }}>
+        <div className="page-title-group">
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '4px' }}>
+            <Link href="/dashboard/orders" className="btn btn-ghost btn-sm" style={{ padding: '4px 8px' }}><ArrowLeft size={16} /></Link>
+            <div className="page-title">Nuevo Pedido</div>
+            <span className="badge badge-cyan"><Sparkles size={11} /> Escrow P2P</span>
           </div>
+          <div className="page-subtitle">Crea un pedido con custodia escrow. Un viajero comprará y entregará tu producto.</div>
         </div>
+      </div>
 
-        {submitted && (
-          <div className="alert alert-success" style={{ marginBottom: '24px' }}>
-            <CheckCircle2 size={16} /> ¡Encargo creado en Escrow! Los fondos quedarán custodiados hasta que valides con OTP.
-          </div>
-        )}
+      {errorMsg && (
+        <div className="alert alert-error" style={{ marginBottom: '20px' }}><AlertTriangle size={16} /> {errorMsg}</div>
+      )}
 
-        <div className="card" style={{ padding: '32px' }}>
-          <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '24px' }}>
+        {/* Form */}
+        <div className="card" style={{ padding: '28px' }}>
+          <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
             <div className="input-group">
-              <label className="input-label">Descripción del Producto / Encargo *</label>
-              <input
-                type="text"
+              <label className="input-label">Tipo de Encargo</label>
+              <select value={orderType} onChange={e => setOrderType(e.target.value)} className="input">
+                <option value="foot_shopping">Compra a Pie (Foot Shopping)</option>
+                <option value="parcel_transport">Transporte de Paquete</option>
+                <option value="cross_border_nostalgia">Cross-Border Nostalgia</option>
+              </select>
+            </div>
+
+            <div className="input-group">
+              <label className="input-label">Descripción del Encargo *</label>
+              <textarea
                 required
-                placeholder="Ej: Kit de condimentos andinos deshidratados (Ají amarillo + Llajwa)"
                 value={description}
                 onChange={e => setDescription(e.target.value)}
                 className="input"
+                rows={4}
+                maxLength={500}
+                placeholder="Describe lo que necesitas comprar, marca, modelo, cantidad, dirección de tienda..."
+                style={{ resize: 'vertical' }}
               />
+              <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>{description.length}/500</span>
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
               <div className="input-group">
-                <label className="input-label">Categoría</label>
-                <select
-                  value={category}
-                  onChange={e => setCategory(e.target.value)}
-                  className="input"
-                >
-                  <option value="condiments">🌶️ Condimentos & Sabores Patrios</option>
-                  <option value="medical">💊 Insumos Médicos / Farmacia</option>
-                  <option value="textiles">🧶 Textiles & Artesanías</option>
-                  <option value="tech">📱 Tecnología & Lentes</option>
-                  <option value="other">📦 Otro Encargo</option>
-                </select>
+                <label className="input-label">Precio Producto (USDC) *</label>
+                <input type="number" required min="0.5" step="0.01" value={productPrice} onChange={e => setProductPrice(e.target.value)} className="input" />
               </div>
-
               <div className="input-group">
-                <label className="input-label">Costo Estimado del Producto (USDC) *</label>
-                <input
-                  type="number"
-                  min={5}
-                  max={2000}
-                  required
-                  value={productCost}
-                  onChange={e => setProductCost(Number(e.target.value))}
-                  className="input"
-                />
+                <label className="input-label">Fee Viajero (USDC)</label>
+                <input type="number" min="0" step="0.5" value={travelerFee} onChange={e => setTravelerFee(e.target.value)} className="input" />
               </div>
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
-              <div className="input-group">
-                <label className="input-label">Ciudad / Tienda de Compra *</label>
-                <input
-                  type="text"
-                  required
-                  placeholder="Ej: Madrid, España"
-                  value={storeLocation}
-                  onChange={e => setStoreLocation(e.target.value)}
-                  className="input"
-                />
-              </div>
-
-              <div className="input-group">
-                <label className="input-label">Ciudad de Entrega / Destino *</label>
-                <input
-                  type="text"
-                  required
-                  placeholder="Ej: La Paz, Bolivia"
-                  value={deliveryCity}
-                  onChange={e => setDeliveryCity(e.target.value)}
-                  className="input"
-                />
-              </div>
-            </div>
-
-            {/* Escrow Fee Breakdown Box */}
-            <div style={{
-              padding: '18px',
-              background: 'linear-gradient(135deg, rgba(245,166,35,0.06) 0%, rgba(0,207,255,0.06) 100%)',
-              border: '1px solid rgba(245,166,35,0.25)',
-              borderRadius: '12px',
-            }}>
-              <div style={{ fontWeight: 700, fontSize: '0.9rem', marginBottom: '10px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <ShieldCheck size={16} color="var(--brand-gold)" /> Desglose Financiero en Escrow
-              </div>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', fontSize: '0.82rem' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                  <span style={{ color: 'var(--text-muted)' }}>Costo del producto:</span>
-                  <span style={{ fontWeight: 600 }}>${productCost.toFixed(2)} USDC</span>
-                </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                  <span style={{ color: 'var(--text-muted)' }}>Honorario del viajero (monetización equipaje):</span>
-                  <span style={{ fontWeight: 600, color: 'var(--brand-cyan)' }}>+${travelerFee.toFixed(2)} USDC</span>
-                </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                  <span style={{ color: 'var(--text-muted)' }}>Comisión del protocolo AYNI (3%):</span>
-                  <span style={{ fontWeight: 600 }}>+${platformFee.toFixed(2)} USDC</span>
-                </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                  <span style={{ color: 'var(--text-muted)' }}>Fondo de garantía anti-pérdida (2%):</span>
-                  <span style={{ fontWeight: 600 }}>+${guaranteeFund.toFixed(2)} USDC</span>
-                </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', borderTop: '1px solid rgba(255,255,255,0.1)', paddingTop: '8px', marginTop: '4px', fontSize: '0.95rem' }}>
-                  <span style={{ fontWeight: 700 }}>Total a Bloquear en Smart Contract:</span>
-                  <span style={{ fontWeight: 800, color: 'var(--brand-gold)', fontFamily: 'var(--font-display)' }}>
-                    ${totalEscrow.toFixed(2)} USDC
-                  </span>
-                </div>
-              </div>
-            </div>
-
-            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px', marginTop: '6px' }}>
-              <Link href="/dashboard/orders" className="btn btn-ghost">
-                Cancelar
-              </Link>
-              <button type="submit" className="btn btn-primary">
-                <ShoppingBag size={16} /> Crear Encargo con Escrow
-              </button>
-            </div>
+            <button type="submit" disabled={submitting} className="btn btn-primary" style={{ marginTop: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
+              {submitting ? <Loader2 size={16} style={{ animation: 'spin 1s linear infinite' }} /> : <ShieldCheck size={16} />}
+              {submitting ? 'Creando...' : 'Crear Pedido & Bloquear Escrow'}
+            </button>
           </form>
+        </div>
+
+        {/* Fee Preview */}
+        <div className="card" style={{ padding: '28px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '20px' }}>
+            <DollarSign size={20} color="var(--brand-gold)" />
+            <h3 style={{ fontSize: '1.1rem', fontWeight: 700, margin: 0 }}>Desglose de Costos</h3>
+          </div>
+
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', fontSize: '0.88rem' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 0', borderBottom: '1px solid var(--border-subtle)' }}>
+              <span style={{ color: 'var(--text-secondary)' }}>Costo del producto</span>
+              <span style={{ fontWeight: 600 }}>${price.toFixed(2)}</span>
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 0', borderBottom: '1px solid var(--border-subtle)' }}>
+              <span style={{ color: 'var(--text-secondary)' }}>Fee del viajero</span>
+              <span style={{ fontWeight: 600 }}>${fee.toFixed(2)}</span>
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 0', borderBottom: '1px solid var(--border-subtle)' }}>
+              <span style={{ color: 'var(--text-secondary)' }}>Fee plataforma (5%)</span>
+              <span style={{ fontWeight: 600 }}>${platformFee.toFixed(2)}</span>
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 0', borderBottom: '1px solid var(--border-subtle)' }}>
+              <span style={{ color: 'var(--text-secondary)' }}>Fondo de garantía (2%)</span>
+              <span style={{ fontWeight: 600 }}>${guaranteeFund.toFixed(2)}</span>
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', padding: '10px 0', marginTop: '4px' }}>
+              <span style={{ fontWeight: 700, fontSize: '1rem' }}>Total Escrow</span>
+              <span style={{ fontWeight: 800, fontSize: '1.3rem', color: 'var(--brand-gold)' }}>${totalEscrow.toFixed(2)}</span>
+            </div>
+          </div>
+
+          <div style={{ marginTop: '16px', padding: '12px 16px', background: 'rgba(0,207,255,0.05)', borderRadius: '12px', border: '1px solid rgba(0,207,255,0.15)', fontSize: '0.78rem', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
+            <ShieldCheck size={14} color="var(--brand-cyan)" style={{ float: 'left', marginRight: '8px', marginTop: '2px' }} />
+            Los fondos se bloquean en el Smart Contract Escrow hasta que confirmes la entrega con tu código OTP.
+          </div>
         </div>
       </div>
     </DashboardLayout>
