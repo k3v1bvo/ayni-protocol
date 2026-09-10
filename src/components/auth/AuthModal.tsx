@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import { UserRole } from '@/lib/supabase/types';
+import { sanitizeEmail, sanitizeText } from '@/lib/utils/sanitizer';
 import { Mail, Lock, User, X, AlertCircle, CheckCircle, Sparkles, Eye, EyeOff } from 'lucide-react';
 
 interface AuthModalProps {
@@ -46,19 +47,27 @@ export function AuthModal({ isOpen, onClose, initialMode = 'signin' }: AuthModal
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
+
+    const cleanEmail = sanitizeEmail(email);
+    if (!cleanEmail) {
+      setError('Por favor ingresa un correo electrónico válido.');
+      return;
+    }
+
     setLoading(true);
     try {
       if (mode === 'signin') {
-        const { error: err } = await signInWithEmail(email, password);
+        const { error: err } = await signInWithEmail(cleanEmail, password);
         if (err) { setError(err); return; }
         setSuccess('¡Sesión iniciada! Redirigiendo...');
-        setTimeout(() => { onClose(); router.push('/dashboard'); }, 700);
+        setTimeout(() => { onClose(); router.push('/dashboard'); }, 500);
       } else {
-        if (!fullName.trim()) { setError('Ingresa tu nombre completo'); return; }
-        const { error: err } = await signUpWithEmail(email, password, fullName, role);
+        const cleanName = sanitizeText(fullName, 120);
+        if (!cleanName) { setError('Ingresa tu nombre completo'); return; }
+        const { error: err } = await signUpWithEmail(cleanEmail, password, cleanName, role);
         if (err) { setError(err); return; }
         setSuccess('¡Cuenta creada! Bienvenido a AYNI.');
-        setTimeout(() => { onClose(); router.push('/dashboard'); }, 700);
+        setTimeout(() => { onClose(); router.push('/dashboard'); }, 500);
       }
     } finally {
       setLoading(false);

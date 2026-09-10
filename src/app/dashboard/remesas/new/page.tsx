@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { useAuth } from '@/context/AuthContext';
 import { supabase } from '@/lib/supabase/client';
+import { sanitizeText, sanitizeAmount, sanitizePhone, sanitizeEmail } from '@/lib/utils/sanitizer';
 import {
   ArrowLeft, Gift, Send, Sparkles, ShieldCheck, Clock, CheckCircle2,
   Calendar, Key, Wallet, AlertCircle, Info
@@ -30,9 +31,10 @@ export default function NewRemesaPage() {
   const [generatedOtp, setGeneratedOtp] = useState<string>('');
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
-  const numAmount = parseFloat(amount) || 0;
+  const cleanAmount = sanitizeAmount(amount, 1, 50000);
+  const numAmount = cleanAmount;
   const protocolFee = 0.01;
-  const totalCharge = (numAmount + protocolFee).toFixed(2);
+  const totalCharge = (cleanAmount + protocolFee).toFixed(2);
 
   const handleOccasionChange = (type: 'direct' | 'navidad' | 'cumpleanos' | 'mesada') => {
     setOccasionType(type);
@@ -53,11 +55,12 @@ export default function NewRemesaPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!recipientName.trim()) {
+    const cleanRecipientName = sanitizeText(recipientName, 100);
+    if (!cleanRecipientName) {
       setErrorMsg('Por favor ingresa el nombre del destinatario.');
       return;
     }
-    if (numAmount <= 0) {
+    if (cleanAmount <= 0) {
       setErrorMsg('El monto debe ser mayor a 0 USDC.');
       return;
     }
@@ -72,12 +75,12 @@ export default function NewRemesaPage() {
     try {
       const payload = {
         sender_id: user?.id || null,
-        recipient_name: recipientName.trim(),
-        recipient_email: recipientEmail.trim() || null,
-        recipient_phone: recipientPhone.trim() || null,
-        recipient_wallet: recipientWallet.trim() || null,
+        recipient_name: cleanRecipientName,
+        recipient_email: sanitizeEmail(recipientEmail) || null,
+        recipient_phone: sanitizePhone(recipientPhone) || null,
+        recipient_wallet: sanitizeText(recipientWallet, 64) || null,
         delivery_type: deliveryType,
-        amount: numAmount,
+        amount: cleanAmount,
         fee: protocolFee,
         currency: 'USDC',
         status: 'escrow_locked',
@@ -85,7 +88,7 @@ export default function NewRemesaPage() {
         scheduled_release_date: releaseDate ? new Date(releaseDate).toISOString() : null,
         claim_otp_hash: otp,
         smart_contract_tx: fakeTx,
-        note: note.trim() || null,
+        note: sanitizeText(note, 300) || null,
       };
 
       // Try inserting into Supabase

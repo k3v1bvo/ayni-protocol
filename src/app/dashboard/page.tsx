@@ -267,6 +267,7 @@ export default function DashboardPage() {
               {role === 'client' && [
                 { label: 'Nuevo pedido de compra a pie', href: '/dashboard/orders/new', color: 'var(--brand-cyan)' },
                 { label: 'Condimentos & Sabores Patrios', href: '/dashboard/marketplace', color: 'var(--brand-gold)' },
+                { label: 'Remesas & Regalos Familiares', href: '/dashboard/remesas', color: 'var(--brand-emerald)' },
                 { label: 'Ver rutas disponibles', href: '/dashboard/trips', color: 'var(--brand-cyan)' },
                 { label: 'Bóveda de Herencia Cripto (Heritage)', href: '/dashboard/heritage', color: 'var(--brand-purple)' },
               ].map((a, i) => (
@@ -291,6 +292,7 @@ export default function DashboardPage() {
                 { label: 'Publicar nuevo itinerario', href: '/dashboard/my-trips/new', color: 'var(--brand-cyan)' },
                 { label: 'Ver encargos disponibles', href: '/dashboard/orders', color: 'var(--brand-emerald)' },
                 { label: 'Mis ganancias', href: '/dashboard/earnings', color: 'var(--brand-gold)' },
+                { label: 'Bóveda de Herencia Cripto (Heritage)', href: '/dashboard/heritage', color: 'var(--brand-purple)' },
               ].map((a, i) => (
                 <Link key={i} href={a.href} style={{
                   display: 'flex', alignItems: 'center', justifyContent: 'space-between',

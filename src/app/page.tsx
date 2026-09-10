@@ -7,7 +7,8 @@ import { useAuth } from '@/context/AuthContext';
 import {
   Plane, ShoppingBag, ShieldCheck, Sparkles, ArrowRight, Store,
   Users, CheckCircle, Globe, TrendingUp, Zap, Lock, HeartHandshake,
-  DollarSign, Clock, Shield, ChevronRight, Award, Flame
+  DollarSign, Clock, Shield, ChevronRight, Award, Flame, HeartPulse,
+  RefreshCw, Key, ExternalLink
 } from 'lucide-react';
 import { AuthModal } from '@/components/auth/AuthModal';
 
@@ -120,6 +121,8 @@ export default function LandingPage() {
   const router = useRouter();
   const [authOpen, setAuthOpen] = useState(false);
   const [authMode, setAuthMode] = useState<'signin' | 'signup'>('signin');
+  const [landingHeartbeatDays, setLandingHeartbeatDays] = useState(142);
+  const [landingHeartbeatPinged, setLandingHeartbeatPinged] = useState(false);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -611,13 +614,23 @@ export default function LandingPage() {
                       </div>
                     ))}
                   </div>
-                  <button
-                    type="button"
-                    className="btn btn-primary btn-sm"
-                    onClick={() => { setAuthMode('signup'); setAuthOpen(true); }}
-                  >
-                    Saber Más <ChevronRight size={15} />
-                  </button>
+                  {i === 2 ? (
+                    <a
+                      href="#herencias"
+                      className="btn btn-primary btn-sm"
+                      style={{ textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '6px' }}
+                    >
+                      Explorar Bóvedas Heritage <ChevronRight size={15} />
+                    </a>
+                  ) : (
+                    <button
+                      type="button"
+                      className="btn btn-primary btn-sm"
+                      onClick={() => { setAuthMode('signup'); setAuthOpen(true); }}
+                    >
+                      Saber Más <ChevronRight size={15} />
+                    </button>
+                  )}
                 </div>
 
                 <div style={{
@@ -636,6 +649,202 @@ export default function LandingPage() {
                 </div>
               </div>
             ))}
+          </div>
+        </div>
+      </section>
+
+      {/* AYNI HERITAGE - CRIPTO HERENCIAS SECTION (3D SPATIAL & INTERACTIVE SIMULATOR) */}
+      <section id="herencias" className="sc-perspective-container" style={{ padding: '90px 0', borderTop: '1px solid var(--border-subtle)', position: 'relative', overflow: 'hidden' }}>
+        {/* Glow ambient backdrops */}
+        <div style={{ position: 'absolute', top: '20%', left: '-10%', width: '600px', height: '600px', borderRadius: '50%', background: 'radial-gradient(circle, rgba(245,166,35,0.09) 0%, transparent 70%)', pointerEvents: 'none' }} />
+        <div style={{ position: 'absolute', bottom: '10%', right: '-5%', width: '550px', height: '550px', borderRadius: '50%', background: 'radial-gradient(circle, rgba(0,207,255,0.08) 0%, transparent 70%)', pointerEvents: 'none' }} />
+
+        <div className="container" style={{ position: 'relative', zIndex: 2 }}>
+          <div style={{ textAlign: 'center', marginBottom: '50px' }}>
+            <div className="badge badge-gold" style={{ marginBottom: '12px' }}>
+              <Sparkles size={12} /> Bóvedas Descentralizadas de Sucesión
+            </div>
+            <h2 style={{ fontFamily: 'var(--font-display)', fontSize: 'clamp(2rem, 4.2vw, 3.2rem)', fontWeight: 800, letterSpacing: '-0.03em' }}>
+              AYNI Heritage — <span className="gradient-text-gold">Herencias Cripto Inteligentes</span>
+            </h2>
+            <p style={{ color: 'var(--text-secondary)', maxWidth: '720px', margin: '14px auto 0', fontSize: '1.05rem', lineHeight: 1.65 }}>
+              Protege el patrimonio y las remesas de familias migrantes. Un Smart Contract autónomo no custodial en Base L2 que transfiere tus fondos automáticamente a tus beneficiarios designados mediante un mecanismo <strong>Dead Man's Switch</strong>, sin trámites notariales ni comisiones burocráticas.
+            </p>
+          </div>
+
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(340px, 1fr))',
+            gap: '32px',
+            alignItems: 'center',
+          }}>
+            {/* Left: Pillars of Security & Governance */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+              <div className="card card-kinetic" style={{ padding: '26px', borderLeft: '4px solid var(--brand-gold)' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '10px' }}>
+                  <div style={{ width: 38, height: 38, borderRadius: 10, background: 'rgba(245,166,35,0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--brand-gold)' }}>
+                    <Lock size={20} />
+                  </div>
+                  <h3 style={{ fontSize: '1.15rem', fontWeight: 700, margin: 0 }}>Smart Contract No Custodial (Base L2)</h3>
+                </div>
+                <p style={{ fontSize: '0.88rem', color: 'var(--text-secondary)', lineHeight: 1.6, margin: 0 }}>
+                  Tus activos nunca quedan bajo custodia de AYNI ni intermediarios bancarios. Solo el código auditado en la blockchain tiene la capacidad de ejecutar las reglas de dispersión que tú mismo definas.
+                </p>
+              </div>
+
+              <div className="card card-kinetic" style={{ padding: '26px', borderLeft: '4px solid var(--brand-cyan)' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '10px' }}>
+                  <div style={{ width: 38, height: 38, borderRadius: 10, background: 'rgba(0,207,255,0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--brand-cyan)' }}>
+                    <HeartPulse size={20} />
+                  </div>
+                  <h3 style={{ fontSize: '1.15rem', fontWeight: 700, margin: 0 }}>Temporizador de Vida (Dead Man's Switch)</h3>
+                </div>
+                <p style={{ fontSize: '0.88rem', color: 'var(--text-secondary)', lineHeight: 1.6, margin: 0 }}>
+                  Confirmas tu presencia periódicamente con un solo clic o conexión de wallet. Si el temporizador llega a cero por inactividad prolongada, se activa el protocolo seguro de transferencia sucesoria.
+                </p>
+              </div>
+
+              <div className="card card-kinetic" style={{ padding: '26px', borderLeft: '4px solid var(--brand-emerald)' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '10px' }}>
+                  <div style={{ width: 38, height: 38, borderRadius: 10, background: 'rgba(0,214,143,0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--brand-emerald)' }}>
+                    <Users size={20} />
+                  </div>
+                  <h3 style={{ fontSize: '1.15rem', fontWeight: 700, margin: 0 }}>Distribución Porcentual Automática</h3>
+                </div>
+                <p style={{ fontSize: '0.88rem', color: 'var(--text-secondary)', lineHeight: 1.6, margin: 0 }}>
+                  Asigna cuotas porcentuales exactas para tus hijos, pareja o familiares a sus billeteras públicas EVM. Transparente, sin juicios de sucesión de años ni costos de hasta el 30% en abogados.
+                </p>
+              </div>
+
+              <div style={{ paddingTop: '8px' }}>
+                <Link
+                  href={user ? '/dashboard/heritage' : '/auth?redirect=/dashboard/heritage'}
+                  className="btn btn-primary btn-lg"
+                  style={{ display: 'inline-flex', alignItems: 'center', gap: '10px', textDecoration: 'none', padding: '14px 28px' }}
+                >
+                  <Key size={18} />
+                  <span>Configurar mi Bóveda Heritage</span>
+                  <ArrowRight size={18} />
+                </Link>
+              </div>
+            </div>
+
+            {/* Right: Live Interactive Simulator Card */}
+            <div className="card sc-card-depth" style={{
+              padding: '32px',
+              background: 'linear-gradient(145deg, rgba(15,21,39,0.95) 0%, rgba(10,14,26,0.98) 100%)',
+              border: '1px solid rgba(245,166,35,0.3)',
+              boxShadow: '0 24px 60px rgba(0,0,0,0.8), 0 0 35px rgba(245,166,35,0.12)',
+              borderRadius: '24px',
+            }}>
+              {/* Vault Simulator Header */}
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '22px', borderBottom: '1px solid var(--border-subtle)', paddingBottom: '16px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                  <span style={{ position: 'relative', display: 'flex', height: 12, width: 12 }}>
+                    <span style={{ position: 'absolute', display: 'inline-flex', height: '100%', width: '100%', borderRadius: '50%', background: 'var(--brand-emerald)', opacity: 0.75, animation: 'ping 1.5s cubic-bezier(0, 0, 0.2, 1) infinite' }} />
+                    <span style={{ position: 'relative', display: 'inline-flex', borderRadius: '50%', height: 12, width: 12, background: 'var(--brand-emerald)' }} />
+                  </span>
+                  <span style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--brand-emerald)' }}>
+                    Bóveda Activa & Protegida
+                  </span>
+                </div>
+                <span className="badge badge-cyan" style={{ fontSize: '0.72rem' }}>
+                  Base L2: 0x71Ae...C901
+                </span>
+              </div>
+
+              {/* Heartbeat Status Counter */}
+              <div style={{
+                background: 'rgba(5,8,16,0.7)',
+                border: '1px solid var(--border-default)',
+                borderRadius: '16px',
+                padding: '20px',
+                textAlign: 'center',
+                marginBottom: '22px',
+              }}>
+                <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '6px' }}>
+                  Temporizador Dead Man's Switch
+                </div>
+                <div style={{ fontFamily: 'var(--font-display)', fontSize: '2.8rem', fontWeight: 900, color: 'var(--brand-gold)', lineHeight: 1.1 }}>
+                  {landingHeartbeatDays} Días
+                </div>
+                <div style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', marginTop: '6px' }}>
+                  Próxima verificación requerida antes de activar la distribución
+                </div>
+
+                {landingHeartbeatPinged && (
+                  <div style={{
+                    marginTop: '12px',
+                    padding: '8px 12px',
+                    background: 'rgba(0,214,143,0.12)',
+                    border: '1px solid rgba(0,214,143,0.3)',
+                    borderRadius: '8px',
+                    color: 'var(--brand-emerald)',
+                    fontSize: '0.8rem',
+                    fontWeight: 600,
+                  }}>
+                    ✓ ¡Presencia verificada! Temporizador restablecido a 180 días en Base L2.
+                  </div>
+                )}
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    setLandingHeartbeatDays(180);
+                    setLandingHeartbeatPinged(true);
+                    setTimeout(() => setLandingHeartbeatPinged(false), 4000);
+                  }}
+                  className="btn btn-outline"
+                  style={{
+                    marginTop: '16px',
+                    width: '100%',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '8px',
+                    color: 'var(--brand-cyan)',
+                    borderColor: 'rgba(0,207,255,0.3)',
+                    padding: '10px 16px',
+                  }}
+                >
+                  <RefreshCw size={15} /> Emitir Señal de Vida (Heartbeat Ping)
+                </button>
+              </div>
+
+              {/* Beneficiary Allocation Preview */}
+              <div>
+                <div style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '12px', display: 'flex', justifyContent: 'space-between' }}>
+                  <span>Beneficiarios Vinculados</span>
+                  <span style={{ color: 'var(--brand-cyan)' }}>100% Asignado</span>
+                </div>
+
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 14px', background: 'rgba(255,255,255,0.03)', borderRadius: '10px', border: '1px solid var(--border-subtle)' }}>
+                    <div>
+                      <div style={{ fontSize: '0.85rem', fontWeight: 600 }}>Valentina Mamani (Hija)</div>
+                      <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>0x3a82...4b92</div>
+                    </div>
+                    <span className="badge badge-cyan" style={{ fontWeight: 700 }}>50%</span>
+                  </div>
+
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 14px', background: 'rgba(255,255,255,0.03)', borderRadius: '10px', border: '1px solid var(--border-subtle)' }}>
+                    <div>
+                      <div style={{ fontSize: '0.85rem', fontWeight: 600 }}>Mateo Mamani (Hijo)</div>
+                      <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>0x9B11...88A3</div>
+                    </div>
+                    <span className="badge badge-gold" style={{ fontWeight: 700 }}>30%</span>
+                  </div>
+
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 14px', background: 'rgba(255,255,255,0.03)', borderRadius: '10px', border: '1px solid var(--border-subtle)' }}>
+                    <div>
+                      <div style={{ fontSize: '0.85rem', fontWeight: 600 }}>Carmen Quispe (Cónyuge)</div>
+                      <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>0x71A0...10F4</div>
+                    </div>
+                    <span className="badge badge-emerald" style={{ fontWeight: 700 }}>20%</span>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </section>
