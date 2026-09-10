@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { useAuth } from '@/context/AuthContext';
 import { supabase } from '@/lib/supabase/client';
 import {
@@ -222,7 +223,8 @@ export default function RemesasPage() {
   };
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+    <DashboardLayout>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
       {/* Header & Main Actions */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '16px' }}>
         <div>
@@ -586,6 +588,7 @@ export default function RemesasPage() {
           </div>
         </>
       )}
-    </div>
+      </div>
+    </DashboardLayout>
   );
 }

@@ -1,6 +1,7 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useRouter, usePathname } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import { AppSidebar } from '@/components/layout/Sidebar';
 import { BottomNav } from '@/components/layout/BottomNav';
@@ -9,7 +10,43 @@ import { Bell, Search, Menu } from 'lucide-react';
 
 export function DashboardLayout({ children }: { children: React.ReactNode }) {
   const [mobileOpen, setMobileOpen] = useState(false);
-  const { user, role } = useAuth();
+  const router = useRouter();
+  const pathname = usePathname();
+  const { user, role, isLoading } = useAuth();
+
+  useEffect(() => {
+    if (!isLoading && !user) {
+      const target = pathname && pathname !== '/dashboard' ? pathname : '/dashboard';
+      router.replace('/auth?redirect=' + encodeURIComponent(target));
+    }
+  }, [isLoading, user, router, pathname]);
+
+  if (isLoading || !user) {
+    return (
+      <div style={{
+        minHeight: '100vh',
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+        background: 'var(--bg-primary)',
+        color: 'var(--text-secondary)',
+        gap: '16px',
+      }}>
+        <div style={{
+          width: '42px',
+          height: '42px',
+          border: '3px solid rgba(0, 207, 255, 0.15)',
+          borderTopColor: 'var(--brand-cyan)',
+          borderRadius: '50%',
+          animation: 'spin 0.8s linear infinite',
+        }} />
+        <div style={{ fontSize: '0.9rem', fontWeight: 500, color: 'var(--text-muted)' }}>
+          Verificando sesión segura AYNI Protocol...
+        </div>
+      </div>
+    );
+  }
 
   const getRoleColor = () => {
     if (role === 'traveler') return 'var(--brand-cyan)';

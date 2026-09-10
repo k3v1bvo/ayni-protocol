@@ -71,24 +71,32 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   // Inicialización de sesión y sincronización con Supabase
   useEffect(() => {
+    let isMounted = true;
+
     async function initSession() {
       // 1. Revisar si hay un perfil guardado en localStorage
       if (typeof window !== 'undefined') {
         const saved = localStorage.getItem('ayni_active_profile');
         if (saved) {
           try {
-            setUser(JSON.parse(saved));
-            setIsLoading(false);
-            return;
+            const parsed = JSON.parse(saved);
+            if (parsed && parsed.id) {
+              setUser(parsed);
+              setIsLoading(false);
+              return;
+            }
           } catch (e) {
             console.error('Error parseando perfil guardado:', e);
+            localStorage.removeItem('ayni_active_profile');
           }
         }
       }
 
       if (!isSupabaseConfigured) {
-        setUser(TEST_PROFILES.traveler);
-        setIsLoading(false);
+        if (isMounted) {
+          setUser(null);
+          setIsLoading(false);
+        }
         return;
       }
 
@@ -104,12 +112,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             .eq('id', session.user.id)
             .single();
 
-          if (profile) {
+          if (profile && isMounted) {
             setUser(profile);
             if (typeof window !== 'undefined') {
               localStorage.setItem('ayni_active_profile', JSON.stringify(profile));
             }
-          } else {
+          } else if (isMounted) {
             const fallback: UserProfile = {
               id: session.user.id,
               email: session.user.email || '',
@@ -120,20 +128,61 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
               avatar_url: session.user.user_metadata?.avatar_url,
             };
             setUser(fallback);
+            if (typeof window !== 'undefined') {
+              localStorage.setItem('ayni_active_profile', JSON.stringify(fallback));
+            }
           }
         } else {
-          // Por defecto en desarrollo activo, cargamos el perfil del viajero
-          setUser(TEST_PROFILES.traveler);
+          // Usuario no autenticado
+          if (isMounted) {
+            setUser(null);
+          }
         }
       } catch (err) {
         console.error('Error inicializando sesión con Supabase:', err);
-        setUser(TEST_PROFILES.traveler);
+        if (isMounted) {
+          setUser(null);
+        }
       } finally {
-        setIsLoading(false);
+        if (isMounted) {
+          setIsLoading(false);
+        }
       }
     }
 
     initSession();
+
+    // Listener reactivo de cambios de sesión en Supabase
+    let authListener: { unsubscribe: () => void } | null = null;
+    if (isSupabaseConfigured) {
+      const supabase = getSupabaseBrowserClient();
+      const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+        if (event === 'SIGNED_OUT') {
+          if (typeof window !== 'undefined') {
+            localStorage.removeItem('ayni_active_profile');
+          }
+          if (isMounted) setUser(null);
+        } else if (session?.user && (event === 'SIGNED_IN' || event === 'USER_UPDATED')) {
+          const { data: profile } = await supabase
+            .from('profiles')
+            .select('*')
+            .eq('id', session.user.id)
+            .single();
+          if (profile && isMounted) {
+            setUser(profile);
+            if (typeof window !== 'undefined') {
+              localStorage.setItem('ayni_active_profile', JSON.stringify(profile));
+            }
+          }
+        }
+      });
+      authListener = subscription;
+    }
+
+    return () => {
+      isMounted = false;
+      if (authListener) authListener.unsubscribe();
+    };
   }, []);
 
   const signInWithEmail = async (email: string, password: string): Promise<{ error: string | null }> => {

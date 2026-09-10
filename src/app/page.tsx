@@ -122,14 +122,21 @@ export default function LandingPage() {
   const [authMode, setAuthMode] = useState<'signin' | 'signup'>('signin');
 
   useEffect(() => {
-    if (!isLoading && user) {
-      router.push('/dashboard');
-    }
-  }, [user, isLoading, router]);
+    const handleScroll = () => {
+      const scrollHeight = document.documentElement.scrollHeight - window.innerHeight;
+      if (scrollHeight > 0) {
+        const progress = Math.min(1, Math.max(0, window.scrollY / scrollHeight));
+        document.documentElement.style.setProperty('--sc-p', progress.toFixed(4));
+      }
+    };
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    handleScroll();
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   if (isLoading) {
     return (
-      <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--bg-primary)' }}>
         <div style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>Cargando protocolo AYNI...</div>
       </div>
     );
@@ -137,6 +144,9 @@ export default function LandingPage() {
 
   return (
     <>
+      {/* Scroll-Craft Cinematic Timeline Bar */}
+      <div className="sc-timeline-progress" />
+
       {/* Top Protocol Status Banner */}
       <div style={{
         background: 'linear-gradient(90deg, #050810, #0a1329, #050810)',
@@ -206,12 +216,25 @@ export default function LandingPage() {
           </nav>
 
           <div style={{ display: 'flex', gap: '10px', alignItems: 'center', flexShrink: 0 }}>
-            <button type="button" className="btn btn-ghost btn-sm" onClick={() => { setAuthMode('signin'); setAuthOpen(true); }}>
-              Iniciar Sesión
-            </button>
-            <button type="button" className="btn btn-primary btn-sm" onClick={() => { setAuthMode('signup'); setAuthOpen(true); }}>
-              Crear Cuenta
-            </button>
+            {user ? (
+              <Link
+                href="/dashboard"
+                className="btn btn-primary btn-sm"
+                style={{ display: 'flex', alignItems: 'center', gap: '6px', textDecoration: 'none' }}
+              >
+                <span>Ir al Dashboard ({user.full_name?.split(' ')[0] || user.role})</span>
+                <ChevronRight size={14} />
+              </Link>
+            ) : (
+              <>
+                <button type="button" className="btn btn-ghost btn-sm" onClick={() => { setAuthMode('signin'); setAuthOpen(true); }}>
+                  Iniciar Sesión
+                </button>
+                <button type="button" className="btn btn-primary btn-sm" onClick={() => { setAuthMode('signup'); setAuthOpen(true); }}>
+                  Crear Cuenta
+                </button>
+              </>
+            )}
           </div>
         </div>
       </header>

@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { useAuth } from '@/context/AuthContext';
 import { supabase } from '@/lib/supabase/client';
 import {
@@ -106,7 +107,8 @@ export default function NewRemesaPage() {
   };
 
   return (
-    <div style={{ maxWidth: '800px', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '24px' }}>
+    <DashboardLayout>
+      <div style={{ maxWidth: '800px', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '24px' }}>
       {/* Back button */}
       <Link
         href="/dashboard/remesas"
@@ -446,6 +448,7 @@ export default function NewRemesaPage() {
           </button>
         </form>
       )}
-    </div>
+      </div>
+    </DashboardLayout>
   );
 }

@@ -1,14 +1,17 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, Suspense } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import { UserRole } from '@/lib/supabase/types';
-import { Mail, Lock, User, Sparkles, CheckCircle, AlertCircle, ArrowLeft } from 'lucide-react';
+import { Mail, Lock, User, Sparkles, CheckCircle, AlertCircle, ArrowLeft, ShieldCheck, Plane, ShoppingBag, Store } from 'lucide-react';
 
-export default function AuthPage() {
+function AuthContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const redirectUrl = searchParams.get('redirect') || '/dashboard';
+
   const { signInWithEmail, signUpWithEmail, signInWithGoogle, setDemoUser } = useAuth();
   const [mode, setMode] = useState<'signin' | 'signup'>('signin');
   const [email, setEmail] = useState('');
@@ -32,7 +35,7 @@ export default function AuthPage() {
           setError(res.error);
         } else {
           setSuccessMsg('¡Bienvenido de vuelta!');
-          setTimeout(() => router.push('/'), 600);
+          setTimeout(() => router.push(redirectUrl), 400);
         }
       } else {
         if (!fullName.trim()) {
@@ -45,7 +48,7 @@ export default function AuthPage() {
           setError(res.error);
         } else {
           setSuccessMsg('¡Cuenta registrada con éxito!');
-          setTimeout(() => router.push('/'), 800);
+          setTimeout(() => router.push(redirectUrl), 400);
         }
       }
     } catch (err: unknown) {
@@ -64,8 +67,14 @@ export default function AuthPage() {
       setError(res.error);
       setLoading(false);
     } else {
-      setTimeout(() => router.push('/'), 600);
+      setTimeout(() => router.push(redirectUrl), 400);
     }
+  };
+
+  const handleQuickDemo = (demoRole: UserRole) => {
+    setDemoUser(demoRole);
+    setSuccessMsg(`Ingresando como ${demoRole}...`);
+    setTimeout(() => router.push(redirectUrl), 200);
   };
 
   return (
@@ -244,7 +253,60 @@ export default function AuthPage() {
             {loading ? 'Procesando...' : mode === 'signin' ? 'Iniciar Sesión' : 'Registrarse'}
           </button>
         </form>
+
+        {/* Demo Roles for Judges & Evaluators */}
+        <div style={{ marginTop: '28px', paddingTop: '20px', borderTop: '1px solid var(--border-subtle)' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', justifyContent: 'center', marginBottom: '12px', fontSize: '0.78rem', color: 'var(--brand-gold)', fontWeight: 600 }}>
+            <Sparkles size={14} /> Acceso Rápido para Pruebas / Jurado:
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+            <button
+              type="button"
+              onClick={() => handleQuickDemo('client')}
+              className="btn btn-ghost btn-sm"
+              style={{ fontSize: '0.78rem', padding: '8px', border: '1px solid var(--border-subtle)', justifyContent: 'flex-start', gap: '6px' }}
+            >
+              <ShoppingBag size={14} color="var(--brand-gold)" /> Cliente (Ana M.)
+            </button>
+            <button
+              type="button"
+              onClick={() => handleQuickDemo('traveler')}
+              className="btn btn-ghost btn-sm"
+              style={{ fontSize: '0.78rem', padding: '8px', border: '1px solid var(--border-subtle)', justifyContent: 'flex-start', gap: '6px' }}
+            >
+              <Plane size={14} color="var(--brand-cyan)" /> Viajero (Alejandro)
+            </button>
+            <button
+              type="button"
+              onClick={() => handleQuickDemo('merchant')}
+              className="btn btn-ghost btn-sm"
+              style={{ fontSize: '0.78rem', padding: '8px', border: '1px solid var(--border-subtle)', justifyContent: 'flex-start', gap: '6px' }}
+            >
+              <Store size={14} color="var(--brand-emerald)" /> Comercio (Demetrio)
+            </button>
+            <button
+              type="button"
+              onClick={() => handleQuickDemo('admin')}
+              className="btn btn-ghost btn-sm"
+              style={{ fontSize: '0.78rem', padding: '8px', border: '1px solid var(--border-subtle)', justifyContent: 'flex-start', gap: '6px' }}
+            >
+              <ShieldCheck size={14} color="var(--brand-purple)" /> Auditor (Admin)
+            </button>
+          </div>
+        </div>
       </div>
     </div>
+  );
+}
+
+export default function AuthPage() {
+  return (
+    <Suspense fallback={
+      <div style={{ minHeight: '80vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <div className="spinner" />
+      </div>
+    }>
+      <AuthContent />
+    </Suspense>
   );
 }
