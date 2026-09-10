@@ -1,10 +1,21 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import Link from 'next/link';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
-import { Package, Plus, Search, Sparkles, Tag, CheckCircle2, Edit2, Trash2 } from 'lucide-react';
+import { Package, Plus, Search, Sparkles, Tag, CheckCircle2, Edit2, Trash2, Power } from 'lucide-react';
 
-const MERCHANT_PRODUCTS = [
+export interface ProductItem {
+  id: string;
+  title: string;
+  category: string;
+  price: number;
+  stock: number;
+  status: 'active' | 'paused';
+  sold: number;
+}
+
+const DEFAULT_PRODUCTS: ProductItem[] = [
   {
     id: 'P009',
     title: 'Ají Amarillo & Panca en Vainas Deshidratadas (250g)',
@@ -45,8 +56,53 @@ const MERCHANT_PRODUCTS = [
 
 export default function MerchantProductsPage() {
   const [searchTerm, setSearchTerm] = useState('');
+  const [products, setProducts] = useState<ProductItem[]>(DEFAULT_PRODUCTS);
+  const [notice, setNotice] = useState<string | null>(null);
 
-  const filtered = MERCHANT_PRODUCTS.filter(p =>
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('ayni_merchant_products');
+      if (saved) {
+        try {
+          const parsed = JSON.parse(saved);
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            setProducts(parsed);
+          }
+        } catch (e) {
+          // ignore
+        }
+      }
+    }
+  }, []);
+
+  const saveProducts = (updated: ProductItem[]) => {
+    setProducts(updated);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('ayni_merchant_products', JSON.stringify(updated));
+    }
+  };
+
+  const handleDelete = (id: string) => {
+    const updated = products.filter(p => p.id !== id);
+    saveProducts(updated);
+    setNotice('Producto eliminado del catálogo.');
+    setTimeout(() => setNotice(null), 3000);
+  };
+
+  const handleToggleStatus = (id: string) => {
+    const updated = products.map(p => {
+      if (p.id === id) {
+        const nextStatus = p.status === 'active' ? 'paused' : 'active';
+        return { ...p, status: nextStatus as 'active' | 'paused' };
+      }
+      return p;
+    });
+    saveProducts(updated);
+    setNotice('Estado del producto actualizado.');
+    setTimeout(() => setNotice(null), 2500);
+  };
+
+  const filtered = products.filter(p =>
     p.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
     p.category.toLowerCase().includes(searchTerm.toLowerCase())
   );
@@ -65,10 +121,20 @@ export default function MerchantProductsPage() {
             Administra tus condimentos, artesanías y productos disponibles para viajeros y clientes globales.
           </div>
         </div>
-        <button className="btn btn-gold">
+        <Link
+          href="/dashboard/products/new"
+          className="btn btn-gold"
+          style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', textDecoration: 'none' }}
+        >
           <Plus size={16} /> Publicar Nuevo Producto
-        </button>
+        </Link>
       </div>
+
+      {notice && (
+        <div className="alert alert-success" style={{ marginBottom: '18px' }}>
+          <CheckCircle2 size={16} /> {notice}
+        </div>
+      )}
 
       {/* Search */}
       <div style={{ marginBottom: '20px', maxWidth: '400px' }}>
@@ -101,38 +167,66 @@ export default function MerchantProductsPage() {
               </tr>
             </thead>
             <tbody>
-              {filtered.map(prod => (
-                <tr key={prod.id}>
-                  <td>
-                    <div style={{ fontWeight: 600, color: 'var(--text-primary)' }}>{prod.title}</div>
-                    <div style={{ fontSize: '0.72rem', color: 'var(--brand-cyan)' }}>#{prod.id}</div>
-                  </td>
-                  <td>
-                    <span className="badge badge-gold" style={{ fontSize: '0.75rem' }}>{prod.category}</span>
-                  </td>
-                  <td style={{ fontWeight: 700, color: 'var(--text-primary)' }}>
-                    ${prod.price.toFixed(2)} USDC
-                  </td>
-                  <td>
-                    <span style={{ fontWeight: 600, color: prod.stock > 20 ? 'var(--brand-emerald)' : 'var(--brand-gold)' }}>
-                      {prod.stock} unidades
-                    </span>
-                  </td>
-                  <td style={{ color: 'var(--text-secondary)' }}>
-                    {prod.sold} entregas
-                  </td>
-                  <td>
-                    <span className="badge badge-emerald" style={{ fontSize: '0.7rem' }}>
-                      Activo
-                    </span>
-                  </td>
-                  <td style={{ textAlign: 'right' }}>
-                    <button className="btn btn-ghost btn-sm" style={{ padding: '6px' }}>
-                      <Edit2 size={14} />
-                    </button>
+              {filtered.length === 0 ? (
+                <tr>
+                  <td colSpan={7} style={{ textAlign: 'center', padding: '32px', color: 'var(--text-muted)' }}>
+                    No se encontraron productos coincidentes.
                   </td>
                 </tr>
-              ))}
+              ) : (
+                filtered.map(prod => (
+                  <tr key={prod.id}>
+                    <td>
+                      <div style={{ fontWeight: 600, color: 'var(--text-primary)' }}>{prod.title}</div>
+                      <div style={{ fontSize: '0.72rem', color: 'var(--brand-cyan)' }}>#{prod.id}</div>
+                    </td>
+                    <td>
+                      <span className="badge badge-gold" style={{ fontSize: '0.75rem' }}>{prod.category}</span>
+                    </td>
+                    <td style={{ fontWeight: 700, color: 'var(--text-primary)' }}>
+                      ${prod.price.toFixed(2)} USDC
+                    </td>
+                    <td>
+                      <span style={{ fontWeight: 600, color: prod.stock > 20 ? 'var(--brand-emerald)' : 'var(--brand-gold)' }}>
+                        {prod.stock} unidades
+                      </span>
+                    </td>
+                    <td style={{ color: 'var(--text-secondary)' }}>
+                      {prod.sold} entregas
+                    </td>
+                    <td>
+                      <span
+                        className={`badge ${prod.status === 'active' ? 'badge-emerald' : 'badge-gold'}`}
+                        style={{ fontSize: '0.7rem' }}
+                      >
+                        {prod.status === 'active' ? '● Activo' : '⏸ Pausado'}
+                      </span>
+                    </td>
+                    <td style={{ textAlign: 'right' }}>
+                      <div style={{ display: 'inline-flex', gap: '6px' }}>
+                        <button
+                          type="button"
+                          onClick={() => handleToggleStatus(prod.id)}
+                          className="btn btn-ghost btn-sm"
+                          style={{ padding: '6px 8px' }}
+                          title={prod.status === 'active' ? 'Pausar publicación' : 'Activar publicación'}
+                        >
+                          <Power size={14} color={prod.status === 'active' ? 'var(--brand-gold)' : 'var(--brand-emerald)'} />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleDelete(prod.id)}
+                          className="btn btn-ghost btn-sm"
+                          style={{ padding: '6px 8px', color: 'var(--brand-red)' }}
+                          title="Eliminar producto"
+                        >
+                          <Trash2 size={14} />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </div>

@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
+import { sanitizeText, sanitizeAmount } from '@/lib/utils/sanitizer';
 import { Plane, Calendar, Weight, ArrowRight, ArrowLeft, CheckCircle2, DollarSign, Sparkles } from 'lucide-react';
 import Link from 'next/link';
 
@@ -21,10 +22,44 @@ export default function NewTripPage() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+
+    const cleanOrigin = sanitizeText(originCity, 60);
+    const cleanDest = sanitizeText(destCity, 60);
+
+    const newTrip = {
+      id: `TR-${Date.now().toString().slice(-3)}`,
+      from: cleanOrigin || 'Madrid',
+      fromFlag: '✈️',
+      fromCountry: sanitizeText(originCountry, 40) || 'Origen',
+      to: cleanDest || 'La Paz',
+      toFlag: '📍',
+      toCountry: sanitizeText(destCountry, 40) || 'Destino',
+      departure: depDate || '2026-10-01',
+      arrival: arrDate || '2026-10-02',
+      totalKg: Number(availableKg),
+      availableKg: Number(availableKg),
+      reservedKg: 0,
+      airline: sanitizeText(flightNumber, 50) || 'Aerolínea Internacional',
+      status: 'scheduled',
+      pendingOrders: 0,
+      earnings: 0,
+    };
+
+    if (typeof window !== 'undefined') {
+      try {
+        const saved = localStorage.getItem('ayni_my_trips');
+        const existing = saved ? JSON.parse(saved) : [];
+        const updated = [newTrip, ...(Array.isArray(existing) ? existing : [])];
+        localStorage.setItem('ayni_my_trips', JSON.stringify(updated));
+      } catch (err) {
+        console.error('Error saving trip:', err);
+      }
+    }
+
     setSubmitted(true);
     setTimeout(() => {
       router.push('/dashboard/my-trips');
-    }, 1200);
+    }, 1000);
   };
 
   return (

@@ -1,25 +1,74 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { useAuth } from '@/context/AuthContext';
+import { sanitizeText, sanitizePhone } from '@/lib/utils/sanitizer';
 import {
   Settings, User, Mail, Shield, Wallet, Bell, Globe, CheckCircle2,
-  Lock, Save, Sparkles
+  Lock, Save, Sparkles, RefreshCw, Key
 } from 'lucide-react';
 
 export default function SettingsPage() {
-  const { user, role } = useAuth();
+  const { user, role, setDemoUser } = useAuth();
   const [fullName, setFullName] = useState(user?.full_name || 'Ana María Quispe');
   const [phone, setPhone] = useState('+591 71234567');
   const [country, setCountry] = useState('Bolivia');
   const [wallet, setWallet] = useState('0x71A09E1B2C3D4E5F6A7B8C9D0E1F2A3B4C5D6E7F');
-  const [saved, setSaved] = useState(false);
+  const [walletConnected, setWalletConnected] = useState(true);
+  const [savedNotice, setSavedNotice] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('ayni_user_settings');
+      if (saved) {
+        try {
+          const parsed = JSON.parse(saved);
+          if (parsed.fullName) setFullName(parsed.fullName);
+          if (parsed.phone) setPhone(parsed.phone);
+          if (parsed.country) setCountry(parsed.country);
+          if (parsed.wallet) setWallet(parsed.wallet);
+        } catch (e) {
+          // ignore
+        }
+      }
+    }
+  }, []);
 
   const handleSave = (e: React.FormEvent) => {
     e.preventDefault();
-    setSaved(true);
-    setTimeout(() => setSaved(false), 3000);
+    const cleanName = sanitizeText(fullName, 120);
+    const cleanPhone = sanitizePhone(phone);
+    const cleanCountry = sanitizeText(country, 60);
+    const cleanWallet = sanitizeText(wallet, 64);
+
+    const payload = {
+      fullName: cleanName,
+      phone: cleanPhone,
+      country: cleanCountry,
+      wallet: cleanWallet,
+    };
+
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('ayni_user_settings', JSON.stringify(payload));
+    }
+
+    setSavedNotice('¡Configuración de perfil y billetera guardada con éxito!');
+    setTimeout(() => setSavedNotice(null), 3500);
+  };
+
+  const handleConnectWallet = () => {
+    if (walletConnected) {
+      setWalletConnected(false);
+      setWallet('');
+      setSavedNotice('Billetera EVM desconectada.');
+    } else {
+      const simulatedWallet = '0x' + Array.from({ length: 40 }, () => Math.floor(Math.random() * 16).toString(16)).join('');
+      setWallet(simulatedWallet);
+      setWalletConnected(true);
+      setSavedNotice('¡Billetera EVM conectada exitosamente en Base L2!');
+    }
+    setTimeout(() => setSavedNotice(null), 3500);
   };
 
   return (
@@ -39,9 +88,9 @@ export default function SettingsPage() {
         </div>
       </div>
 
-      {saved && (
+      {savedNotice && (
         <div className="alert alert-success" style={{ marginBottom: '24px' }}>
-          <CheckCircle2 size={16} /> ¡Configuración guardada con éxito!
+          <CheckCircle2 size={16} /> {savedNotice}
         </div>
       )}
 
@@ -96,7 +145,7 @@ export default function SettingsPage() {
               />
             </div>
 
-            <button type="submit" className="btn btn-primary" style={{ marginTop: '8px' }}>
+            <button type="submit" className="btn btn-primary" style={{ marginTop: '8px', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
               <Save size={15} /> Guardar Cambios
             </button>
           </form>
@@ -105,9 +154,19 @@ export default function SettingsPage() {
         {/* Web3 & Security Details */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
           <div className="card" style={{ padding: '28px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '20px' }}>
-              <Wallet size={20} color="var(--brand-gold)" />
-              <h3 style={{ fontSize: '1.1rem', fontWeight: 700, margin: 0 }}>Billetera EVM (Base L2)</h3>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <Wallet size={20} color="var(--brand-gold)" />
+                <h3 style={{ fontSize: '1.1rem', fontWeight: 700, margin: 0 }}>Billetera EVM (Base L2)</h3>
+              </div>
+              <button
+                type="button"
+                onClick={handleConnectWallet}
+                className="btn btn-ghost btn-sm"
+                style={{ fontSize: '0.75rem', borderColor: 'var(--border-default)' }}
+              >
+                {walletConnected ? 'Desconectar' : 'Conectar Wallet'}
+              </button>
             </div>
 
             <p style={{ fontSize: '0.84rem', color: 'var(--text-secondary)', lineHeight: 1.5, marginBottom: '16px' }}>
@@ -118,6 +177,7 @@ export default function SettingsPage() {
               <label className="input-label">Dirección de Billetera (0x...)</label>
               <input
                 type="text"
+                placeholder="0x..."
                 value={wallet}
                 onChange={e => setWallet(e.target.value)}
                 className="input"
@@ -126,7 +186,9 @@ export default function SettingsPage() {
             </div>
 
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <span className="badge badge-emerald">✓ Red Base L2 Verificada</span>
+              <span className={`badge ${walletConnected ? 'badge-emerald' : 'badge-gold'}`}>
+                {walletConnected ? '✓ Red Base L2 Verificada' : '● Sin Billetera Vinculada'}
+              </span>
             </div>
           </div>
 

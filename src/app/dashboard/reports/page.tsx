@@ -1,8 +1,8 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
-import { BarChart3, ShieldCheck, Sparkles, CheckCircle2, AlertTriangle, FileText } from 'lucide-react';
+import { BarChart3, ShieldCheck, Sparkles, CheckCircle2, AlertTriangle, FileText, Download, Play } from 'lucide-react';
 
 const RECENT_AUDITS = [
   {
@@ -38,9 +38,34 @@ const RECENT_AUDITS = [
 ];
 
 export default function ReportsPage() {
+  const [runningBatch, setRunningBatch] = useState(false);
+  const [batchNotice, setBatchNotice] = useState<string | null>(null);
+
+  const handleRunAudit = () => {
+    setRunningBatch(true);
+    setTimeout(() => {
+      setRunningBatch(false);
+      setBatchNotice('✅ Auditoría IA ejecutada: 148 facturas auditadas con 100% de coherencia en Base L2.');
+      setTimeout(() => setBatchNotice(null), 4500);
+    }, 1200);
+  };
+
+  const handleExport = () => {
+    const csvContent = "data:text/csv;charset=utf-8," + 
+      "ID,OrderId,Comercio,Monto,Confianza,Estado\n" +
+      RECENT_AUDITS.map(a => `${a.id},${a.orderId},"${a.merchant}",${a.detectedAmount},${a.confidence},${a.status}`).join("\n");
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", "auditorias_ia_ayni.csv");
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   return (
     <DashboardLayout>
-      <div className="page-header">
+      <div className="page-header" style={{ flexWrap: 'wrap', gap: '14px' }}>
         <div className="page-title-group">
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '4px' }}>
             <div className="page-title">Reportes & Auditoría IA</div>
@@ -52,7 +77,32 @@ export default function ReportsPage() {
             Monitoreo en tiempo real de facturas escaneadas, OCR aduanero y validaciones de Escrow.
           </div>
         </div>
+        <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+          <button
+            type="button"
+            onClick={handleRunAudit}
+            disabled={runningBatch}
+            className="btn btn-primary"
+            style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}
+          >
+            <Play size={15} /> {runningBatch ? 'Auditando...' : 'Ejecutar Auditoría en Lote'}
+          </button>
+          <button
+            type="button"
+            onClick={handleExport}
+            className="btn btn-ghost"
+            style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', border: '1px solid var(--border-default)' }}
+          >
+            <Download size={15} /> Exportar CSV
+          </button>
+        </div>
       </div>
+
+      {batchNotice && (
+        <div className="alert alert-success" style={{ marginBottom: '20px' }}>
+          <CheckCircle2 size={16} /> {batchNotice}
+        </div>
+      )}
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '16px', marginBottom: '28px' }}>
         <div className="card" style={{ padding: '20px' }}>

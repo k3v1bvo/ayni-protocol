@@ -6,10 +6,13 @@ import { useAuth } from '@/context/AuthContext';
 import { AppSidebar } from '@/components/layout/Sidebar';
 import { BottomNav } from '@/components/layout/BottomNav';
 import { CartDrawer } from '@/components/marketplace/CartDrawer';
-import { Bell, Search, Menu } from 'lucide-react';
+import { NotificationCenter } from '@/components/layout/NotificationCenter';
+import { Search, Menu } from 'lucide-react';
+import Link from 'next/link';
 
 export function DashboardLayout({ children }: { children: React.ReactNode }) {
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
   const router = useRouter();
   const pathname = usePathname();
   const { user, role, isLoading } = useAuth();
@@ -55,6 +58,13 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
     return 'var(--brand-gold)';
   };
 
+  const handleSearchSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (searchQuery.trim()) {
+      router.push(`/dashboard/marketplace?search=${encodeURIComponent(searchQuery.trim())}`);
+    }
+  };
+
   return (
     <div className="app-shell">
       <AppSidebar mobileOpen={mobileOpen} onClose={() => setMobileOpen(false)} />
@@ -71,44 +81,50 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
             <Menu size={20} />
           </button>
 
-          {/* Search */}
-          <div className="topbar-search" style={{ flex: 1, maxWidth: 420 }}>
-            <div className="input-icon-wrap">
-              <Search size={16} className="input-icon" />
+          {/* Functional Search Bar */}
+          <form onSubmit={handleSearchSubmit} className="topbar-search" style={{ flex: 1, maxWidth: 420 }}>
+            <div className="input-icon-wrap" style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+              <button
+                type="submit"
+                style={{ position: 'absolute', left: '10px', background: 'transparent', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', padding: 0, display: 'flex', alignItems: 'center' }}
+                aria-label="Buscar"
+              >
+                <Search size={16} />
+              </button>
               <input
                 type="search"
                 placeholder="Buscar rutas, pedidos, productos..."
                 className="input"
-                style={{ paddingLeft: '40px', fontSize: '0.85rem', height: '38px' }}
+                value={searchQuery}
+                onChange={e => setSearchQuery(e.target.value)}
+                style={{ paddingLeft: '38px', fontSize: '0.85rem', height: '38px', width: '100%' }}
               />
             </div>
-          </div>
+          </form>
 
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginLeft: 'auto' }}>
-            {/* Notifications */}
-            <div style={{ position: 'relative' }}>
-              <button
-                type="button"
-                className="btn btn-ghost btn-sm"
-                style={{ padding: '8px' }}
-                onClick={() => alert('Tienes 3 notificaciones activas: 1 entrega verificada por IA, 1 remesa liberada y 1 encargo disponible en tu ruta.')}
-              >
-                <Bell size={18} />
-              </button>
-              <span className="notif-dot" style={{ position: 'absolute', top: '-4px', right: '-4px' }}>3</span>
-            </div>
+            {/* Interactive Notifications Center */}
+            <NotificationCenter />
 
-            {/* User chip */}
+            {/* User chip linking to Settings */}
             {user && (
-              <div style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '8px',
-                background: 'rgba(255,255,255,0.04)',
-                border: '1px solid var(--border-default)',
-                borderRadius: '9999px',
-                padding: '5px 12px 5px 6px',
-              }}>
+              <Link
+                href="/dashboard/settings"
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  background: 'rgba(255,255,255,0.04)',
+                  border: '1px solid var(--border-default)',
+                  borderRadius: '9999px',
+                  padding: '5px 12px 5px 6px',
+                  textDecoration: 'none',
+                  color: 'inherit',
+                  transition: 'all 0.2s ease',
+                }}
+                className="user-profile-chip"
+                title="Ver y editar perfil"
+              >
                 <div className="avatar-placeholder" style={{
                   width: 28,
                   height: 28,
@@ -116,6 +132,10 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
                   color: getRoleColor(),
                   fontSize: '0.8rem',
                   fontWeight: 700,
+                  borderRadius: '50%',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
                 }}>
                   {user.full_name?.charAt(0) || 'U'}
                 </div>
@@ -127,7 +147,7 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
                     {role}
                   </div>
                 </div>
-              </div>
+              </Link>
             )}
           </div>
         </div>

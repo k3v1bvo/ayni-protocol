@@ -79,6 +79,22 @@ export default function OrdersPage() {
   const [orders, setOrders] = useState(ALL_ORDERS);
   const [statusFilter, setStatusFilter] = useState('all');
 
+  React.useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('ayni_orders');
+      if (saved) {
+        try {
+          const parsed = JSON.parse(saved);
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            setOrders([...parsed, ...ALL_ORDERS]);
+          }
+        } catch (e) {
+          // ignore
+        }
+      }
+    }
+  }, []);
+
   const filtered = statusFilter === 'all' ? orders : orders.filter(o => o.status === statusFilter);
 
   const handleVerify = async (order: typeof ALL_ORDERS[0]) => {

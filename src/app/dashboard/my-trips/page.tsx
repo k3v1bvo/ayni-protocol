@@ -1,10 +1,30 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import Link from 'next/link';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
-import { Plane, Plus, Calendar, Weight, Camera, CheckCircle2, Package, ArrowRight, MapPin, TrendingUp, DollarSign } from 'lucide-react';
+import { Plane, Plus, Calendar, Weight, Camera, CheckCircle2, Package, ArrowRight, MapPin, TrendingUp, DollarSign, Edit2, X } from 'lucide-react';
 
-const MY_TRIPS = [
+export interface TripItem {
+  id: string;
+  from: string;
+  fromFlag: string;
+  fromCountry: string;
+  to: string;
+  toFlag: string;
+  toCountry: string;
+  departure: string;
+  arrival: string;
+  totalKg: number;
+  availableKg: number;
+  reservedKg: number;
+  airline: string;
+  status: string;
+  pendingOrders: number;
+  earnings: number;
+}
+
+const DEFAULT_TRIPS: TripItem[] = [
   {
     id: 'TR-001',
     from: 'Madrid', fromFlag: '🇪🇸', fromCountry: 'España',
@@ -30,7 +50,43 @@ const MY_TRIPS = [
 ];
 
 export default function MyTripsPage() {
-  const [newTripOpen, setNewTripOpen] = useState(false);
+  const [trips, setTrips] = useState<TripItem[]>(DEFAULT_TRIPS);
+  const [actionNotice, setActionNotice] = useState<string | null>(null);
+  const [editingTrip, setEditingTrip] = useState<TripItem | null>(null);
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('ayni_my_trips');
+      if (saved) {
+        try {
+          const parsed = JSON.parse(saved);
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            setTrips(parsed);
+          }
+        } catch (e) {
+          // ignore
+        }
+      }
+    }
+  }, []);
+
+  const handleUploadPhoto = (id: string) => {
+    setActionNotice(`📸 Foto de equipaje para el itinerario #${id} subida y auditada por IA.`);
+    setTimeout(() => setActionNotice(null), 4000);
+  };
+
+  const handleSaveEdit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingTrip) return;
+    const updated = trips.map(t => t.id === editingTrip.id ? editingTrip : t);
+    setTrips(updated);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('ayni_my_trips', JSON.stringify(updated));
+    }
+    setEditingTrip(null);
+    setActionNotice('Itinerario actualizado con éxito.');
+    setTimeout(() => setActionNotice(null), 3000);
+  };
 
   return (
     <DashboardLayout>
@@ -39,10 +95,20 @@ export default function MyTripsPage() {
           <div className="page-title">Mis Viajes y Rutas</div>
           <div className="page-subtitle">Gestiona tu itinerario, capacidad disponible y encargos activos</div>
         </div>
-        <button className="btn btn-primary" onClick={() => setNewTripOpen(true)}>
+        <Link
+          href="/dashboard/my-trips/new"
+          className="btn btn-primary"
+          style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', textDecoration: 'none' }}
+        >
           <Plus size={16} /> Publicar Nuevo Viaje
-        </button>
+        </Link>
       </div>
+
+      {actionNotice && (
+        <div className="alert alert-success" style={{ marginBottom: '20px' }}>
+          <CheckCircle2 size={16} /> {actionNotice}
+        </div>
+      )}
 
       {/* Earnings Summary */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '14px', marginBottom: '28px' }}>
@@ -66,8 +132,8 @@ export default function MyTripsPage() {
 
       {/* Trip Cards */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>
-        {MY_TRIPS.map(trip => (
-          <div key={trip.id} className="card card-glow-cyan" style={{ padding: '24px' }}>
+        {trips.map(trip => (
+          <div key={trip.id} className="card card-glow-cyan card-kinetic" style={{ padding: '24px' }}>
             {/* Trip Header */}
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '16px', gap: '12px', flexWrap: 'wrap' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
@@ -107,7 +173,7 @@ export default function MyTripsPage() {
             {/* Metrics */}
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '12px', marginBottom: '18px' }}>
               {[
-                { label: 'Salida', value: new Date(trip.departure).toLocaleDateString('es-ES', { day: '2-digit', month: 'long' }), color: 'var(--brand-gold)' },
+                { label: 'Salida', value: trip.departure, color: 'var(--brand-gold)' },
                 { label: 'Capacidad total', value: `${trip.totalKg} kg`, color: 'var(--text-primary)' },
                 { label: 'Espacio libre', value: `${trip.availableKg} kg`, color: 'var(--brand-cyan)' },
                 { label: 'Ganancia estimada', value: `$${trip.earnings}`, color: 'var(--brand-emerald)' },
@@ -131,22 +197,34 @@ export default function MyTripsPage() {
             </div>
 
             <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
-              <button className="btn btn-primary btn-sm">
+              <Link
+                href="/dashboard/orders"
+                className="btn btn-primary btn-sm"
+                style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', textDecoration: 'none' }}
+              >
                 <Package size={14} /> Ver Encargos ({trip.pendingOrders})
-              </button>
-              <button className="btn btn-ghost btn-sm">
+              </Link>
+              <button
+                type="button"
+                onClick={() => handleUploadPhoto(trip.id)}
+                className="btn btn-ghost btn-sm"
+              >
                 <Camera size={14} /> Subir Foto Equipaje
               </button>
-              <button className="btn btn-ghost btn-sm">
-                Editar Itinerario
+              <button
+                type="button"
+                onClick={() => setEditingTrip(trip)}
+                className="btn btn-ghost btn-sm"
+              >
+                <Edit2 size={14} /> Editar Itinerario
               </button>
             </div>
           </div>
         ))}
 
-        {/* New Trip CTA */}
-        <div
-          onClick={() => setNewTripOpen(true)}
+        {/* New Trip CTA Card */}
+        <Link
+          href="/dashboard/my-trips/new"
           style={{
             border: '2px dashed var(--border-default)',
             borderRadius: 16,
@@ -155,13 +233,79 @@ export default function MyTripsPage() {
             cursor: 'pointer',
             transition: 'all 0.2s',
             color: 'var(--text-muted)',
+            textDecoration: 'none',
+            display: 'block',
           }}
+          className="card-kinetic"
         >
-          <Plane size={32} style={{ marginBottom: 12, opacity: 0.4 }} />
-          <div style={{ fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '4px' }}>¿Tienes otro viaje próximo?</div>
-          <div style={{ fontSize: '0.85rem' }}>Publica tu ruta y empieza a recibir encargos</div>
-        </div>
+          <Plane size={32} style={{ marginBottom: 12, opacity: 0.6, color: 'var(--brand-cyan)' }} />
+          <div style={{ fontWeight: 700, color: 'var(--text-primary)', marginBottom: '4px', fontSize: '1.05rem' }}>
+            ¿Tienes otro viaje próximo?
+          </div>
+          <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
+            Publica tu ruta y rentabiliza el equipaje disponible
+          </div>
+        </Link>
       </div>
+
+      {/* Edit Trip Modal */}
+      {editingTrip && (
+        <div className="modal-overlay" onClick={() => setEditingTrip(null)}>
+          <div className="modal-content" onClick={e => e.stopPropagation()}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+              <h3 style={{ fontSize: '1.15rem', fontWeight: 700, margin: 0 }}>Editar Itinerario #{editingTrip.id}</h3>
+              <button type="button" onClick={() => setEditingTrip(null)} style={{ background: 'transparent', border: 'none', color: 'var(--text-muted)', cursor: 'pointer' }}>
+                <X size={18} />
+              </button>
+            </div>
+
+            <form onSubmit={handleSaveEdit} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+              <div className="input-group">
+                <label className="input-label">Aerolínea / N° Vuelo</label>
+                <input
+                  type="text"
+                  required
+                  value={editingTrip.airline}
+                  onChange={e => setEditingTrip({ ...editingTrip, airline: e.target.value })}
+                  className="input"
+                />
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                <div className="input-group">
+                  <label className="input-label">Kilos Totales</label>
+                  <input
+                    type="number"
+                    min={5}
+                    value={editingTrip.totalKg}
+                    onChange={e => setEditingTrip({ ...editingTrip, totalKg: Number(e.target.value) })}
+                    className="input"
+                  />
+                </div>
+                <div className="input-group">
+                  <label className="input-label">Kilos Libres</label>
+                  <input
+                    type="number"
+                    min={1}
+                    value={editingTrip.availableKg}
+                    onChange={e => setEditingTrip({ ...editingTrip, availableKg: Number(e.target.value) })}
+                    className="input"
+                  />
+                </div>
+              </div>
+
+              <div style={{ display: 'flex', gap: '10px', marginTop: '12px' }}>
+                <button type="button" onClick={() => setEditingTrip(null)} className="btn btn-ghost" style={{ flex: 1 }}>
+                  Cancelar
+                </button>
+                <button type="submit" className="btn btn-primary" style={{ flex: 1 }}>
+                  Guardar Cambios
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </DashboardLayout>
   );
 }

@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
+import { sanitizeText, sanitizeAmount } from '@/lib/utils/sanitizer';
 import { ShoppingBag, ArrowLeft, CheckCircle2, ShieldCheck, Sparkles } from 'lucide-react';
 import Link from 'next/link';
 
@@ -23,10 +24,48 @@ export default function NewOrderPage() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+
+    const cleanDesc = sanitizeText(description, 160);
+    const cleanStore = sanitizeText(storeLocation, 80);
+    const cleanCity = sanitizeText(deliveryCity, 80);
+    const numCost = sanitizeAmount(productCost, 5, 5000);
+
+    const otpCode = Math.random().toString(36).substring(2, 8).toUpperCase();
+    const newOrder = {
+      id: `ORD-2609-${Date.now().toString().slice(-3)}`,
+      type: category,
+      status: 'funded',
+      description: `${cleanDesc || 'Encargo personalizado'} — ${cleanStore || 'Madrid'}`,
+      clientName: 'Mi Cuenta (Tú)',
+      travelerName: 'Esperando asignación',
+      route: { from: cleanStore || 'Madrid 🇪🇸', to: cleanCity || 'La Paz 🇧🇴' },
+      productCost: numCost,
+      travelerFee: Number(travelerFee.toFixed(2)),
+      systemFee: Number((platformFee + guaranteeFund).toFixed(2)),
+      total: Number(totalEscrow.toFixed(2)),
+      otpCode,
+      otpHash: 'hash_' + otpCode,
+      aiScore: 0.98,
+      ocrAmount: numCost,
+      ocrStore: cleanStore,
+      date: new Date().toISOString(),
+    };
+
+    if (typeof window !== 'undefined') {
+      try {
+        const saved = localStorage.getItem('ayni_orders');
+        const existing = saved ? JSON.parse(saved) : [];
+        const updated = [newOrder, ...(Array.isArray(existing) ? existing : [])];
+        localStorage.setItem('ayni_orders', JSON.stringify(updated));
+      } catch (err) {
+        console.error('Error saving order:', err);
+      }
+    }
+
     setSubmitted(true);
     setTimeout(() => {
       router.push('/dashboard/orders');
-    }, 1200);
+    }, 1000);
   };
 
   return (
