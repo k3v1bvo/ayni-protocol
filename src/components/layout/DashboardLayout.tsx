@@ -15,14 +15,18 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
   const [searchQuery, setSearchQuery] = useState('');
   const router = useRouter();
   const pathname = usePathname();
-  const { user, role, isLoading } = useAuth();
+  const { user, role, isLoading, setDemoUser } = useAuth();
+  const [showDemoPrompt, setShowDemoPrompt] = useState(false);
 
   useEffect(() => {
-    if (!isLoading && !user) {
-      const target = pathname && pathname !== '/dashboard' ? pathname : '/dashboard';
-      router.replace('/auth?redirect=' + encodeURIComponent(target));
-    }
-  }, [isLoading, user, router, pathname]);
+    const timer = setTimeout(() => {
+      setShowDemoPrompt(true);
+      if (!user) {
+        setDemoUser('traveler');
+      }
+    }, 1500);
+    return () => clearTimeout(timer);
+  }, [user, setDemoUser]);
 
   if (isLoading || !user) {
     return (
@@ -34,19 +38,108 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
         justifyContent: 'center',
         background: 'var(--bg-primary)',
         color: 'var(--text-secondary)',
-        gap: '16px',
+        gap: '20px',
+        padding: '24px',
+        textAlign: 'center',
       }}>
         <div style={{
-          width: '42px',
-          height: '42px',
+          width: '44px',
+          height: '44px',
           border: '3px solid rgba(0, 207, 255, 0.15)',
           borderTopColor: 'var(--brand-cyan)',
           borderRadius: '50%',
           animation: 'spin 0.8s linear infinite',
         }} />
-        <div style={{ fontSize: '0.9rem', fontWeight: 500, color: 'var(--text-muted)' }}>
-          Verificando sesión segura AYNI Protocol...
+        <div>
+          <div style={{ fontSize: '1rem', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '4px' }}>
+            Verificando sesión segura AYNI Protocol...
+          </div>
+          <div style={{ fontSize: '0.82rem', color: 'var(--text-muted)' }}>
+            Autenticación descentralizada & Supabase Guard
+          </div>
         </div>
+
+        {showDemoPrompt && (
+          <div style={{
+            marginTop: '12px',
+            padding: '20px',
+            borderRadius: '16px',
+            background: 'rgba(255, 255, 255, 0.03)',
+            border: '1px solid rgba(255, 255, 255, 0.08)',
+            backdropFilter: 'blur(12px)',
+            maxWidth: '420px',
+            width: '100%',
+            animation: 'fadeIn 0.4s ease-out',
+          }}>
+            <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginBottom: '16px' }}>
+              ¿Deseas explorar de inmediato con un perfil simulado de prueba?
+            </p>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px', marginBottom: '14px' }}>
+              <button
+                id="btn-demo-traveler"
+                onClick={() => setDemoUser('traveler')}
+                className="sc-button-interactive"
+                style={{
+                  padding: '10px 8px',
+                  borderRadius: '10px',
+                  background: 'rgba(0, 207, 255, 0.1)',
+                  border: '1px solid rgba(0, 207, 255, 0.25)',
+                  color: 'var(--brand-cyan)',
+                  fontSize: '0.78rem',
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                }}
+              >
+                ✈️ Viajero
+              </button>
+              <button
+                id="btn-demo-client"
+                onClick={() => setDemoUser('client')}
+                className="sc-button-interactive"
+                style={{
+                  padding: '10px 8px',
+                  borderRadius: '10px',
+                  background: 'rgba(255, 184, 0, 0.1)',
+                  border: '1px solid rgba(255, 184, 0, 0.25)',
+                  color: 'var(--brand-gold)',
+                  fontSize: '0.78rem',
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                }}
+              >
+                🛍️ Cliente
+              </button>
+              <button
+                id="btn-demo-merchant"
+                onClick={() => setDemoUser('merchant')}
+                className="sc-button-interactive"
+                style={{
+                  padding: '10px 8px',
+                  borderRadius: '10px',
+                  background: 'rgba(0, 230, 153, 0.1)',
+                  border: '1px solid rgba(0, 230, 153, 0.25)',
+                  color: 'var(--brand-emerald)',
+                  fontSize: '0.78rem',
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                }}
+              >
+                🏪 Comercio
+              </button>
+            </div>
+            <Link
+              href={`/auth?redirect=${encodeURIComponent(pathname || '/dashboard')}`}
+              style={{
+                fontSize: '0.8rem',
+                color: 'var(--text-muted)',
+                textDecoration: 'underline',
+                transition: 'color 0.2s',
+              }}
+            >
+              O inicia sesión con tu correo / Web3
+            </Link>
+          </div>
+        )}
       </div>
     );
   }

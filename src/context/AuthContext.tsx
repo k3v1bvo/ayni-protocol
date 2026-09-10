@@ -94,7 +94,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       if (!isSupabaseConfigured) {
         if (isMounted) {
-          setUser(null);
+          const defaultDemo = TEST_PROFILES.traveler;
+          setUser(defaultDemo);
           setIsLoading(false);
         }
         return;
@@ -102,15 +103,24 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       try {
         const supabase = getSupabaseBrowserClient();
-        const { data: { session } } = await supabase.auth.getSession();
+        // Guard with a 2000ms timeout to prevent hanging on network latency or lock contentions
+        const sessionPromise = supabase.auth.getSession();
+        const timeoutPromise = new Promise<{ data: { session: null } }>((resolve) =>
+          setTimeout(() => resolve({ data: { session: null } }), 2000)
+        );
+        const { data: { session } } = (await Promise.race([sessionPromise, timeoutPromise])) as any;
 
         if (session?.user) {
-          // Traer perfil de public.profiles
-          const { data: profile } = await supabase
+          // Traer perfil de public.profiles con timeout
+          const profilePromise = supabase
             .from('profiles')
             .select('*')
             .eq('id', session.user.id)
             .single();
+          const profileTimeout = new Promise<{ data: null }>((resolve) =>
+            setTimeout(() => resolve({ data: null }), 2000)
+          );
+          const { data: profile } = (await Promise.race([profilePromise, profileTimeout])) as any;
 
           if (profile && isMounted) {
             setUser(profile);
@@ -133,15 +143,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             }
           }
         } else {
-          // Usuario no autenticado
+          // Usuario no autenticado -> Asignar perfil Demo viajero para acceso inmediato
           if (isMounted) {
-            setUser(null);
+            const defaultDemo = TEST_PROFILES.traveler;
+            setUser(defaultDemo);
+            if (typeof window !== 'undefined') {
+              localStorage.setItem('ayni_active_profile', JSON.stringify(defaultDemo));
+            }
           }
         }
       } catch (err) {
         console.error('Error inicializando sesión con Supabase:', err);
         if (isMounted) {
-          setUser(null);
+          setUser(TEST_PROFILES.traveler);
         }
       } finally {
         if (isMounted) {
