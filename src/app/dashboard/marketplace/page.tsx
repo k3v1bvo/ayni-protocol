@@ -1,10 +1,15 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { useCart } from '@/context/CartContext';
-import { Search, Filter, ShoppingBag, Heart, Star, MapPin, Package, Tag, Sparkles, ChevronDown, Plus, Check, X, ShieldCheck, ArrowRight } from 'lucide-react';
+import { 
+  Search, Filter, ShoppingBag, Heart, Star, MapPin, Package, 
+  Tag, Sparkles, ChevronDown, Plus, Check, X, ShieldCheck, 
+  ArrowRight, Camera, RefreshCw 
+} from 'lucide-react';
+import { ImageCarousel } from '@/components/ui/ImageCarousel';
 
 const CATEGORIES = [
   { id: 'all', label: 'Todos', icon: '🌎' },
@@ -241,14 +246,80 @@ const PRODUCTS = [
   },
 ];
 
+export interface MarketplaceProduct {
+  id: string;
+  title: string;
+  store: string;
+  storeLocation: string;
+  storeRating: number;
+  price: number;
+  currency: string;
+  category: string;
+  origin: string;
+  weight: string;
+  inStock: boolean;
+  image: string;
+  images?: string[];
+  tags: string[];
+  available_routes: number;
+  description: string;
+}
+
 export default function MarketplacePage() {
   const { addItem, totalItems, setIsCartOpen } = useCart();
+  const [allProducts, setAllProducts] = useState<MarketplaceProduct[]>(PRODUCTS as MarketplaceProduct[]);
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [searchTerm, setSearchTerm] = useState('');
   const [wishlist, setWishlist] = useState<Set<string>>(new Set());
   const [sortBy, setSortBy] = useState<'price_asc' | 'price_desc' | 'rating' | 'routes'>('routes');
-  const [selectedProduct, setSelectedProduct] = useState<typeof PRODUCTS[0] | null>(null);
+  const [selectedProduct, setSelectedProduct] = useState<MarketplaceProduct | null>(null);
   const [addedItemNotice, setAddedItemNotice] = useState<string | null>(null);
+
+  useEffect(() => {
+    async function loadDynamicProducts() {
+      try {
+        const res = await fetch('/api/products');
+        if (res.ok) {
+          const data = await res.json();
+          if (data.products && Array.isArray(data.products) && data.products.length > 0) {
+            const apiMapped: MarketplaceProduct[] = data.products.map((p: any) => {
+              const imgs: string[] = Array.isArray(p.images) && p.images.length > 0 
+                ? p.images 
+                : (p.image ? [p.image] : ['https://images.unsplash.com/photo-1579541814924-49fef17c5be5?w=400&h=300&fit=crop&q=80']);
+              return {
+                id: p.id,
+                title: p.title,
+                store: p.stores?.name || p.store || 'Tienda AYNI Verificada',
+                storeLocation: p.stores?.location_city ? `${p.stores.location_city}, ${p.stores.location_country || 'Bolivia'}` : (p.origin_city ? `${p.origin_city}, ${p.origin_country || 'Bolivia'}` : 'Cochabamba, Bolivia'),
+                storeRating: Number(p.stores?.rating || p.rating || 4.9),
+                price: Number(p.price) || 0,
+                currency: p.currency || 'USDC',
+                category: p.category || 'art',
+                origin: p.origin_country ? `🇧🇴 ${p.origin_country}` : (p.origin || '🇧🇴 Bolivia'),
+                weight: p.weight_kg ? `${p.weight_kg} kg` : (p.weight || '0.5 kg'),
+                inStock: p.stock === undefined ? true : p.stock > 0,
+                image: imgs[0],
+                images: imgs,
+                tags: Array.isArray(p.tags) && p.tags.length > 0 ? p.tags : [p.category || 'artesanal', 'ayni'],
+                available_routes: p.available_routes || Math.floor(Math.random() * 5) + 3,
+                description: p.description || 'Producto artesanal verificado por la comunidad con custodia de fondos en Smart Contract de Escrow.',
+              };
+            });
+
+            // Prepend new database products to catalog without duplicates
+            setAllProducts(prev => {
+              const existingIds = new Set(apiMapped.map(m => m.id));
+              const remainingBuiltIn = (PRODUCTS as MarketplaceProduct[]).filter(p => !existingIds.has(p.id));
+              return [...apiMapped, ...remainingBuiltIn];
+            });
+          }
+        }
+      } catch (err) {
+        console.warn('Could not load dynamic products, using fallback:', err);
+      }
+    }
+    loadDynamicProducts();
+  }, []);
 
   const toggleWishlist = (id: string) => {
     setWishlist(prev => {
@@ -259,7 +330,7 @@ export default function MarketplacePage() {
     });
   };
 
-  const handleAddToCart = (product: typeof PRODUCTS[0]) => {
+  const handleAddToCart = (product: MarketplaceProduct) => {
     addItem({
       id: product.id,
       title: product.title,
@@ -273,7 +344,7 @@ export default function MarketplacePage() {
     setTimeout(() => setAddedItemNotice(null), 2500);
   };
 
-  const filtered = PRODUCTS
+  const filtered = allProducts
     .filter(p => selectedCategory === 'all' || p.category === selectedCategory)
     .filter(p => !searchTerm || p.title.toLowerCase().includes(searchTerm.toLowerCase()) || p.store.toLowerCase().includes(searchTerm.toLowerCase()))
     .sort((a, b) => {
@@ -314,7 +385,7 @@ export default function MarketplacePage() {
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '4px' }}>
             <div className="page-title">Marketplace AYNI</div>
             <span className="badge badge-emerald">
-              <Sparkles size={11} /> {PRODUCTS.length} productos
+              <Sparkles size={11} /> {allProducts.length} productos
             </span>
           </div>
           <div className="page-subtitle">
@@ -494,6 +565,11 @@ export default function MarketplacePage() {
                     🔥 {product.available_routes} rutas
                   </span>
                 )}
+                {product.images && product.images.length > 1 && (
+                  <span className="badge badge-cyan" style={{ fontSize: '0.65rem', display: 'flex', alignItems: 'center', gap: '3px' }}>
+                    <Camera size={10} /> {product.images.length}
+                  </span>
+                )}
               </div>
 
               {/* Wishlist button */}
@@ -608,13 +684,19 @@ export default function MarketplacePage() {
               </button>
             </div>
 
-            <div style={{ borderRadius: '12px', overflow: 'hidden', height: '180px', marginBottom: '16px', border: '1px solid var(--border-default)' }}>
-              <img
-                src={selectedProduct.image}
-                alt={selectedProduct.title}
-                style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-              />
-            </div>
+            {selectedProduct.images && selectedProduct.images.length > 1 ? (
+              <div style={{ borderRadius: '12px', overflow: 'hidden', marginBottom: '16px' }}>
+                <ImageCarousel images={selectedProduct.images} alt={selectedProduct.title} height="200px" />
+              </div>
+            ) : (
+              <div style={{ borderRadius: '12px', overflow: 'hidden', height: '180px', marginBottom: '16px', border: '1px solid var(--border-default)' }}>
+                <img
+                  src={selectedProduct.image}
+                  alt={selectedProduct.title}
+                  style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                />
+              </div>
+            )}
 
             <h3 style={{ fontSize: '1.2rem', fontWeight: 800, color: 'var(--text-primary)', marginBottom: '6px' }}>
               {selectedProduct.title}

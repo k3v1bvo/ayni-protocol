@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
+import { useAuth } from '@/context/AuthContext';
 import {
   Bell, CheckCircle2, Sparkles, Gift, ShieldCheck,
   Plane, Clock, Trash2, Check, X, ExternalLink
@@ -58,6 +59,7 @@ const INITIAL_NOTIFICATIONS: NotificationItem[] = [
 
 export function NotificationCenter() {
   const router = useRouter();
+  const { user } = useAuth();
   const [open, setOpen] = useState(false);
   const [notifications, setNotifications] = useState<NotificationItem[]>(() => {
     if (typeof window !== 'undefined') {
@@ -70,6 +72,35 @@ export function NotificationCenter() {
   });
 
   const popoverRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    async function loadServerNotifications() {
+      if (!user?.id) return;
+      try {
+        const res = await fetch(`/api/notifications?user_id=${user.id}`);
+        if (res.ok) {
+          const data = await res.json();
+          if (data.notifications && data.notifications.length > 0) {
+            const mapped: NotificationItem[] = data.notifications.map((n: any) => ({
+              id: n.id,
+              title: n.title,
+              message: n.body || n.title,
+              time: new Date(n.created_at).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' }),
+              category: (n.type as any) || 'ai',
+              href: n.trade_id ? `/dashboard/orders` : '/dashboard',
+              read: n.is_read || false,
+            }));
+            setNotifications(prev => {
+              const existingIds = new Set(prev.map(p => p.id));
+              const newItems = mapped.filter(m => !existingIds.has(m.id));
+              return [...newItems, ...prev];
+            });
+          }
+        }
+      } catch {}
+    }
+    loadServerNotifications();
+  }, [user?.id]);
 
   useEffect(() => {
     if (typeof window !== 'undefined') {

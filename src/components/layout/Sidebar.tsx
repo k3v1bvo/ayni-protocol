@@ -34,6 +34,7 @@ const NAV_ITEMS = {
   ],
   admin: [
     { href: '/dashboard/reports', label: 'Reportes & IA', icon: BarChart3 },
+    { href: '/dashboard/disputes', label: 'Arbitraje & Disputas', icon: ShieldCheck },
     { href: '/dashboard/users', label: 'Gestión Usuarios', icon: Users },
   ],
 };

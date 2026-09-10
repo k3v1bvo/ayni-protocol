@@ -334,6 +334,19 @@ export default function OrdersPage() {
                 )}
               </div>
             )}
+
+            {/* Dispute Shortcut */}
+            <div style={{ marginTop: '20px', paddingTop: '14px', borderTop: '1px solid var(--border-subtle)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>¿Ocurrió un percance con este pedido?</span>
+              <Link 
+                href="/dashboard/disputes" 
+                className="btn btn-ghost btn-sm" 
+                style={{ color: '#ef4444', fontSize: '0.78rem', padding: '4px 10px' }}
+                onClick={() => setDetailOrder(null)}
+              >
+                Abrir Disputa
+              </Link>
+            </div>
           </div>
         </div>
       )}

@@ -1,11 +1,11 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import {
   ShieldCheck, HeartPulse, Users, Clock, Plus, CheckCircle2,
   Copy, ExternalLink, AlertTriangle, Sparkles, Key, Lock, RefreshCw, X,
-  ArrowUpRight, Trash2, ShieldAlert, Cpu, Activity
+  ArrowUpRight, Trash2, ShieldAlert, Cpu, Activity, History, Sliders
 } from 'lucide-react';
 import { sanitizeText, sanitizeEmail, sanitizeAmount } from '@/lib/utils/sanitizer';
 
@@ -18,6 +18,20 @@ interface Beneficiary {
   email: string;
   status: 'verified' | 'pending';
 }
+
+interface HeartbeatRecord {
+  id: string;
+  timestamp: string;
+  txHash: string;
+  method: string;
+  status: 'confirmed' | 'pending';
+}
+
+const INITIAL_HEARTBEATS: HeartbeatRecord[] = [
+  { id: 'hb-1', timestamp: '2026-09-08 14:20', txHash: '0x8f2a9c1d3e5b7a0f4c2e6d8b0a1c3e5f7a9b1d3f5a7b9c1d3f5a7b9c1d3f5a7b', method: 'Web3 Ping (Passkey)', status: 'confirmed' },
+  { id: 'hb-2', timestamp: '2026-07-15 11:15', txHash: '0x3c7e9a1b5d2f4a6c8e0b2d4f6a8c0e2b4d6f8a0c2e4b6d8f0a2c4e6b8d0f2a4c', method: 'Tangem NFC Card Tap', status: 'confirmed' },
+  { id: 'hb-3', timestamp: '2026-05-20 09:42', txHash: '0x1a4c6e8b0d2f3a5c7e9b1d3f5a7b9c1d3f5a7b9c1d3f5a7b4a8e2b9c1d3f5a6e', method: 'Web Dashboard L2', status: 'confirmed' },
+];
 
 const INITIAL_BENEFICIARIES: Beneficiary[] = [
   {
@@ -52,14 +66,18 @@ const INITIAL_BENEFICIARIES: Beneficiary[] = [
 export default function HeritagePage() {
   const [beneficiaries, setBeneficiaries] = useState<Beneficiary[]>(INITIAL_BENEFICIARIES);
   const [vaultBalance, setVaultBalance] = useState(18450.00);
+  const [inactivityInterval, setInactivityInterval] = useState<number>(180);
   const [daysRemaining, setDaysRemaining] = useState(142);
   const [heartbeatSuccess, setHeartbeatSuccess] = useState(false);
   const [heartbeatTx, setHeartbeatTx] = useState<string | null>(null);
   const [copiedWallet, setCopiedWallet] = useState<string | null>(null);
-  
+  const [heartbeats, setHeartbeats] = useState<HeartbeatRecord[]>(INITIAL_HEARTBEATS);
+
   // Modals
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isDepositModalOpen, setIsDepositModalOpen] = useState(false);
+  const [customIntervalModal, setCustomIntervalModal] = useState(false);
+  const [customDaysInput, setCustomDaysInput] = useState('180');
   const [depositAmount, setDepositAmount] = useState('500');
   const [depositSuccess, setDepositSuccess] = useState<string | null>(null);
 
@@ -71,13 +89,66 @@ export default function HeritagePage() {
   const [newEmail, setNewEmail] = useState('');
   const [formError, setFormError] = useState<string | null>(null);
 
+  useEffect(() => {
+    // Load persisted data
+    try {
+      const savedBens = localStorage.getItem('ayni_beneficiaries');
+      if (savedBens) setBeneficiaries(JSON.parse(savedBens));
+      const savedHbs = localStorage.getItem('ayni_heartbeats');
+      if (savedHbs) setHeartbeats(JSON.parse(savedHbs));
+      const savedInterval = localStorage.getItem('ayni_heritage_interval');
+      if (savedInterval) {
+        const parsed = parseInt(savedInterval, 10);
+        if (!isNaN(parsed) && parsed > 0) {
+          setInactivityInterval(parsed);
+          setDaysRemaining(Math.min(142, parsed));
+        }
+      }
+    } catch (e) {
+      console.error('Error loading heritage storage:', e);
+    }
+  }, []);
+
   const totalPercentage = beneficiaries.reduce((acc, b) => acc + b.percentage, 0);
+
+  const handleSelectInterval = (days: number) => {
+    setInactivityInterval(days);
+    setDaysRemaining(days);
+    try {
+      localStorage.setItem('ayni_heritage_interval', String(days));
+    } catch {}
+  };
+
+  const handleCustomIntervalSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    const days = parseInt(customDaysInput, 10);
+    if (!isNaN(days) && days >= 15 && days <= 1825) {
+      handleSelectInterval(days);
+      setCustomIntervalModal(false);
+    }
+  };
 
   const handleHeartbeat = () => {
     const txHash = '0x' + Array.from({ length: 64 }, () => Math.floor(Math.random() * 16).toString(16)).join('');
-    setDaysRemaining(180);
+    setDaysRemaining(inactivityInterval);
     setHeartbeatTx(txHash);
     setHeartbeatSuccess(true);
+
+    const now = new Date();
+    const formattedDate = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')} ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+    const newRecord: HeartbeatRecord = {
+      id: `hb-${Date.now()}`,
+      timestamp: formattedDate,
+      txHash,
+      method: 'Web3 Ping L2 (Passkey)',
+      status: 'confirmed',
+    };
+    const updated = [newRecord, ...heartbeats];
+    setHeartbeats(updated);
+    try {
+      localStorage.setItem('ayni_heartbeats', JSON.stringify(updated));
+    } catch {}
+
     setTimeout(() => {
       setHeartbeatSuccess(false);
     }, 6000);
@@ -90,7 +161,11 @@ export default function HeritagePage() {
   };
 
   const handleRemoveBeneficiary = (id: string) => {
-    setBeneficiaries(prev => prev.filter(b => b.id !== id));
+    const updated = beneficiaries.filter(b => b.id !== id);
+    setBeneficiaries(updated);
+    try {
+      localStorage.setItem('ayni_beneficiaries', JSON.stringify(updated));
+    } catch {}
   };
 
   const handleAddBeneficiary = (e: React.FormEvent) => {
@@ -127,7 +202,11 @@ export default function HeritagePage() {
       status: 'verified',
     };
 
-    setBeneficiaries(prev => [...prev, newBen]);
+    const updated = [...beneficiaries, newBen];
+    setBeneficiaries(updated);
+    try {
+      localStorage.setItem('ayni_beneficiaries', JSON.stringify(updated));
+    } catch {}
     setIsModalOpen(false);
     setNewName('');
     setNewWallet('');
@@ -295,8 +374,16 @@ export default function HeritagePage() {
             <div style={{ fontSize: '1.75rem', fontWeight: 800, color: 'var(--brand-emerald)', fontFamily: 'var(--font-display)' }}>
               {daysRemaining} días
             </div>
-            <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '4px' }}>
-              Plazo de inactividad: 180 días
+            <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '4px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <span>Plazo: {inactivityInterval} días</span>
+              <button 
+                type="button" 
+                onClick={() => setCustomIntervalModal(true)} 
+                className="btn btn-ghost btn-sm" 
+                style={{ padding: '0 4px', fontSize: '0.7rem', color: 'var(--brand-cyan)' }}
+              >
+                Ajustar
+              </button>
             </div>
           </div>
 
@@ -347,12 +434,51 @@ export default function HeritagePage() {
                   Mecanismo de Presencia (Heartbeat Biométrico)
                 </span>
                 <span className="badge badge-red" style={{ fontSize: '0.68rem' }}>
-                  {daysRemaining} / 180 DÍAS
+                  {daysRemaining} / {inactivityInterval} DÍAS
                 </span>
               </div>
-              <p style={{ fontSize: '0.84rem', color: 'var(--text-secondary)', margin: 0 }}>
-                Confirma tu actividad periódica. Al hacer clic, se emite una transacción al contrato en Base L2 reiniciando el plazo a 180 días.
+              <p style={{ fontSize: '0.84rem', color: 'var(--text-secondary)', margin: '0 0 10px 0' }}>
+                Confirma tu actividad periódica. Al hacer clic, se emite una transacción al contrato en Base L2 reiniciando el plazo a {inactivityInterval} días.
               </p>
+              
+              {/* Interval Preset Selectors */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
+                <span style={{ fontSize: '0.76rem', color: 'var(--text-muted)' }}>Intervalo:</span>
+                {[90, 180, 365].map(d => (
+                  <button
+                    key={d}
+                    type="button"
+                    onClick={() => handleSelectInterval(d)}
+                    style={{
+                      padding: '3px 9px',
+                      borderRadius: '6px',
+                      fontSize: '0.75rem',
+                      cursor: 'pointer',
+                      border: inactivityInterval === d ? '1px solid var(--brand-cyan)' : '1px solid var(--border-default)',
+                      background: inactivityInterval === d ? 'rgba(0,207,255,0.15)' : 'rgba(255,255,255,0.03)',
+                      color: inactivityInterval === d ? 'var(--brand-cyan)' : 'var(--text-secondary)',
+                      fontWeight: inactivityInterval === d ? 600 : 400,
+                    }}
+                  >
+                    {d} días
+                  </button>
+                ))}
+                <button
+                  type="button"
+                  onClick={() => setCustomIntervalModal(true)}
+                  style={{
+                    padding: '3px 9px',
+                    borderRadius: '6px',
+                    fontSize: '0.75rem',
+                    cursor: 'pointer',
+                    border: ![90, 180, 365].includes(inactivityInterval) ? '1px solid var(--brand-gold)' : '1px solid var(--border-default)',
+                    background: ![90, 180, 365].includes(inactivityInterval) ? 'rgba(245,166,35,0.15)' : 'rgba(255,255,255,0.03)',
+                    color: ![90, 180, 365].includes(inactivityInterval) ? 'var(--brand-gold)' : 'var(--text-secondary)',
+                  }}
+                >
+                  {![90, 180, 365].includes(inactivityInterval) ? `${inactivityInterval}d (Custom)` : 'Personalizar'}
+                </button>
+              </div>
             </div>
           </div>
 
@@ -490,6 +616,79 @@ export default function HeritagePage() {
                       >
                         <Trash2 size={15} />
                       </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        {/* Heartbeats History Table Section */}
+        <div className="card card-kinetic sc-card-depth" style={{ padding: '24px', marginBottom: '32px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', flexWrap: 'wrap', gap: '10px' }}>
+            <div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <History size={18} color="var(--brand-cyan)" />
+                <h3 style={{ fontSize: '1.15rem', fontWeight: 700, margin: 0, color: 'var(--text-primary)' }}>
+                  Historial de Latidos Verificados (Smart Contract Heartbeats)
+                </h3>
+              </div>
+              <p style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', margin: '4px 0 0' }}>
+                Registro inmutable de pruebas de vida on-chain en Base L2 que han reiniciado el TimeLock.
+              </p>
+            </div>
+            <span className="badge badge-emerald" style={{ fontSize: '0.72rem' }}>
+              <CheckCircle2 size={11} /> {heartbeats.length} latidos certificados
+            </span>
+          </div>
+
+          <div style={{ overflowX: 'auto' }}>
+            <table className="table" style={{ width: '100%' }}>
+              <thead>
+                <tr>
+                  <th>Fecha & Hora</th>
+                  <th>Hash Transacción (Base L2)</th>
+                  <th>Método de Autenticación</th>
+                  <th style={{ textAlign: 'right' }}>Estado Red</th>
+                </tr>
+              </thead>
+              <tbody>
+                {heartbeats.map(hb => (
+                  <tr key={hb.id}>
+                    <td>
+                      <span style={{ fontSize: '0.85rem', color: 'var(--text-primary)', fontWeight: 500 }}>
+                        {hb.timestamp}
+                      </span>
+                    </td>
+                    <td>
+                      <a
+                        href={`https://basescan.org/tx/${hb.txHash}`}
+                        target="_blank"
+                        rel="noreferrer"
+                        style={{
+                          fontFamily: 'monospace',
+                          fontSize: '0.8rem',
+                          color: 'var(--brand-cyan)',
+                          textDecoration: 'none',
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '4px',
+                        }}
+                      >
+                        {hb.txHash.slice(0, 10)}...{hb.txHash.slice(-8)}
+                        <ExternalLink size={12} />
+                      </a>
+                    </td>
+                    <td>
+                      <span className="badge badge-purple" style={{ fontSize: '0.72rem' }}>
+                        {hb.method}
+                      </span>
+                    </td>
+                    <td style={{ textAlign: 'right' }}>
+                      <span className="badge badge-emerald" style={{ fontSize: '0.72rem' }}>
+                        <CheckCircle2 size={11} /> Confirmado L2
+                      </span>
                     </td>
                   </tr>
                 ))}
@@ -755,6 +954,86 @@ export default function HeritagePage() {
                     className="btn btn-primary"
                   >
                     Confirmar Depósito L2
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
+        {/* Modal: Personalizar Intervalo Dead Man */}
+        {customIntervalModal && (
+          <div className="modal-overlay" onClick={() => setCustomIntervalModal(false)}>
+            <div
+              className="modal-box"
+              style={{ width: '100%', maxWidth: 440, padding: '28px' }}
+              onClick={e => e.stopPropagation()}
+            >
+              <button
+                type="button"
+                onClick={() => setCustomIntervalModal(false)}
+                style={{ position: 'absolute', top: 16, right: 16, background: 'transparent', border: 'none', color: 'var(--text-muted)', cursor: 'pointer' }}
+              >
+                <X size={18} />
+              </button>
+
+              <div style={{ marginBottom: '20px' }}>
+                <h3 style={{ fontSize: '1.25rem', fontWeight: 700, margin: '0 0 4px', color: 'var(--text-primary)' }}>
+                  Personalizar Plazo de Inactividad
+                </h3>
+                <p style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', margin: 0 }}>
+                  Define cuántos días de inactividad deben transcurrir antes de que el Smart Contract habilite a tus beneficiarios.
+                </p>
+              </div>
+
+              <form onSubmit={handleCustomIntervalSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                <div>
+                  <label className="input-label">Días de inactividad (entre 15 y 1825 días):</label>
+                  <input
+                    type="number"
+                    min="15"
+                    max="1825"
+                    required
+                    value={customDaysInput}
+                    onChange={e => setCustomDaysInput(e.target.value)}
+                    className="input"
+                    style={{ fontSize: '1.1rem', fontWeight: 700 }}
+                  />
+                </div>
+
+                <div style={{ display: 'flex', gap: '8px' }}>
+                  {[30, 60, 120, 240, 730].map(d => (
+                    <button
+                      key={d}
+                      type="button"
+                      onClick={() => setCustomDaysInput(String(d))}
+                      style={{
+                        padding: '4px 8px',
+                        background: 'rgba(255,255,255,0.05)',
+                        border: '1px solid var(--border-default)',
+                        borderRadius: '6px',
+                        fontSize: '0.75rem',
+                        color: 'var(--text-secondary)',
+                        cursor: 'pointer',
+                      }}
+                    >
+                      {d}d
+                    </button>
+                  ))}
+                </div>
+
+                <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '8px' }}>
+                  <button
+                    type="button"
+                    onClick={() => setCustomIntervalModal(false)}
+                    className="btn btn-ghost"
+                  >
+                    Cancelar
+                  </button>
+                  <button
+                    type="submit"
+                    className="btn btn-primary"
+                  >
+                    Guardar Intervalo
                   </button>
                 </div>
               </form>
