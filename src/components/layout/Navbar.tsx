@@ -196,22 +196,20 @@ export function Navbar() {
               </div>
             ) : (
               <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                <button
-                  type="button"
-                  onClick={() => { setAuthModalMode('signin'); setAuthModalOpen(true); }}
+                <Link
+                  href="/auth?mode=signin"
                   className="btn btn-outline"
-                  style={{ padding: '8px 16px', fontSize: '0.85rem' }}
+                  style={{ padding: '8px 16px', fontSize: '0.85rem', textDecoration: 'none' }}
                 >
                   Iniciar Sesión
-                </button>
-                <button
-                  type="button"
-                  onClick={() => { setAuthModalMode('signup'); setAuthModalOpen(true); }}
+                </Link>
+                <Link
+                  href="/auth?mode=signup"
                   className="btn btn-primary"
-                  style={{ padding: '8px 18px', fontSize: '0.85rem' }}
+                  style={{ padding: '8px 18px', fontSize: '0.85rem', textDecoration: 'none' }}
                 >
                   Registrarse
-                </button>
+                </Link>
               </div>
             )}
           </div>

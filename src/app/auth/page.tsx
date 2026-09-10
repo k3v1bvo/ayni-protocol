@@ -19,7 +19,8 @@ function AuthContent() {
   const redirectUrl = sanitizeRedirect(rawRedirect, '/dashboard');
 
   const { signInWithEmail, signUpWithEmail, signInWithGoogle, setDemoUser } = useAuth();
-  const [mode, setMode] = useState<'signin' | 'signup'>('signin');
+  const initialMode = searchParams.get('mode') === 'signup' ? 'signup' : 'signin';
+  const [mode, setMode] = useState<'signin' | 'signup'>(initialMode);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);

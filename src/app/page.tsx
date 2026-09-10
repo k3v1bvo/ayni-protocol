@@ -10,7 +10,7 @@ import {
   DollarSign, Clock, Shield, ChevronRight, Award, Flame, HeartPulse,
   RefreshCw, Key, ExternalLink
 } from 'lucide-react';
-import { AuthModal } from '@/components/auth/AuthModal';
+
 
 const STATS = [
   { label: 'Países conectados', value: '28+', color: 'var(--brand-cyan)' },
@@ -119,8 +119,6 @@ const TESTIMONIALS = [
 export default function LandingPage() {
   const { user, isLoading } = useAuth();
   const router = useRouter();
-  const [authOpen, setAuthOpen] = useState(false);
-  const [authMode, setAuthMode] = useState<'signin' | 'signup'>('signin');
   const [landingHeartbeatDays, setLandingHeartbeatDays] = useState(142);
   const [landingHeartbeatPinged, setLandingHeartbeatPinged] = useState(false);
 
@@ -231,12 +229,20 @@ export default function LandingPage() {
               </Link>
             ) : (
               <>
-                <button type="button" className="btn btn-ghost btn-sm" onClick={() => { setAuthMode('signin'); setAuthOpen(true); }}>
+                <Link
+                  href="/auth?mode=signin"
+                  className="btn btn-ghost btn-sm"
+                  style={{ textDecoration: 'none', display: 'inline-flex', alignItems: 'center' }}
+                >
                   Iniciar Sesión
-                </button>
-                <button type="button" className="btn btn-primary btn-sm" onClick={() => { setAuthMode('signup'); setAuthOpen(true); }}>
+                </Link>
+                <Link
+                  href="/auth?mode=signup"
+                  className="btn btn-primary btn-sm"
+                  style={{ textDecoration: 'none', display: 'inline-flex', alignItems: 'center' }}
+                >
                   Crear Cuenta
-                </button>
+                </Link>
               </>
             )}
           </div>
@@ -286,22 +292,20 @@ export default function LandingPage() {
             </p>
 
             <div style={{ display: 'flex', justifyContent: 'center', gap: '14px', flexWrap: 'wrap', marginBottom: '50px' }}>
-              <button
-                type="button"
+              <Link
+                href="/auth?mode=signup"
                 className="btn btn-primary btn-lg"
-                onClick={() => { setAuthMode('signup'); setAuthOpen(true); }}
-                style={{ padding: '14px 28px', fontSize: '1rem' }}
+                style={{ padding: '14px 28px', fontSize: '1rem', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '8px' }}
               >
                 Comenzar con AYNI <ArrowRight size={18} />
-              </button>
-              <button
-                type="button"
+              </Link>
+              <Link
+                href="/dashboard/marketplace"
                 className="btn btn-ghost btn-lg"
-                onClick={() => { setAuthMode('signin'); setAuthOpen(true); }}
-                style={{ padding: '14px 24px', fontSize: '1rem', border: '1px solid var(--border-default)' }}
+                style={{ padding: '14px 24px', fontSize: '1rem', border: '1px solid var(--border-default)', textDecoration: 'none', display: 'inline-flex', alignItems: 'center' }}
               >
                 Explorar Marketplace 🌶️
-              </button>
+              </Link>
             </div>
           </div>
 
@@ -623,13 +627,13 @@ export default function LandingPage() {
                       Explorar Bóvedas Heritage <ChevronRight size={15} />
                     </a>
                   ) : (
-                    <button
-                      type="button"
+                    <Link
+                      href={i === 0 ? "/dashboard/my-trips" : "/dashboard/marketplace"}
                       className="btn btn-primary btn-sm"
-                      onClick={() => { setAuthMode('signup'); setAuthOpen(true); }}
+                      style={{ textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '6px' }}
                     >
-                      Saber Más <ChevronRight size={15} />
-                    </button>
+                      {i === 0 ? "Ver Rutas de Viajeros" : "Explorar Marketplace"} <ChevronRight size={15} />
+                    </Link>
                   )}
                 </div>
 
@@ -953,14 +957,13 @@ export default function LandingPage() {
               Regístrate gratis como cliente, viajero o comercio. Comienza a enviar encargos, monetizar equipaje o resguardar tu herencia digital.
             </p>
             <div style={{ display: 'flex', justifyContent: 'center', gap: '14px', flexWrap: 'wrap' }}>
-              <button
-                type="button"
+              <Link
+                href="/auth?mode=signup"
                 className="btn btn-primary btn-lg"
-                onClick={() => { setAuthMode('signup'); setAuthOpen(true); }}
-                style={{ padding: '14px 32px', fontSize: '1rem' }}
+                style={{ padding: '14px 32px', fontSize: '1rem', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '8px' }}
               >
                 <Sparkles size={18} /> Crear Cuenta Gratuita
-              </button>
+              </Link>
             </div>
           </div>
         </div>
@@ -991,7 +994,6 @@ export default function LandingPage() {
         </div>
       </footer>
 
-      <AuthModal isOpen={authOpen} onClose={() => setAuthOpen(false)} initialMode={authMode} />
     </>
   );
 }
