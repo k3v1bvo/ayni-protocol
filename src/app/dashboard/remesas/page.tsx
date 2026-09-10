@@ -224,7 +224,7 @@ export default function RemesasPage() {
 
   return (
     <DashboardLayout>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+      <div className="sc-perspective-container" style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
       {/* Header & Main Actions */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '16px' }}>
         <div>
@@ -481,6 +481,20 @@ export default function RemesasPage() {
                   </div>
                 )}
 
+                {rem.status === 'escrow_locked' && rem.claim_otp_hash && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setClaimCode(rem.claim_otp_hash || '');
+                      setClaimModalOpen(true);
+                    }}
+                    className="btn btn-outline btn-sm"
+                    style={{ fontSize: '0.75rem', height: '28px', padding: '0 10px', color: 'var(--brand-gold)', borderColor: 'rgba(245,166,35,0.4)' }}
+                  >
+                    <Key size={12} /> Cobrar Fondos
+                  </button>
+                )}
+
                 {rem.smart_contract_tx && (
                   <a
                     href={`https://basescan.org/tx/${rem.smart_contract_tx}`}
@@ -560,6 +574,42 @@ export default function RemesasPage() {
                   }}
                   autoFocus
                 />
+              </div>
+
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Probar con datos de prueba (Hackathon Demo):</div>
+                <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                  <button
+                    type="button"
+                    onClick={() => setClaimCode('774411')}
+                    style={{
+                      background: 'rgba(245,166,35,0.1)',
+                      border: '1px solid rgba(245,166,35,0.3)',
+                      borderRadius: '6px',
+                      padding: '4px 8px',
+                      fontSize: '0.75rem',
+                      color: 'var(--brand-gold)',
+                      cursor: 'pointer',
+                    }}
+                  >
+                    🎄 Probar 774411 ($350)
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setClaimCode('123987')}
+                    style={{
+                      background: 'rgba(0,207,255,0.1)',
+                      border: '1px solid rgba(0,207,255,0.3)',
+                      borderRadius: '6px',
+                      padding: '4px 8px',
+                      fontSize: '0.75rem',
+                      color: 'var(--brand-cyan)',
+                      cursor: 'pointer',
+                    }}
+                  >
+                    🎂 Probar 123987 ($120)
+                  </button>
+                </div>
               </div>
 
               {claimStatus && (

@@ -114,10 +114,11 @@ export default function OrdersPage() {
 
   return (
     <DashboardLayout>
+      <div className="sc-perspective-container">
       <div className="page-header" style={{ flexWrap: 'wrap', gap: '14px' }}>
         <div className="page-title-group">
-          <div className="page-title">Gestión de Pedidos</div>
-          <div className="page-subtitle">Encargos activos, en tránsito y completados con validación OTP</div>
+          <div className="page-title">Gestión de Pedidos & Escrow L2</div>
+          <div className="page-subtitle">Encargos activos, en tránsito y completados con pipeline y validación OTP</div>
         </div>
         <Link href="/dashboard/orders/new" className="btn btn-primary" style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
           <Package size={16} /> Nuevo Pedido
@@ -141,7 +142,7 @@ export default function OrdersPage() {
           const tp = TYPE_LABELS[order.type];
 
           return (
-            <div key={order.id} className="card">
+            <div key={order.id} className="card card-kinetic sc-card-depth">
               {/* Header row */}
               <div
                 style={{ padding: '18px 22px', cursor: 'pointer', display: 'flex', gap: '14px', alignItems: 'center', flexWrap: 'wrap' }}
@@ -184,6 +185,45 @@ export default function OrdersPage() {
               {/* Expanded Detail */}
               {isOpen && (
                 <div style={{ borderTop: '1px solid var(--border-subtle)', padding: '20px 22px' }}>
+                  {/* 4-Step Pipeline */}
+                  <div style={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    marginBottom: '20px',
+                    padding: '16px 20px',
+                    background: 'rgba(255,255,255,0.02)',
+                    border: '1px solid var(--border-default)',
+                    borderRadius: 14,
+                    gap: '8px',
+                    flexWrap: 'wrap',
+                  }}>
+                    {[
+                      { step: 1, label: 'Fondeo L2', desc: 'USDC Bloqueado', done: true },
+                      { step: 2, label: 'Compra & IA', desc: 'Validación Factura', done: order.status !== 'funded' },
+                      { step: 3, label: 'En Tránsito', desc: 'Vuelo en curso', done: order.status === 'shipped' || order.status === 'completed' },
+                      { step: 4, label: 'Entrega OTP', desc: 'Liberación Inmutable', done: order.status === 'completed' },
+                    ].map((stItem, sIdx) => {
+                      const isCurrentActive = !stItem.done && (
+                        (sIdx === 1 && order.status === 'funded') ||
+                        (sIdx === 2 && order.status === 'verified_ai') ||
+                        (sIdx === 3 && order.status === 'shipped')
+                      );
+                      return (
+                        <div key={sIdx} className="sc-stepper-node" style={{ minWidth: '100px' }}>
+                          <div className={`sc-stepper-circle ${stItem.done ? 'completed' : isCurrentActive ? 'active' : 'pending'}`}>
+                            {stItem.done ? '✓' : stItem.step}
+                          </div>
+                          <div style={{ fontSize: '0.78rem', fontWeight: 700, color: stItem.done ? 'var(--brand-emerald)' : isCurrentActive ? 'var(--brand-cyan)' : 'var(--text-primary)', textAlign: 'center' }}>
+                            {stItem.label}
+                          </div>
+                          <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)', textAlign: 'center' }}>
+                            {stItem.desc}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '20px' }}>
                     {/* Fee breakdown */}
                     <div style={{ background: 'rgba(255,255,255,0.03)', borderRadius: 10, padding: '14px' }}>
@@ -285,7 +325,7 @@ export default function OrdersPage() {
                           <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginBottom: '8px' }}>
                             ✈ Terminal del Viajero (ingresar código para liberar pago):
                           </div>
-                          <div style={{ display: 'flex', gap: '8px' }}>
+                          <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
                             <input
                               type="text"
                               maxLength={6}
@@ -296,8 +336,25 @@ export default function OrdersPage() {
                               style={{ maxWidth: 140, fontFamily: 'var(--font-display)', fontSize: '1rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase' }}
                             />
                             <button type="button" className="btn btn-primary btn-sm" onClick={() => handleVerify(order)}>
-                              <KeyRound size={15} /> Confirmar
+                              <KeyRound size={15} /> Confirmar Entrega
                             </button>
+                            {order.otpCode && order.otpCode !== '---' && (
+                              <button
+                                type="button"
+                                onClick={() => setInputOtps(p => ({ ...p, [order.id]: order.otpCode }))}
+                                style={{
+                                  background: 'rgba(245,166,35,0.1)',
+                                  border: '1px solid rgba(245,166,35,0.3)',
+                                  borderRadius: '6px',
+                                  padding: '5px 10px',
+                                  fontSize: '0.72rem',
+                                  color: 'var(--brand-gold)',
+                                  cursor: 'pointer',
+                                }}
+                              >
+                                ⚡ Probar con {order.otpCode}
+                              </button>
+                            )}
                           </div>
                         </div>
                       </div>
@@ -314,7 +371,7 @@ export default function OrdersPage() {
                   {order.status === 'completed' && (
                     <div className="alert alert-success">
                       <CheckCircle2 size={16} />
-                      Entrega completada y fondos liquidados correctamente. Viajero recibió ${(order.productCost + order.travelerFee).toFixed(2)} USDC.
+                      Entrega completada y fondos liquidados correctamente en Base L2. Viajero recibió ${(order.productCost + order.travelerFee).toFixed(2)} USDC.
                     </div>
                   )}
                 </div>
@@ -322,6 +379,7 @@ export default function OrdersPage() {
             </div>
           );
         })}
+      </div>
       </div>
     </DashboardLayout>
   );

@@ -109,6 +109,7 @@ export default function MerchantProductsPage() {
 
   return (
     <DashboardLayout>
+      <div className="sc-perspective-container">
       <div className="page-header">
         <div className="page-title-group">
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '4px' }}>
@@ -152,7 +153,7 @@ export default function MerchantProductsPage() {
       </div>
 
       {/* Table */}
-      <div className="card" style={{ padding: '24px' }}>
+      <div className="card card-kinetic sc-card-depth" style={{ padding: '24px' }}>
         <div style={{ overflowX: 'auto' }}>
           <table className="table" style={{ width: '100%' }}>
             <thead>
@@ -230,6 +231,7 @@ export default function MerchantProductsPage() {
             </tbody>
           </table>
         </div>
+      </div>
       </div>
     </DashboardLayout>
   );

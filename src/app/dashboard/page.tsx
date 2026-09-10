@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { useAuth } from '@/context/AuthContext';
 import {
@@ -46,7 +46,9 @@ function StatusBadge({ status }: { status: string }) {
 }
 
 export default function DashboardPage() {
-  const { user, role } = useAuth();
+  const { user, role, setDemoUser } = useAuth();
+  const [quickOtpInput, setQuickOtpInput] = useState('');
+  const [otpVerifyState, setOtpVerifyState] = useState<'idle' | 'verifying' | 'success' | 'error'>('idle');
 
   const getGreeting = () => {
     const hour = new Date().getHours();
@@ -106,21 +108,103 @@ export default function DashboardPage() {
         <span style={{ color: 'var(--brand-gold)' }}>IA Gemini Vision Online</span>
       </div>
 
-      {/* Welcome Header */}
-      <div style={{ marginBottom: '28px' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '6px', flexWrap: 'wrap' }}>
-          <h1 style={{ fontFamily: 'var(--font-display)', fontSize: '1.85rem', fontWeight: 800, letterSpacing: '-0.02em' }}>
-            {getGreeting()}, {user?.full_name?.split(' ')[0] || 'Usuario'} 👋
-          </h1>
-          {role === 'traveler' && <span className="badge badge-cyan">Viajero Verificado</span>}
-          {role === 'merchant' && <span className="badge badge-emerald">Comerciante Local</span>}
-          {role === 'client' && <span className="badge badge-gold">Cliente</span>}
+      {/* Welcome Header & 1-Click Role Switcher for Hackathon Judges */}
+      <div style={{
+        background: 'linear-gradient(135deg, rgba(10, 16, 32, 0.8) 0%, rgba(20, 30, 60, 0.5) 100%)',
+        border: '1px solid rgba(0, 207, 255, 0.2)',
+        borderRadius: '20px',
+        padding: '24px 28px',
+        marginBottom: '28px',
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        flexWrap: 'wrap',
+        gap: '20px',
+        boxShadow: '0 8px 32px rgba(0, 0, 0, 0.4)',
+      }}>
+        <div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '6px', flexWrap: 'wrap' }}>
+            <h1 style={{ fontFamily: 'var(--font-display)', fontSize: '1.75rem', fontWeight: 800, letterSpacing: '-0.02em', margin: 0 }}>
+              {getGreeting()}, {user?.full_name?.split(' ')[0] || 'Usuario'} 👋
+            </h1>
+            {role === 'traveler' && <span className="badge badge-cyan">Viajero Verificado</span>}
+            {role === 'merchant' && <span className="badge badge-emerald">Comercio Aliado</span>}
+            {role === 'client' && <span className="badge badge-gold">Cliente P2P</span>}
+            {role === 'admin' && <span className="badge badge-purple">Auditor Oficial</span>}
+          </div>
+          <p style={{ color: 'var(--text-secondary)', fontSize: '0.88rem', margin: 0 }}>
+            {role === 'traveler' && 'Monetiza tu equipaje disponible en vuelos y valida entregas en mano.'}
+            {role === 'merchant' && 'Gestiona tu catálogo de productos y ventas a viajeros internacionales.'}
+            {role === 'client' && 'Tus compras, encargos transfronterizos y bóvedas de herencia activas.'}
+            {role === 'admin' && 'Panel de control de red, auditoría Gemini IA y liquidaciones Base L2.'}
+          </p>
         </div>
-        <p style={{ color: 'var(--text-secondary)', fontSize: '0.925rem' }}>
-          {role === 'traveler' && 'Tus viajes activos y encargos pendientes de entrega están aquí.'}
-          {role === 'merchant' && 'Gestiona tu tienda, productos y pedidos recibidos de viajeros.'}
-          {role === 'client' && 'Tus pedidos activos, rutas disponibles y novedades del marketplace.'}
-        </p>
+
+        {/* 1-Click Role Switcher Pill Bar */}
+        <div style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: '8px',
+          background: 'rgba(5, 8, 16, 0.6)',
+          padding: '6px 10px',
+          borderRadius: '14px',
+          border: '1px solid rgba(255, 255, 255, 0.08)',
+        }}>
+          <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)', fontWeight: 600, marginRight: '4px' }}>
+            Modo Demo:
+          </span>
+          <button
+            type="button"
+            onClick={() => setDemoUser('traveler')}
+            style={{
+              padding: '6px 12px',
+              borderRadius: '8px',
+              border: 'none',
+              background: role === 'traveler' ? 'var(--brand-cyan)' : 'transparent',
+              color: role === 'traveler' ? '#050810' : 'var(--text-secondary)',
+              fontWeight: 700,
+              fontSize: '0.78rem',
+              cursor: 'pointer',
+              transition: 'all 0.2s ease',
+            }}
+          >
+            ✈️ Viajero
+          </button>
+          <button
+            type="button"
+            onClick={() => setDemoUser('client')}
+            style={{
+              padding: '6px 12px',
+              borderRadius: '8px',
+              border: 'none',
+              background: role === 'client' ? 'var(--brand-gold)' : 'transparent',
+              color: role === 'client' ? '#050810' : 'var(--text-secondary)',
+              fontWeight: 700,
+              fontSize: '0.78rem',
+              cursor: 'pointer',
+              transition: 'all 0.2s ease',
+            }}
+          >
+            🛍️ Cliente
+          </button>
+          <button
+            type="button"
+            onClick={() => setDemoUser('merchant')}
+            style={{
+              padding: '6px 12px',
+              borderRadius: '8px',
+              border: 'none',
+              background: role === 'merchant' ? 'var(--brand-emerald)' : 'transparent',
+              color: role === 'merchant' ? '#050810' : 'var(--text-secondary)',
+              fontWeight: 700,
+              fontSize: '0.78rem',
+              cursor: 'pointer',
+              transition: 'all 0.2s ease',
+            }}
+          >
+            🏪 Comercio
+          </button>
+        </div>
       </div>
 
       {/* Stat Cards */}
@@ -229,31 +313,33 @@ export default function DashboardPage() {
               <div style={{ fontWeight: 700, fontSize: '0.95rem' }}>Rutas Disponibles</div>
               <Link href="/dashboard/trips" className="btn btn-ghost btn-sm">Ver todas</Link>
             </div>
-            <div style={{ padding: '8px' }}>
+            <div style={{ padding: '12px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
               {ACTIVE_TRIPS.map((t, i) => (
                 <div key={i} style={{
-                  padding: '12px',
-                  borderRadius: 10,
-                  marginBottom: '6px',
-                  background: 'rgba(255,255,255,0.02)',
-                  border: '1px solid var(--border-subtle)',
+                  padding: '14px',
+                  borderRadius: 12,
+                  background: 'rgba(255,255,255,0.03)',
+                  border: '1px solid rgba(0, 207, 255, 0.15)',
                   cursor: 'pointer',
-                  transition: 'all 0.15s',
+                  transition: 'all 0.2s ease',
                 }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '8px' }}>
-                    <div style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--text-primary)' }}>{t.traveler}</div>
-                    <span style={{ fontSize: '0.72rem', color: 'var(--brand-gold)' }}>★ {t.score}</span>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <span className="sc-radar-dot" />
+                      <span style={{ fontSize: '0.82rem', fontWeight: 700, color: 'var(--text-primary)' }}>{t.traveler}</span>
+                    </div>
+                    <span style={{ fontSize: '0.75rem', color: 'var(--brand-gold)', fontWeight: 600 }}>★ {t.score}</span>
                   </div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '10px' }}>
-                    <span style={{ fontSize: '0.9rem' }}>{t.fromFlag}</span>
+                    <span style={{ fontSize: '0.95rem' }}>{t.fromFlag}</span>
                     <span style={{ fontSize: '0.85rem', fontWeight: 600 }}>{t.from}</span>
-                    <div style={{ flex: 1, height: '1px', background: 'linear-gradient(90deg, var(--brand-cyan), transparent)', opacity: 0.4 }} />
+                    <div style={{ flex: 1, height: '1px', background: 'linear-gradient(90deg, var(--brand-cyan), transparent)', opacity: 0.5 }} />
                     <span style={{ fontSize: '0.85rem', fontWeight: 600 }}>{t.to}</span>
-                    <span style={{ fontSize: '0.9rem' }}>{t.toFlag}</span>
+                    <span style={{ fontSize: '0.95rem' }}>{t.toFlag}</span>
                   </div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.75rem', color: 'var(--text-muted)' }}>
-                    <span>📅 {t.date}</span>
-                    <span style={{ color: 'var(--brand-cyan)' }}>⚖ {t.kg} kg libre</span>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.78rem' }}>
+                    <span style={{ color: 'var(--text-muted)' }}>📅 {t.date}</span>
+                    <span className="badge badge-cyan" style={{ fontSize: '0.72rem' }}>⚖ {t.kg} kg libre</span>
                   </div>
                 </div>
               ))}

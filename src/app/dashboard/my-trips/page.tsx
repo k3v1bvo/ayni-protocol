@@ -90,6 +90,7 @@ export default function MyTripsPage() {
 
   return (
     <DashboardLayout>
+      <div className="sc-perspective-container">
       <div className="page-header">
         <div className="page-title-group">
           <div className="page-title">Mis Viajes y Rutas</div>
@@ -118,7 +119,7 @@ export default function MyTripsPage() {
           { label: 'Encargos completados', value: '38', color: 'var(--brand-emerald)', icon: CheckCircle2, iconBg: 'rgba(0,214,143,0.15)', glow: 'rgba(0,214,143,0.08)' },
           { label: 'Viajes realizados', value: '18', color: 'var(--brand-purple)', icon: Plane, iconBg: 'rgba(155,114,255,0.15)', glow: 'rgba(155,114,255,0.08)' },
         ].map((s, i) => (
-          <div key={i} className="stat-card" style={{ '--stat-glow': s.glow } as React.CSSProperties}>
+          <div key={i} className="stat-card card-kinetic sc-card-depth" style={{ '--stat-glow': s.glow } as React.CSSProperties}>
             <div className="stat-icon" style={{ background: s.iconBg }}>
               <s.icon size={20} color={s.color} />
             </div>
@@ -133,7 +134,7 @@ export default function MyTripsPage() {
       {/* Trip Cards */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>
         {trips.map(trip => (
-          <div key={trip.id} className="card card-glow-cyan card-kinetic" style={{ padding: '24px' }}>
+          <div key={trip.id} className="card card-glow-cyan card-kinetic sc-card-depth" style={{ padding: '24px' }}>
             {/* Trip Header */}
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '16px', gap: '12px', flexWrap: 'wrap' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
@@ -306,6 +307,7 @@ export default function MyTripsPage() {
           </div>
         </div>
       )}
+      </div>
     </DashboardLayout>
   );
 }

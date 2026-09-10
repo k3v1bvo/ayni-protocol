@@ -121,6 +121,8 @@ export default function LandingPage() {
   const router = useRouter();
   const [landingHeartbeatDays, setLandingHeartbeatDays] = useState(142);
   const [landingHeartbeatPinged, setLandingHeartbeatPinged] = useState(false);
+  const [calcWeight, setCalcWeight] = useState(3.0);
+  const [calcRoute, setCalcRoute] = useState<'mad-lpz' | 'mia-sr' | 'bue-cbb'>('mad-lpz');
 
   useEffect(() => {
     const handleScroll = () => {
@@ -353,11 +355,153 @@ export default function LandingPage() {
                   <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>Auditoría IA</div>
                   <div style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--brand-gold)' }}>Vision OCR Activo</div>
                 </div>
+              </div>
+            </div>
+          </div>
+
+          {/* INTERACTIVE LIVE COMPARISON CALCULATOR (SCROLL-CRAFT ENGINE) */}
+          <div className="sc-live-hud sc-card-depth" style={{ padding: '36px 30px', marginBottom: '60px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px', marginBottom: '24px' }}>
+              <div>
+                <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
+                  <span className="sc-radar-dot" />
+                  <span style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--brand-cyan)', letterSpacing: '0.08em', textTransform: 'uppercase' }}>
+                    Calculadora Cripto-Logística en Vivo
+                  </span>
+                </div>
+                <h3 style={{ fontFamily: 'var(--font-display)', fontSize: '1.45rem', fontWeight: 800, color: 'var(--text-primary)', margin: 0 }}>
+                  Compara en Tiempo Real: Courier Tradicional vs Protocolo AYNI
+                </h3>
+              </div>
+              
+              {/* Route Picker Pills */}
+              <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                {[
+                  { id: 'mad-lpz', label: '🇪🇸 Madrid → 🇧🇴 La Paz' },
+                  { id: 'mia-sr', label: '🇺🇸 Miami → 🇧🇴 Santa Cruz' },
+                  { id: 'bue-cbb', label: '🇦🇷 Bs. Aires → 🇧🇴 Cochabamba' },
+                ].map(r => (
+                  <button
+                    key={r.id}
+                    type="button"
+                    onClick={() => setCalcRoute(r.id as any)}
+                    style={{
+                      padding: '8px 14px',
+                      borderRadius: '10px',
+                      fontSize: '0.78rem',
+                      fontWeight: 600,
+                      background: calcRoute === r.id ? 'rgba(0, 207, 255, 0.15)' : 'rgba(255, 255, 255, 0.04)',
+                      border: calcRoute === r.id ? '1px solid var(--brand-cyan)' : '1px solid rgba(255, 255, 255, 0.08)',
+                      color: calcRoute === r.id ? 'var(--brand-cyan)' : 'var(--text-secondary)',
+                      cursor: 'pointer',
+                      transition: 'all 0.25s ease',
+                    }}
+                  >
+                    {r.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Weight Slider Section */}
+            <div style={{ background: 'rgba(5, 8, 16, 0.6)', padding: '20px 24px', borderRadius: '16px', border: '1px solid rgba(255, 255, 255, 0.06)', marginBottom: '28px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
+                <span style={{ fontSize: '0.9rem', color: 'var(--text-secondary)', fontWeight: 500 }}>
+                  Peso del paquete / encomienda a enviar:
+                </span>
+                <span style={{ fontFamily: 'var(--font-display)', fontSize: '1.4rem', fontWeight: 800, color: 'var(--brand-gold)' }}>
+                  {calcWeight.toFixed(1)} kg <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>({(calcWeight * 2.20462).toFixed(1)} lbs)</span>
+                </span>
+              </div>
+              <input
+                type="range"
+                min="0.5"
+                max="15"
+                step="0.5"
+                value={calcWeight}
+                onChange={e => setCalcWeight(parseFloat(e.target.value))}
+                className="sc-slider-glow"
+              />
+              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.72rem', color: 'var(--text-muted)', marginTop: '8px' }}>
+                <span>0.5 kg (Documento / Condimento)</span>
+                <span>5.0 kg (Caja de Alimentos)</span>
+                <span>10.0 kg (Repuestos)</span>
+                <span>15.0 kg (Equipaje Completo)</span>
+              </div>
+            </div>
+
+            {/* Side by Side Comparison Cards */}
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '20px', alignItems: 'stretch' }}>
+              
+              {/* Traditional Courier Card */}
+              <div style={{
+                background: 'rgba(239, 68, 68, 0.03)',
+                border: '1px solid rgba(239, 68, 68, 0.2)',
+                borderRadius: '16px',
+                padding: '24px',
+                display: 'flex',
+                flexDirection: 'column',
+                justifyContent: 'space-between',
+              }}>
                 <div>
-                  <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>Validación OTP</div>
-                  <div style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--brand-emerald)' }}>Keccak-256</div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
+                    <span style={{ fontSize: '0.8rem', color: '#f87171', fontWeight: 700 }}>COURIER TRADICIONAL (DHL / FEDEX)</span>
+                    <span className="badge" style={{ background: 'rgba(239, 68, 68, 0.1)', color: '#f87171' }}>Lento & Caro</span>
+                  </div>
+                  <div style={{ fontFamily: 'var(--font-display)', fontSize: '2.4rem', fontWeight: 900, color: '#f87171', marginBottom: '6px' }}>
+                    ${Math.round(calcWeight * 54 + 42)} <span style={{ fontSize: '0.9rem', color: 'var(--text-muted)' }}>USD</span>
+                  </div>
+                  <div style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', lineHeight: 1.6 }}>
+                    • Tiempo de entrega: <strong>8 a 14 días hábiles</strong><br />
+                    • Retención aduanera: <strong>Alta probabilidad para alimentos o artesanías</strong><br />
+                    • Comisiones bancarias: <strong>+3.5% Swift / tarjetas</strong>
+                  </div>
                 </div>
               </div>
+
+              {/* AYNI Protocol Card (Highlighted) */}
+              <div style={{
+                background: 'linear-gradient(145deg, rgba(0, 207, 255, 0.08) 0%, rgba(255, 184, 0, 0.06) 100%)',
+                border: '1.5px solid var(--brand-cyan)',
+                boxShadow: '0 0 30px rgba(0, 207, 255, 0.15)',
+                borderRadius: '16px',
+                padding: '24px',
+                display: 'flex',
+                flexDirection: 'column',
+                justifyContent: 'space-between',
+              }}>
+                <div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
+                    <span style={{ fontSize: '0.8rem', color: 'var(--brand-cyan)', fontWeight: 700 }}>PROTOCOLO AYNI P2P (BASE L2)</span>
+                    <span className="badge badge-cyan">⚡ 24h - 48h Cabina</span>
+                  </div>
+                  <div style={{ fontFamily: 'var(--font-display)', fontSize: '2.4rem', fontWeight: 900, color: 'var(--brand-cyan)', marginBottom: '6px' }}>
+                    ${Math.round(calcWeight * 18 + 5)} <span style={{ fontSize: '0.9rem', color: 'var(--text-muted)' }}>USDC</span>
+                  </div>
+                  <div style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', lineHeight: 1.6 }}>
+                    • Tiempo de entrega: <strong>24 a 48 horas (Vuelo del Viajero)</strong><br />
+                    • Custodia: <strong>Smart Contract Escrow inmutable</strong><br />
+                    • Costo por transacción L2: <strong>&lt;$0.01 Gas</strong>
+                  </div>
+                </div>
+
+                <div style={{ marginTop: '20px', paddingTop: '16px', borderTop: '1px solid rgba(0, 207, 255, 0.2)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px' }}>
+                  <div>
+                    <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Ahorro directo para tu bolsillo:</span>
+                    <div style={{ fontSize: '1.1rem', fontWeight: 800, color: 'var(--brand-emerald)' }}>
+                      ¡Ahorras ${Math.round((calcWeight * 54 + 42) - (calcWeight * 18 + 5))} USD ({Math.round((((calcWeight * 54 + 42) - (calcWeight * 18 + 5)) / (calcWeight * 54 + 42)) * 100)}%)!
+                    </div>
+                  </div>
+                  <Link
+                    href="/auth?mode=signup"
+                    className="btn btn-primary btn-sm"
+                    style={{ textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '6px' }}
+                  >
+                    Encargar con este peso <ArrowRight size={14} />
+                  </Link>
+                </div>
+              </div>
+
             </div>
           </div>
 

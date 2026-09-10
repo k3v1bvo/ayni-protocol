@@ -470,9 +470,9 @@ export default function MarketplacePage() {
       </div>
 
       {/* Product Grid */}
-      <div className="product-grid">
+      <div className="product-grid sc-perspective-container">
         {filtered.map(product => (
-          <div key={product.id} className="product-card">
+          <div key={product.id} className="product-card card-kinetic sc-card-depth">
             {/* Image */}
             <div style={{ position: 'relative', overflow: 'hidden' }}>
               <img

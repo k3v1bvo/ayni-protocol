@@ -1659,5 +1659,150 @@ button:focus-visible, .btn:focus-visible, a:focus-visible, input:focus-visible {
   color: var(--brand-cyan);
 }
 
+/* =====================================================
+   SCROLL-CRAFT & CYBER-FINTECH LUXURY UTILITIES
+   ===================================================== */
+.sc-live-hud {
+  background: rgba(10, 16, 32, 0.7);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(0, 207, 255, 0.2);
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.6), inset 0 0 20px rgba(0, 207, 255, 0.05);
+  border-radius: 20px;
+  position: relative;
+  overflow: hidden;
+}
 
+.sc-live-hud::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -50%;
+  width: 200%;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, var(--brand-cyan), var(--brand-gold), transparent);
+  animation: hudShimmer 6s linear infinite;
+}
 
+@keyframes hudShimmer {
+  0% { transform: translateX(-50%); }
+  100% { transform: translateX(50%); }
+}
+
+/* Radar Pulse for Live Route Tracking */
+.sc-radar-dot {
+  position: relative;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--brand-cyan);
+  box-shadow: 0 0 10px var(--brand-cyan);
+}
+
+.sc-radar-dot::after {
+  content: '';
+  position: absolute;
+  top: -6px;
+  left: -6px;
+  right: -6px;
+  bottom: -6px;
+  border-radius: 50%;
+  border: 1.5px solid var(--brand-cyan);
+  animation: radarWave 2s cubic-bezier(0.25, 1, 0.5, 1) infinite;
+}
+
+@keyframes radarWave {
+  0% { transform: scale(0.6); opacity: 1; }
+  100% { transform: scale(2.2); opacity: 0; }
+}
+
+/* Biometric Heartbeat Ring */
+.sc-biometric-pulse {
+  animation: biometricBeat 1.8s ease-in-out infinite;
+}
+
+@keyframes biometricBeat {
+  0%, 100% { transform: scale(1); filter: drop-shadow(0 0 6px rgba(0, 207, 255, 0.4)); }
+  50% { transform: scale(1.06); filter: drop-shadow(0 0 18px rgba(0, 207, 255, 0.8)); }
+}
+
+/* Glowing Custom Range Slider */
+.sc-slider-glow {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 8px;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.08);
+  outline: none;
+  transition: all 0.3s ease;
+}
+
+.sc-slider-glow::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--brand-cyan), var(--brand-gold));
+  cursor: pointer;
+  box-shadow: 0 0 14px var(--brand-cyan);
+  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.sc-slider-glow::-webkit-slider-thumb:hover {
+  transform: scale(1.2);
+  box-shadow: 0 0 22px var(--brand-cyan);
+}
+
+.sc-slider-glow::-moz-range-thumb {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--brand-cyan), var(--brand-gold));
+  cursor: pointer;
+  border: none;
+  box-shadow: 0 0 14px var(--brand-cyan);
+}
+
+/* 4-Step Escrow Pipeline Stepper */
+.sc-stepper-node {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  position: relative;
+  flex: 1;
+}
+
+.sc-stepper-circle {
+  width: 44px;
+  height: 44px;
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 0.9rem;
+  transition: all 0.32s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.sc-stepper-circle.active {
+  background: rgba(0, 207, 255, 0.15);
+  border: 1.5px solid var(--brand-cyan);
+  color: var(--brand-cyan);
+  box-shadow: 0 0 20px rgba(0, 207, 255, 0.3);
+}
+
+.sc-stepper-circle.completed {
+  background: rgba(0, 230, 153, 0.15);
+  border: 1.5px solid var(--brand-emerald);
+  color: var(--brand-emerald);
+  box-shadow: 0 0 16px rgba(0, 230, 153, 0.25);
+}
+
+.sc-stepper-circle.pending {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1.5px solid rgba(255, 255, 255, 0.1);
+  color: var(--text-muted);
+}
