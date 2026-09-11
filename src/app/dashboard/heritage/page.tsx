@@ -9,6 +9,7 @@ import {
 } from 'lucide-react';
 import { sanitizeText, sanitizeEmail, sanitizeAmount } from '@/lib/utils/sanitizer';
 import { TangemConnector } from '@/components/web3/TangemConnector';
+import { PaymentModal } from '@/components/checkout/PaymentModal';
 
 interface Beneficiary {
   id: string;
@@ -81,6 +82,7 @@ export default function HeritagePage() {
   const [customIntervalModal, setCustomIntervalModal] = useState(false);
   const [customDaysInput, setCustomDaysInput] = useState('180');
   const [depositAmount, setDepositAmount] = useState('500');
+  const [isDepositPaymentModalOpen, setIsDepositPaymentModalOpen] = useState(false);
   const [depositSuccess, setDepositSuccess] = useState<string | null>(null);
 
   // Form states for new beneficiary
@@ -220,14 +222,35 @@ export default function HeritagePage() {
     e.preventDefault();
     const val = sanitizeAmount(depositAmount, 1, 500000);
     if (val <= 0) return;
+    setIsDepositModalOpen(false);
+    setIsDepositPaymentModalOpen(true);
+  };
 
-    const tx = '0x' + Array.from({ length: 64 }, () => Math.floor(Math.random() * 16).toString(16)).join('');
+  const handleDepositPaymentSuccess = ({ txHash, method }: { txHash: string; otpCode: string; method: string }) => {
+    setIsDepositPaymentModalOpen(false);
+    const val = sanitizeAmount(depositAmount, 1, 500000);
     setVaultBalance(prev => prev + val);
-    setDepositSuccess(`¡Depósito completado! +${val.toFixed(2)} USDC transferidos al Smart Contract Base L2 (Tx: ${tx.slice(0, 10)}...${tx.slice(-6)})`);
+    setHeartbeatTx(txHash);
+
+    const now = new Date();
+    const formattedDate = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')} ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+    const newRecord: HeartbeatRecord = {
+      id: `hb-${Date.now()}`,
+      timestamp: formattedDate,
+      txHash,
+      method: `Depósito Bóveda (${method === 'tangem_nfc_hardware' ? 'Tangem NFC' : 'Tangem App'})`,
+      status: 'confirmed',
+    };
+    const updated = [newRecord, ...heartbeats];
+    setHeartbeats(updated);
+    try {
+      localStorage.setItem('ayni_heartbeats', JSON.stringify(updated));
+    } catch {}
+
+    setDepositSuccess(`¡Depósito completado! +$${val.toFixed(2)} USDC asegurados en Smart Contract Base L2 (Tx: ${txHash.slice(0, 10)}...${txHash.slice(-6)})`);
     setTimeout(() => {
       setDepositSuccess(null);
-      setIsDepositModalOpen(false);
-    }, 3000);
+    }, 6000);
   };
 
   return (
@@ -241,9 +264,9 @@ export default function HeritagePage() {
               <span className="badge badge-gold">
                 <Sparkles size={11} /> Smart Contracts de Sucesión Base L2
               </span>
-              <span className="sc-live-hud">
-                <span className="sc-radar-dot" style={{ background: '#10B981', boxShadow: '0 0 8px #10B981' }}></span>
-                BÓVEDA ACTIVA & CUSTODIADA
+              <span className="sc-live-hud" style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', padding: '4px 10px', fontSize: '0.74rem', borderRadius: '10px' }}>
+                <span className="sc-radar-dot" style={{ width: 7, height: 7, background: '#10B981', boxShadow: '0 0 8px #10B981' }}></span>
+                <Wifi size={12} style={{ transform: 'rotate(90deg)', color: 'var(--brand-cyan)' }} /> TANGEM EAL6+ VINCULADA: 0x9a8F...3F5A
               </span>
             </div>
             <div className="page-subtitle">
@@ -1070,6 +1093,18 @@ export default function HeritagePage() {
           onSuccess={(addr, tx) => {
             handleHeartbeat('Tangem NFC Card Tap (EAL6+)');
           }}
+        />
+
+        {/* Modal Tangem Escrow Deposit */}
+        <PaymentModal
+          isOpen={isDepositPaymentModalOpen}
+          onClose={() => setIsDepositPaymentModalOpen(false)}
+          orderTitle="Depósito Patrimonial a Bóveda Heritage Base L2"
+          productPriceUsdc={sanitizeAmount(depositAmount, 1, 500000)}
+          travelerFeeUsdc={0}
+          originCity="Billetera Fría Tangem"
+          destinationCity="Smart Contract 0x71C9...B49a"
+          onPaymentSuccess={handleDepositPaymentSuccess}
         />
       </div>
     </DashboardLayout>

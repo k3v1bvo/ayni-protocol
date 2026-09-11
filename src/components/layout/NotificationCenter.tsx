@@ -186,24 +186,33 @@ export function NotificationCenter() {
       </button>
 
       {open && (
-        <div
-          className="card"
-          style={{
-            position: 'absolute',
-            right: 0,
-            top: 'calc(100% + 10px)',
-            width: '360px',
-            maxWidth: '90vw',
-            background: 'rgba(10, 15, 29, 0.96)',
-            backdropFilter: 'blur(20px)',
-            border: '1px solid rgba(0, 207, 255, 0.25)',
-            boxShadow: '0 20px 50px rgba(0,0,0,0.8), 0 0 25px rgba(0,207,255,0.1)',
-            borderRadius: '16px',
-            zIndex: 999,
-            overflow: 'hidden',
-            animation: 'fadeIn 0.2s ease-out',
-          }}
-        >
+        <>
+          {/* Mobile backdrop */}
+          <div 
+            className="notif-mobile-backdrop"
+            onClick={() => setOpen(false)}
+            style={{
+              position: 'fixed',
+              inset: 0,
+              background: 'rgba(5, 8, 16, 0.75)',
+              backdropFilter: 'blur(6px)',
+              zIndex: 9998,
+            }}
+          />
+
+          <div
+            className="card notif-dropdown-card"
+            style={{
+              background: 'rgba(10, 15, 29, 0.98)',
+              backdropFilter: 'blur(24px)',
+              border: '1px solid rgba(0, 207, 255, 0.3)',
+              boxShadow: '0 20px 60px rgba(0,0,0,0.9), 0 0 30px rgba(0,207,255,0.15)',
+              borderRadius: '16px',
+              zIndex: 9999,
+              overflow: 'hidden',
+              animation: 'fadeIn 0.2s ease-out',
+            }}
+          >
           {/* Header */}
           <div style={{
             padding: '14px 18px',
@@ -336,6 +345,7 @@ export function NotificationCenter() {
             )}
           </div>
         </div>
+        </>
       )}
     </div>
   );

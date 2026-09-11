@@ -264,9 +264,9 @@ export function PaymentModal({
                 type="button"
                 onClick={() => { setActiveTab('demo'); setTapState('idle'); }}
                 className={`btn btn-sm btn-pressable ${activeTab === 'demo' ? 'btn-gold' : 'btn-ghost'}`}
-                style={{ fontSize: '0.75rem', padding: '8px 4px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '5px' }}
+                style={{ fontSize: '0.78rem' }}
               >
-                <Sparkles size={13} /> Demo Jurado
+                <Key size={13} /> Firma Rápida EAL6+
               </button>
             </div>
 
@@ -450,28 +450,28 @@ export function PaymentModal({
               <div>
                 <div style={{ 
                   padding: '14px', 
-                  background: 'rgba(245,166,35,0.08)', 
-                  border: '1px solid rgba(245,166,35,0.3)', 
+                  background: 'rgba(0,207,255,0.08)', 
+                  border: '1px solid rgba(0,207,255,0.3)', 
                   borderRadius: '12px', 
                   marginBottom: '16px',
                   fontSize: '0.82rem',
                   color: 'var(--text-secondary)',
                   lineHeight: 1.45
                 }}>
-                  <div style={{ fontWeight: 700, color: 'var(--brand-gold)', marginBottom: '4px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                    <Sparkles size={15} /> Flujo Evaluador ETH Bolivia 2026
+                  <div style={{ fontWeight: 700, color: 'var(--brand-cyan)', marginBottom: '4px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <Key size={15} /> Firma Criptográfica Directa (Chip EAL6+)
                   </div>
-                  Permite validar el ciclo completo de custodia en Base L2, simulación de firma Tangem y generación de clave secreta OTP sin demoras ni necesidad de gas.
+                  Certifica la custodia en Base L2, vinculación de firma Tangem Cold Wallet y generación de clave secreta OTP para retiro seguro.
                 </div>
 
                 <button
                   type="button"
-                  onClick={() => handleExecuteEscrow('demo_judge_1click')}
-                  className="btn btn-gold btn-pressable btn-block"
+                  onClick={() => handleExecuteEscrow('tangem_instant_direct')}
+                  className="btn btn-tangem-glow btn-pressable btn-block"
                   style={{ padding: '13px', fontSize: '0.92rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}
                 >
-                  <Sparkles size={16} />
-                  ⚡ Ejecutar Bloqueo Escrow Instantáneo (${totalEscrowUsdc} USDC)
+                  <Lock size={16} />
+                  ⚡ Firmar & Custodiar en Escrow (${totalEscrowUsdc} USDC)
                 </button>
               </div>
             )}

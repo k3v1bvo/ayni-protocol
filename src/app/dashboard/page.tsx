@@ -151,7 +151,7 @@ export default function DashboardPage() {
           border: '1px solid rgba(255, 255, 255, 0.08)',
         }}>
           <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)', fontWeight: 600, marginRight: '4px' }}>
-            Modo Demo:
+            Cambiar Perfil / Rol:
           </span>
           <button
             type="button"

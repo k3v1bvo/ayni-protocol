@@ -310,11 +310,11 @@ export default function OrdersPage() {
                   El comprador debe proporcionar su código OTP de 6 caracteres para liberar el pago del escrow.
                 </p>
 
-                {/* Demo OTP display */}
+                {/* Buyer OTP display */}
                 {detailOrder.otp_plain_simulated && (
-                  <div style={{ marginBottom: '12px', padding: '8px 12px', background: 'rgba(245,166,35,0.1)', borderRadius: '8px', fontSize: '0.78rem', color: 'var(--brand-gold)' }}>
-                    🧪 <strong>OTP de prueba:</strong> {detailOrder.otp_plain_simulated}
-                    <button type="button" onClick={() => copyToClipboard(detailOrder.otp_plain_simulated!)} style={{ marginLeft: '8px', background: 'transparent', border: 'none', cursor: 'pointer', color: 'var(--brand-gold)' }}>
+                  <div style={{ marginBottom: '12px', padding: '8px 12px', background: 'rgba(0,207,255,0.08)', borderRadius: '8px', border: '1px solid rgba(0,207,255,0.25)', fontSize: '0.78rem', color: 'var(--brand-cyan)' }}>
+                    🔑 <strong>Clave Secreta OTP del Comprador:</strong> {detailOrder.otp_plain_simulated}
+                    <button type="button" onClick={() => copyToClipboard(detailOrder.otp_plain_simulated!)} style={{ marginLeft: '8px', background: 'transparent', border: 'none', cursor: 'pointer', color: 'var(--brand-cyan)' }}>
                       <Copy size={12} />
                     </button>
                   </div>

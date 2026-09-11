@@ -2258,4 +2258,37 @@ textarea.input {
   border: 1px solid rgba(255, 77, 109, 0.2);
 }
 
+/* Notification Dropdown Positioning */
+.notif-dropdown-card {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 10px);
+  width: 360px;
+  max-width: 90vw;
+}
+
+.notif-mobile-backdrop {
+  display: none;
+}
+
+@media (max-width: 640px) {
+  .notif-mobile-backdrop {
+    display: block !important;
+    z-index: 9998 !important;
+  }
+
+  .notif-dropdown-card {
+    position: fixed !important;
+    top: 66px !important;
+    left: 12px !important;
+    right: 12px !important;
+    width: auto !important;
+    max-width: calc(100vw - 24px) !important;
+    margin: 0 auto !important;
+    box-shadow: 0 25px 80px rgba(0, 0, 0, 0.95), 0 0 40px rgba(0, 207, 255, 0.2) !important;
+    z-index: 9999 !important;
+  }
+}
+
+
 

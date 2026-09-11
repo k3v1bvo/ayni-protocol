@@ -9,8 +9,9 @@ import { supabase } from '@/lib/supabase/client';
 import { sanitizeText, sanitizeAmount, sanitizePhone, sanitizeEmail } from '@/lib/utils/sanitizer';
 import {
   ArrowLeft, Gift, Send, Sparkles, ShieldCheck, Clock, CheckCircle2,
-  Calendar, Key, Wallet, AlertCircle, Info
+  Calendar, Key, Wallet, AlertCircle, Info, Wifi, ExternalLink
 } from 'lucide-react';
+import { PaymentModal } from '@/components/checkout/PaymentModal';
 
 export default function NewRemesaPage() {
   const router = useRouter();
@@ -27,8 +28,10 @@ export default function NewRemesaPage() {
   const [note, setNote] = useState('¡Feliz Navidad! Con todo mi cariño para ti y la familia.');
 
   const [loading, setLoading] = useState(false);
+  const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
   const [success, setSuccess] = useState<boolean>(false);
   const [generatedOtp, setGeneratedOtp] = useState<string>('');
+  const [confirmedTx, setConfirmedTx] = useState<string>('');
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
   const cleanAmount = sanitizeAmount(amount, 1, 50000);
@@ -53,7 +56,7 @@ export default function NewRemesaPage() {
     }
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     const cleanRecipientName = sanitizeText(recipientName, 100);
     if (!cleanRecipientName) {
@@ -65,12 +68,16 @@ export default function NewRemesaPage() {
       return;
     }
 
+    setErrorMsg(null);
+    setIsPaymentModalOpen(true);
+  };
+
+  const handlePaymentSuccess = async ({ txHash, otpCode, method }: { txHash: string; otpCode: string; method: string }) => {
+    setIsPaymentModalOpen(false);
     setLoading(true);
     setErrorMsg(null);
 
-    // Generate simulated 6-digit OTP
-    const otp = Math.floor(100000 + Math.random() * 900000).toString();
-    const fakeTx = '0x' + Array.from({ length: 64 }, () => Math.floor(Math.random() * 16).toString(16)).join('');
+    const cleanRecipientName = sanitizeText(recipientName, 100);
 
     try {
       const payload = {
@@ -86,23 +93,24 @@ export default function NewRemesaPage() {
         status: 'escrow_locked',
         occasion_type: occasionType,
         scheduled_release_date: releaseDate ? new Date(releaseDate).toISOString() : null,
-        claim_otp_hash: otp,
-        smart_contract_tx: fakeTx,
+        claim_otp_hash: otpCode,
+        smart_contract_tx: txHash,
         note: sanitizeText(note, 300) || null,
       };
 
       // Try inserting into Supabase
       const { error } = await supabase.from('remittances_and_gifts').insert([payload]);
       if (error) {
-        console.warn('Supabase insert note (could be offline/parche pendiente):', error.message);
+        console.warn('Supabase insert note (offline/parche):', error.message);
       }
 
-      setGeneratedOtp(otp);
+      setGeneratedOtp(otpCode);
+      setConfirmedTx(txHash);
       setSuccess(true);
     } catch (err: any) {
       console.error('Error submitting remittance:', err);
-      // Even if network fails, grant demo success so experience is not blocked
-      setGeneratedOtp(otp);
+      setGeneratedOtp(otpCode);
+      setConfirmedTx(txHash);
       setSuccess(true);
     } finally {
       setLoading(false);
@@ -165,10 +173,31 @@ export default function NewRemesaPage() {
             <div style={{ fontSize: '2.2rem', fontWeight: 900, letterSpacing: '0.25em', color: 'var(--brand-gold)', fontFamily: 'monospace' }}>
               {generatedOtp}
             </div>
-            <div style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', marginTop: '8px', lineHeight: 1.4 }}>
-              Comparte este código con {recipientName} cuando llegue la fecha programada para que retire su dinero en cualquier punto P2P o lo transfiera a su wallet.
-            </div>
           </div>
+
+          {confirmedTx && (
+            <a
+              href={`https://sepolia.basescan.org/tx/${confirmedTx}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '6px',
+                fontSize: '0.8rem',
+                color: 'var(--brand-cyan)',
+                fontFamily: 'monospace',
+                textDecoration: 'none',
+                background: 'rgba(0, 207, 255, 0.08)',
+                padding: '6px 12px',
+                borderRadius: '8px',
+                border: '1px solid rgba(0, 207, 255, 0.25)',
+              }}
+            >
+              <span>Tx Base L2: {confirmedTx.slice(0, 10)}...{confirmedTx.slice(-8)}</span>
+              <ExternalLink size={12} />
+            </a>
+          )}
 
           <div style={{ display: 'flex', gap: '14px', flexWrap: 'wrap', justifyContent: 'center' }}>
             <button
@@ -436,8 +465,8 @@ export default function NewRemesaPage() {
           <button
             type="submit"
             disabled={loading}
-            className="btn btn-primary btn-lg"
-            style={{ width: '100%', justifyContent: 'center' }}
+            className="btn btn-tangem-glow btn-lg btn-pressable"
+            style={{ width: '100%', justifyContent: 'center', fontSize: '1rem', padding: '16px' }}
           >
             {loading ? (
               <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -445,12 +474,24 @@ export default function NewRemesaPage() {
               </span>
             ) : (
               <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <ShieldCheck size={18} /> Confirmar & Generar Código OTP de Retiro
+                <Wifi size={18} style={{ transform: 'rotate(90deg)' }} /> Bloquear Custodia con Tarjeta Tangem (NFC / App)
               </span>
             )}
           </button>
         </form>
       )}
+
+      {/* Tangem Cold Wallet Payment Modal */}
+      <PaymentModal
+        isOpen={isPaymentModalOpen}
+        onClose={() => setIsPaymentModalOpen(false)}
+        orderTitle={`Remesa Familiar para ${recipientName || 'Destinatario'}`}
+        productPriceUsdc={numAmount}
+        travelerFeeUsdc={0}
+        originCity="España"
+        destinationCity="Bolivia"
+        onPaymentSuccess={handlePaymentSuccess}
+      />
       </div>
     </DashboardLayout>
   );

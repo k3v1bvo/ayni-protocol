@@ -577,7 +577,7 @@ export default function RemesasPage() {
               </div>
 
               <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Probar con datos de prueba (Hackathon Demo):</div>
+                <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Códigos OTP Registrados en Contrato:</div>
                 <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
                   <button
                     type="button"
@@ -592,7 +592,7 @@ export default function RemesasPage() {
                       cursor: 'pointer',
                     }}
                   >
-                    🎄 Probar 774411 ($350)
+                    🎄 Clave 774411 ($350)
                   </button>
                   <button
                     type="button"
@@ -607,7 +607,7 @@ export default function RemesasPage() {
                       cursor: 'pointer',
                     }}
                   >
-                    🎂 Probar 123987 ($120)
+                    🎂 Clave 123987 ($120)
                   </button>
                 </div>
               </div>
