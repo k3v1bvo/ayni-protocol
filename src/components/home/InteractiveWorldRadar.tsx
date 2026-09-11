@@ -358,6 +358,15 @@ export function InteractiveWorldRadar() {
               <path d="M 50 0 L 0 0 0 50" fill="none" stroke="rgba(0, 207, 255, 0.04)" strokeWidth="0.8" />
               <circle cx="50" cy="50" r="1" fill="rgba(0, 207, 255, 0.15)" />
             </pattern>
+
+            {/* Filtro de brillo esmeralda para aeropuertos */}
+            <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+              <feGaussianBlur stdDeviation="3" result="blur" />
+              <feMerge>
+                <feMergeNode in="blur" />
+                <feMergeNode in="SourceGraphic" />
+              </feMerge>
+            </filter>
           </defs>
 
           {/* Geo Matrix Grid */}
@@ -477,7 +486,7 @@ export function InteractiveWorldRadar() {
               <animate attributeName="r" values="6;22;6" dur="2.4s" repeatCount="indefinite" />
               <animate attributeName="opacity" values="0.8;0;0.8" dur="2.4s" repeatCount="indefinite" />
             </circle>
-            <circle r="5" fill="var(--brand-emerald)" boxShadow="0 0 10px var(--brand-emerald)" />
+            <circle r="5" fill="var(--brand-emerald)" filter="url(#glow)" />
             <circle r="2" fill="#050810" />
 
             {/* Tag de Origen */}

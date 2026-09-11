@@ -513,7 +513,7 @@ export default function ReportsPage() {
 
                 <button
                   type="button"
-                  onClick={handleStartScan}
+                  onClick={() => handleStartScan()}
                   disabled={scanState === 'scanning'}
                   className="btn btn-primary"
                   style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', padding: '10px 18px' }}
