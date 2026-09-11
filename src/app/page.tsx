@@ -10,6 +10,7 @@ import {
   DollarSign, Clock, Shield, ChevronRight, Award, Flame, HeartPulse,
   RefreshCw, Key, ExternalLink
 } from 'lucide-react';
+import { InteractiveWorldRadar } from '@/components/home/InteractiveWorldRadar';
 
 
 const STATS = [
@@ -311,53 +312,8 @@ export default function LandingPage() {
             </div>
           </div>
 
-          {/* Futuristic Hero Visual Frame */}
-          <div style={{
-            position: 'relative',
-            borderRadius: '24px',
-            overflow: 'hidden',
-            border: '1px solid rgba(0,207,255,0.3)',
-            boxShadow: '0 20px 60px rgba(0,0,0,0.7), 0 0 40px rgba(0,207,255,0.15)',
-            maxHeight: '480px',
-            marginBottom: '60px',
-          }}>
-            <img
-              src="/images/ayni_hero_banner.jpg"
-              alt="AYNI Futuristic Global Logistics Network"
-              style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
-            />
-            {/* Floating Live Overlay Badges */}
-            <div style={{
-              position: 'absolute',
-              bottom: '24px',
-              left: '24px',
-              right: '24px',
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-              flexWrap: 'wrap',
-              gap: '12px',
-              background: 'rgba(5,8,16,0.85)',
-              backdropFilter: 'blur(16px)',
-              padding: '16px 20px',
-              borderRadius: '16px',
-              border: '1px solid rgba(255,255,255,0.1)',
-            }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                <div style={{ width: 10, height: 10, borderRadius: '50%', background: 'var(--brand-emerald)', boxShadow: '0 0 8px var(--brand-emerald)' }} />
-                <div>
-                  <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Contratos Escrow en Base L2</div>
-                  <div style={{ fontSize: '0.9rem', fontWeight: 700, color: 'var(--brand-cyan)' }}>$480,240 USDC Liquidados</div>
-                </div>
-              </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
-                <div>
-                  <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>Auditoría IA</div>
-                  <div style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--brand-gold)' }}>Vision OCR Activo</div>
-                </div>
-              </div>
-            </div>
-          </div>
+          {/* Simulador Interactivo de Vuelos P2P y Radar Mundial en Código Puro */}
+          <InteractiveWorldRadar />
 
           {/* INTERACTIVE LIVE COMPARISON CALCULATOR (SCROLL-CRAFT ENGINE) */}
           <div className="sc-live-hud sc-card-depth" style={{ padding: '36px 30px', marginBottom: '60px' }}>
