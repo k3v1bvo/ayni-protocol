@@ -94,9 +94,6 @@ export default function NewOrderPage() {
     }
 
     // Fallback
-    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
-    let otp = ''; for (let i = 0; i < 6; i++) otp += chars[Math.floor(Math.random() * chars.length)];
-    const code = `ORD-${Date.now().toString(36).toUpperCase()}`;
     const existing = JSON.parse(localStorage.getItem('ayni_orders') || '[]');
     existing.push({
       id: crypto.randomUUID?.() || String(Date.now()),
