@@ -6,7 +6,7 @@ import Link from 'next/link';
 import { useAuth } from '@/context/AuthContext';
 import {
   LayoutDashboard, Plane, ShoppingBag, Package, ShieldCheck, BarChart3,
-  Store, Star, LogOut, Bell, Search, Menu, X, ChevronRight, Sparkles, Wallet, Settings, Gift, Users
+  Store, Star, LogOut, Bell, Search, Menu, X, ChevronRight, Sparkles, Wallet, Settings, Gift, Users, FileCode
 } from 'lucide-react';
 
 interface SidebarProps { mobileOpen: boolean; onClose: () => void; }
@@ -16,6 +16,7 @@ const NAV_ITEMS = {
     { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
     { href: '/dashboard/marketplace', label: 'Marketplace', icon: Store },
     { href: '/dashboard/remesas', label: 'Remesas & Regalos', icon: Gift },
+    { href: '/dashboard/contracts', label: 'Smart Contracts & Cláusulas', icon: FileCode },
   ],
   client: [
     { href: '/dashboard/orders', label: 'Mis Pedidos', icon: ShoppingBag },
