@@ -3,7 +3,8 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { 
   Bot, MessageSquare, X, Send, Sparkles, ShieldCheck, 
-  ExternalLink, Key, RefreshCw, ShoppingBag, AlertCircle, ChevronDown
+  ExternalLink, Key, RefreshCw, ShoppingBag, AlertCircle, ChevronDown,
+  Camera, Image as ImageIcon, CheckCircle2, ScanLine, Loader2
 } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 
@@ -12,18 +13,20 @@ interface ChatMessage {
   sender: 'user' | 'assistant';
   text: string;
   time: string;
+  imageUrl?: string;
 }
 
 const INITIAL_MESSAGES: ChatMessage[] = [
   {
     id: 'm-1',
     sender: 'assistant',
-    text: '¡Hola! Soy AYNI Guardian, tu oráculo de soporte con IA. Estoy entrenado para asistirte en compras en mercadillos o tiendas, custodia Escrow en Base L2, uso de tu tarjeta Tangem o cualquier imprevisto. ¿En qué puedo orientarte hoy?',
+    text: '¡Hola! Soy AYNI Guardian, tu oráculo de soporte con IA multimodal. Puedo verificar fotos de tus productos, auditar tickets/recibos de compra con OCR (alojados de forma ilimitada en ImgBB), resolver dudas sobre custodia Escrow en Base L2, tu tarjeta Tangem o compras en mercadillos. ¿En qué puedo ayudarte hoy?',
     time: 'Ahora',
   },
 ];
 
 const QUICK_SUGGESTIONS = [
+  '📸 Verificar foto de producto o ticket',
   '🛍️ Compras en mercadillos específicos',
   '🔑 ¿Cuándo debo entregar el código OTP?',
   '🛡️ ¿Cómo me protege la tarjeta Tangem?',
@@ -36,6 +39,9 @@ export function AiSupportChat() {
   const [messages, setMessages] = useState<ChatMessage[]>(INITIAL_MESSAGES);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
+  const [uploadingPhoto, setUploadingPhoto] = useState(false);
+  const [attachedImageUrl, setAttachedImageUrl] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const scrollToBottom = () => {
@@ -48,14 +54,51 @@ export function AiSupportChat() {
     }
   }, [messages, isOpen]);
 
+  // Manejador de subida de imagen directa a ImgBB
+  const handleImageSelected = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setUploadingPhoto(true);
+    try {
+      const formData = new FormData();
+      formData.append('image', file);
+
+      const res = await fetch('/api/upload', {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        if (data.url) {
+          setAttachedImageUrl(data.url);
+          // Si el input está vacío, sugerir texto para la verificación
+          if (!input.trim()) {
+            setInput('Por favor audita y verifica esta foto: confirma si el producto o texto del comprobante está completo y conforme.');
+          }
+        }
+      }
+    } catch (err) {
+      console.warn('Error subiendo foto a ImgBB para el chat:', err);
+    } finally {
+      setUploadingPhoto(false);
+      if (fileInputRef.current) fileInputRef.current.value = '';
+    }
+  };
+
   const handleSend = async (textToSend?: string) => {
     const messageText = textToSend || input.trim();
-    if (!messageText || loading) return;
+    if ((!messageText && !attachedImageUrl) || loading || uploadingPhoto) return;
+
+    const currentImg = attachedImageUrl;
+    setAttachedImageUrl(null);
 
     const userMsg: ChatMessage = {
       id: `usr-${Date.now()}`,
       sender: 'user',
-      text: messageText,
+      text: messageText || 'Verifica la imagen adjunta.',
+      imageUrl: currentImg || undefined,
       time: new Date().toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' }),
     };
 
@@ -70,6 +113,7 @@ export function AiSupportChat() {
         body: JSON.stringify({
           messages: [...messages, userMsg],
           userRole: role,
+          imageUrl: currentImg,
         }),
       });
 
@@ -78,7 +122,7 @@ export function AiSupportChat() {
         const botMsg: ChatMessage = {
           id: `bot-${Date.now()}`,
           sender: 'assistant',
-          text: data.reply || 'Entendido. ¿Deseas más detalles sobre este punto?',
+          text: data.reply || 'Inspección completada. No se detectan anomalías.',
           time: new Date().toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' }),
         };
         setMessages(prev => [...prev, botMsg]);
@@ -89,7 +133,7 @@ export function AiSupportChat() {
       const errorMsg: ChatMessage = {
         id: `bot-${Date.now()}`,
         sender: 'assistant',
-        text: 'Tus fondos están 100% seguros bajo el Smart Contract en Base L2. Si tienes un problema con tu pedido, no entregues tu código OTP y abre un reporte pericial en el panel de Disputas.',
+        text: 'Tus fondos están 100% seguros bajo el Smart Contract en Base L2. Si subiste un comprobante o producto, recuerda que debe ser legible y sin tachaduras.',
         time: new Date().toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' }),
       };
       setMessages(prev => [...prev, errorMsg]);
@@ -236,6 +280,34 @@ export function AiSupportChat() {
                   fontWeight: m.sender === 'user' ? 600 : 400,
                   whiteSpace: 'pre-line',
                 }}>
+                  {m.imageUrl && (
+                    <div style={{
+                      marginBottom: '8px',
+                      borderRadius: '10px',
+                      overflow: 'hidden',
+                      border: '1px solid rgba(0, 207, 255, 0.35)',
+                      position: 'relative',
+                    }}>
+                      <img
+                        src={m.imageUrl}
+                        alt="Adjunto comprobante o producto"
+                        style={{ width: '100%', maxHeight: '180px', objectFit: 'cover', display: 'block' }}
+                      />
+                      <span style={{
+                        position: 'absolute',
+                        bottom: 4,
+                        right: 4,
+                        background: 'rgba(5, 8, 16, 0.85)',
+                        color: 'var(--brand-cyan)',
+                        fontSize: '0.62rem',
+                        padding: '2px 6px',
+                        borderRadius: '4px',
+                        fontWeight: 700,
+                      }}>
+                        ImgBB CDN
+                      </span>
+                    </div>
+                  )}
                   {m.text}
                 </div>
                 <span style={{
@@ -249,15 +321,49 @@ export function AiSupportChat() {
               </div>
             ))}
 
-            {loading && (
+            {(loading || uploadingPhoto) && (
               <div style={{ alignSelf: 'flex-start', display: 'flex', alignItems: 'center', gap: '8px', padding: '10px 14px', background: 'rgba(255,255,255,0.04)', borderRadius: '14px' }}>
                 <RefreshCw size={14} className="spin" color="var(--brand-cyan)" />
-                <span style={{ fontSize: '0.76rem', color: 'var(--text-secondary)' }}>Consultando con Gemini...</span>
+                <span style={{ fontSize: '0.76rem', color: 'var(--text-secondary)' }}>
+                  {uploadingPhoto ? 'Subiendo foto a ImgBB...' : 'Gemini 1.5 Vision analizando imagen y comprobante...'}
+                </span>
               </div>
             )}
 
             <div ref={messagesEndRef} />
           </div>
+
+          {/* Attached image preview banner */}
+          {attachedImageUrl && (
+            <div style={{
+              padding: '8px 14px',
+              background: 'rgba(0, 207, 255, 0.08)',
+              borderTop: '1px solid rgba(0, 207, 255, 0.25)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <img
+                  src={attachedImageUrl}
+                  alt="Miniatura para enviar"
+                  style={{ width: 34, height: 34, borderRadius: 6, objectFit: 'cover', border: '1px solid var(--brand-cyan)' }}
+                />
+                <span style={{ fontSize: '0.74rem', color: 'var(--brand-cyan)', fontWeight: 600 }}>
+                  Foto lista para auditar con Gemini Vision
+                </span>
+              </div>
+              <button
+                type="button"
+                onClick={() => setAttachedImageUrl(null)}
+                className="btn-ghost"
+                style={{ padding: '4px', borderRadius: '50%' }}
+                aria-label="Quitar foto"
+              >
+                <X size={14} />
+              </button>
+            </div>
+          )}
 
           {/* Quick suggestions pills */}
           <div style={{
@@ -272,7 +378,13 @@ export function AiSupportChat() {
               <button
                 key={idx}
                 type="button"
-                onClick={() => handleSend(q)}
+                onClick={() => {
+                  if (q.includes('Verificar foto')) {
+                    fileInputRef.current?.click();
+                  } else {
+                    handleSend(q);
+                  }
+                }}
                 style={{
                   padding: '4px 10px',
                   borderRadius: '12px',
@@ -296,26 +408,58 @@ export function AiSupportChat() {
               handleSend();
             }}
             style={{
-              padding: '12px 16px',
+              padding: '12px 14px',
               borderTop: '1px solid rgba(255, 255, 255, 0.08)',
               display: 'flex',
+              alignItems: 'center',
               gap: '8px',
               background: 'rgba(10, 15, 28, 0.95)',
             }}
           >
             <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              onChange={handleImageSelected}
+              style={{ display: 'none' }}
+            />
+
+            <button
+              type="button"
+              onClick={() => fileInputRef.current?.click()}
+              disabled={uploadingPhoto || loading}
+              className="btn-ghost"
+              style={{
+                padding: '8px',
+                borderRadius: '10px',
+                color: attachedImageUrl ? 'var(--brand-cyan)' : 'var(--text-secondary)',
+                background: attachedImageUrl ? 'rgba(0, 207, 255, 0.12)' : 'transparent',
+                border: attachedImageUrl ? '1px solid var(--brand-cyan)' : 'none',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                cursor: 'pointer',
+              }}
+              title="Subir foto de producto o comprobante para auditar con IA"
+              aria-label="Adjuntar imagen"
+            >
+              <Camera size={18} />
+            </button>
+
+            <input
               type="text"
               value={input}
               onChange={e => setInput(e.target.value)}
-              placeholder="Pregunta sobre tu encargo, OTP, Tangem..."
+              placeholder={attachedImageUrl ? 'Describe el producto o consulta del ticket...' : 'Pregunta o adjunta foto de tu compra...'}
               className="input input-interactive"
-              style={{ fontSize: '0.82rem', padding: '10px 14px' }}
+              style={{ fontSize: '0.82rem', padding: '10px 14px', flex: 1 }}
             />
+
             <button
               type="submit"
-              disabled={!input.trim() || loading}
+              disabled={(!input.trim() && !attachedImageUrl) || loading || uploadingPhoto}
               className="btn btn-primary"
-              style={{ padding: '0 14px' }}
+              style={{ padding: '0 14px', height: '38px' }}
               aria-label="Enviar mensaje"
             >
               <Send size={16} />

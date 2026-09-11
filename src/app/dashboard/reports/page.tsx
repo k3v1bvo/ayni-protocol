@@ -1,10 +1,11 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import {
   BarChart3, ShieldCheck, Sparkles, CheckCircle2, AlertTriangle,
-  FileText, Download, Play, UploadCloud, Eye, Check, Shield, Cpu, RefreshCw
+  FileText, Download, Play, UploadCloud, Eye, Check, Shield, Cpu, RefreshCw,
+  Camera, Loader2, Image as ImageIcon
 } from 'lucide-react';
 
 interface AuditRecord {
@@ -104,6 +105,8 @@ export default function ReportsPage() {
 
   // Simulator state
   const [selectedReceipt, setSelectedReceipt] = useState(SAMPLE_RECEIPTS[0]);
+  const [customReceiptImage, setCustomReceiptImage] = useState<string | null>(null);
+  const [uploadingReceipt, setUploadingReceipt] = useState(false);
   const [scanState, setScanState] = useState<'idle' | 'scanning' | 'verified'>('idle');
   const [verifiedResult, setVerifiedResult] = useState<{
     txHash: string;
@@ -111,6 +114,7 @@ export default function ReportsPage() {
     block: number;
     match: boolean;
   } | null>(null);
+  const receiptFileRef = useRef<HTMLInputElement>(null);
 
   const handleRunBatchAudit = () => {
     setRunningBatch(true);
@@ -121,9 +125,56 @@ export default function ReportsPage() {
     }, 1200);
   };
 
-  const handleStartScan = async () => {
+  const handleCustomReceiptUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setUploadingReceipt(true);
+    try {
+      const formData = new FormData();
+      formData.append('image', file);
+
+      const res = await fetch('/api/upload', {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        if (data.url) {
+          setCustomReceiptImage(data.url);
+          setSelectedReceipt({
+            id: `custom-${Date.now()}`,
+            title: `Boleta Real: ${file.name}`,
+            merchant: 'Comercio Detectado por IA',
+            city: 'Ciudad Detectada por IA',
+            amount: 50.00,
+            currency: 'EUR / USDC',
+            nif: 'Auditando...',
+            orderId: `ORD-${Date.now().toString().slice(-4)}`,
+            items: ['Extrayendo ítems vía Gemini Vision OCR...'],
+            date: 'Hoy',
+            previewText: 'Procesando imagen con Gemini 1.5 Flash Vision OCR...',
+          });
+          // Iniciar escaneo automático de la foto subida
+          setTimeout(() => {
+            handleStartScan(data.url);
+          }, 300);
+        }
+      }
+    } catch (err) {
+      console.warn('Error subiendo recibo a ImgBB:', err);
+    } finally {
+      setUploadingReceipt(false);
+      if (receiptFileRef.current) receiptFileRef.current.value = '';
+    }
+  };
+
+  const handleStartScan = async (overrideImageUrl?: string) => {
     setScanState('scanning');
     setVerifiedResult(null);
+
+    const targetImgUrl = overrideImageUrl || customReceiptImage;
 
     try {
       const apiRes = await fetch('/api/ocr', {
@@ -135,6 +186,7 @@ export default function ReportsPage() {
           expectedAmount: selectedReceipt.amount,
           items: selectedReceipt.items,
           city: selectedReceipt.city,
+          imageUrl: targetImgUrl || undefined,
         }),
       });
 
@@ -147,14 +199,21 @@ export default function ReportsPage() {
           match: data.verdict === 'VERIFICADO_CONFORME',
         };
 
+        if (data.detectedMerchant) {
+          selectedReceipt.merchant = data.detectedMerchant;
+        }
+        if (data.detectedAmount) {
+          selectedReceipt.amount = data.detectedAmount;
+        }
+
         setVerifiedResult(res);
         setScanState('verified');
 
         const newRecord: AuditRecord = {
           id: `AUD-${Date.now().toString().slice(-3)}`,
           orderId: selectedReceipt.orderId,
-          merchant: selectedReceipt.merchant,
-          detectedAmount: selectedReceipt.amount,
+          merchant: data.detectedMerchant || selectedReceipt.merchant,
+          detectedAmount: data.detectedAmount || selectedReceipt.amount,
           expectedAmount: selectedReceipt.amount,
           confidence: data.confidence,
           status: 'approved',
@@ -295,13 +354,50 @@ export default function ReportsPage() {
               </h2>
             </div>
 
-            {/* Receipt Picker */}
-            <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+            {/* Receipt Picker & Upload Real Receipt */}
+            <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', alignItems: 'center' }}>
+              <input
+                ref={receiptFileRef}
+                type="file"
+                accept="image/*"
+                onChange={handleCustomReceiptUpload}
+                style={{ display: 'none' }}
+              />
+
+              <button
+                type="button"
+                onClick={() => receiptFileRef.current?.click()}
+                disabled={uploadingReceipt}
+                className="btn btn-primary"
+                style={{
+                  padding: '8px 14px',
+                  borderRadius: '10px',
+                  fontSize: '0.78rem',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  boxShadow: '0 0 15px rgba(0, 207, 255, 0.35)',
+                }}
+              >
+                {uploadingReceipt ? (
+                  <>
+                    <Loader2 size={14} className="animate-spin" />
+                    <span>Subiendo a ImgBB...</span>
+                  </>
+                ) : (
+                  <>
+                    <Camera size={14} />
+                    <span>Subir Comprobante Real (ImgBB)</span>
+                  </>
+                )}
+              </button>
+
               {SAMPLE_RECEIPTS.map(r => (
                 <button
                   key={r.id}
                   type="button"
                   onClick={() => {
+                    setCustomReceiptImage(null);
                     setSelectedReceipt(r);
                     setScanState('idle');
                     setVerifiedResult(null);
@@ -311,9 +407,9 @@ export default function ReportsPage() {
                     borderRadius: '10px',
                     fontSize: '0.78rem',
                     fontWeight: 600,
-                    background: selectedReceipt.id === r.id ? 'rgba(155, 114, 255, 0.2)' : 'rgba(255, 255, 255, 0.04)',
-                    border: selectedReceipt.id === r.id ? '1px solid var(--brand-purple)' : '1px solid rgba(255, 255, 255, 0.08)',
-                    color: selectedReceipt.id === r.id ? 'var(--brand-purple)' : 'var(--text-secondary)',
+                    background: (selectedReceipt.id === r.id && !customReceiptImage) ? 'rgba(155, 114, 255, 0.2)' : 'rgba(255, 255, 255, 0.04)',
+                    border: (selectedReceipt.id === r.id && !customReceiptImage) ? '1px solid var(--brand-purple)' : '1px solid rgba(255, 255, 255, 0.08)',
+                    color: (selectedReceipt.id === r.id && !customReceiptImage) ? 'var(--brand-purple)' : 'var(--text-secondary)',
                     cursor: 'pointer',
                     transition: 'all 0.2s ease',
                   }}
@@ -360,6 +456,37 @@ export default function ReportsPage() {
                   </div>
                   <span className="badge badge-gold" style={{ fontSize: '0.7rem' }}>{selectedReceipt.city}</span>
                 </div>
+
+                {customReceiptImage && (
+                  <div style={{
+                    marginBottom: '16px',
+                    borderRadius: '12px',
+                    overflow: 'hidden',
+                    border: '1px solid var(--brand-cyan)',
+                    position: 'relative',
+                    background: '#000',
+                  }}>
+                    <img
+                      src={customReceiptImage}
+                      alt="Comprobante alojado en ImgBB"
+                      style={{ width: '100%', maxHeight: '220px', objectFit: 'contain', display: 'block' }}
+                    />
+                    <span style={{
+                      position: 'absolute',
+                      bottom: 6,
+                      right: 6,
+                      background: 'rgba(5, 8, 16, 0.85)',
+                      color: 'var(--brand-cyan)',
+                      fontSize: '0.62rem',
+                      padding: '2px 8px',
+                      borderRadius: '4px',
+                      fontWeight: 700,
+                      border: '1px solid var(--brand-cyan)',
+                    }}>
+                      ImgBB Hosted CDN
+                    </span>
+                  </div>
+                )}
 
                 <div style={{ background: 'rgba(255, 255, 255, 0.02)', padding: '14px', borderRadius: '10px', fontFamily: 'monospace', fontSize: '0.8rem', color: 'var(--text-secondary)', lineHeight: 1.6, marginBottom: '14px', whiteSpace: 'pre-line' }}>
                   {selectedReceipt.previewText}

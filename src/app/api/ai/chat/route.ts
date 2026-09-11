@@ -20,7 +20,7 @@ REGLAS DE COMPORTAMIENTO Y SEGURIDAD ESTRICTAS:
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const { messages, userRole, currentOrderCode } = body;
+    const { messages, userRole, currentOrderCode, imageUrl } = body;
 
     if (!messages || !Array.isArray(messages) || messages.length === 0) {
       return NextResponse.json({ error: 'Faltan mensajes en la conversación' }, { status: 400 });
@@ -30,14 +30,42 @@ export async function POST(req: NextRequest) {
 
     if (geminiApiKey) {
       try {
-        // Convert messages to Gemini API format
-        const contents = messages.map((m: any) => ({
-          role: m.sender === 'user' ? 'user' : 'model',
-          parts: [{ text: m.text }],
-        }));
+        // Preparar partes del último mensaje (soporte multimodal con fotos de ImgBB)
+        const lastUserText = messages[messages.length - 1]?.text || 'Hola';
+        const contextHeader = `[CONTEXTO SESIÓN AYNI]: Rol activo: ${userRole || 'Cliente'}. Pedido: ${currentOrderCode || 'General'}.\n\n`;
 
-        // Contextual prompt injection with system instruction
-        const contextHeader = `[CONTEXTO SESIÓN ACTUAL]: Rol activo del usuario: ${userRole || 'Cliente'}. Pedido en consulta: ${currentOrderCode || 'General'}.\n\n`;
+        const userParts: any[] = [
+          { text: contextHeader + lastUserText }
+        ];
+
+        // Si el usuario envió una imagen desde ImgBB, descargarla y adjuntarla como inlineData
+        if (imageUrl) {
+          try {
+            const imgRes = await fetch(imageUrl);
+            if (imgRes.ok) {
+              const arrayBuffer = await imgRes.arrayBuffer();
+              const mimeType = (imgRes.headers.get('content-type') || 'image/jpeg').split(';')[0];
+              const base64Data = Buffer.from(arrayBuffer).toString('base64');
+              userParts.push({
+                inlineData: {
+                  mimeType: mimeType || 'image/jpeg',
+                  data: base64Data,
+                }
+              });
+              userParts.push({
+                text: `\n[INSTRUCCIÓN MULTIMODAL PERICIAL]:
+El usuario ha adjuntado una fotografía (alojada en ImgBB: ${imageUrl}).
+Inspecciónala con máxima precisión pericial de AYNI Protocol:
+1. SI ES UN COMPROBANTE/BOLETA/RECIBO DE PAGO: Extrae todo el texto completo legible (OCR), comercio emisor, fecha, ítems detallados y monto exacto. Certifica si el texto y los datos están completos y conformes.
+2. SI ES UN PRODUCTO FÍSICO O PAQUETE: Detecta exactamente qué producto es (marca, modelo específico, color, empaque, condición física) y verifica si coincide con lo que el usuario afirma o encargó.
+3. Evalúa si el artículo cumple con las normas de transporte aéreo internacional (IATA) y si es seguro para crowdshipping.
+Estructura tu respuesta con iconos claros (📦 Producto Detectado, 🧾 Lectura OCR / Monto, 🛡️ Dictamen AYNI).`
+              });
+            }
+          } catch (imgErr) {
+            console.warn('[Gemini Chat API] Error procesando imagen multimodal:', imgErr);
+          }
+        }
 
         const geminiRes = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${geminiApiKey}`, {
           method: 'POST',
@@ -50,11 +78,11 @@ export async function POST(req: NextRequest) {
               parts: [{ text: SYSTEM_INSTRUCTION }]
             },
             contents: [
-              { role: 'user', parts: [{ text: contextHeader + (messages[messages.length - 1]?.text || 'Hola') }] }
+              { role: 'user', parts: userParts }
             ],
             generationConfig: {
-              temperature: 0.3, // Temperatura baja para evitar alucinaciones y mantener apego estricto
-              maxOutputTokens: 600,
+              temperature: 0.25, // Baja temperatura para precisión pericial y apego estricto
+              maxOutputTokens: 800,
             }
           })
         });
@@ -65,7 +93,7 @@ export async function POST(req: NextRequest) {
           if (responseText) {
             return NextResponse.json({
               reply: responseText,
-              provider: 'Google Gemini 1.5 Flash Guarded',
+              provider: 'Google Gemini 1.5 Flash Vision Multimodal',
             });
           }
         } else {
