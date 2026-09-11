@@ -2017,54 +2017,237 @@ textarea.input {
 
 /* =====================================================
    RESPONSIVE — Mobile First Fixes
+/* =====================================================
+   RESPONSIVE & MICRO-INTERACTIONS ENGINE
+   Antigravity Design Expert & Mobile-First Ergonomics
    ===================================================== */
 
+/* Sidebar Desktop vs Mobile Visibility */
+.sidebar-desktop {
+  display: flex !important;
+}
+
+.sidebar-mobile {
+  display: none !important;
+}
+
+/* Micro-Interactions & Form Animations */
+.input-interactive {
+  transition: border-color 0.25s cubic-bezier(0.16, 1, 0.3, 1),
+              box-shadow 0.25s cubic-bezier(0.16, 1, 0.3, 1),
+              background-color 0.25s ease,
+              transform 0.2s ease;
+}
+
+.input-interactive:focus {
+  border-color: var(--brand-cyan) !important;
+  box-shadow: 0 0 0 3px rgba(0, 207, 255, 0.18), 0 4px 16px rgba(0, 207, 255, 0.08) !important;
+  background: rgba(13, 18, 37, 0.95) !important;
+  transform: translateY(-1px);
+}
+
+.btn-pressable {
+  transition: transform 0.18s cubic-bezier(0.16, 1, 0.3, 1),
+              box-shadow 0.25s cubic-bezier(0.16, 1, 0.3, 1),
+              background-color 0.2s ease,
+              filter 0.2s ease !important;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+  touch-action: manipulation;
+}
+
+.btn-pressable:hover {
+  transform: translateY(-1.5px);
+  filter: brightness(1.06);
+}
+
+.btn-pressable:active {
+  transform: scale(0.96) translateY(0) !important;
+  filter: brightness(0.95);
+}
+
+.btn-pressable:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+  transform: none !important;
+}
+
+/* Shimmer Light Reflection on Tangem & Primary Buttons */
+.btn-tangem-glow {
+  background: linear-gradient(135deg, #00d68f 0%, #00cfff 100%) !important;
+  color: #050810 !important;
+  font-weight: 800 !important;
+  border: none !important;
+  box-shadow: 0 4px 24px rgba(0, 207, 255, 0.35), 0 0 40px rgba(0, 214, 143, 0.2) !important;
+  position: relative;
+  overflow: hidden;
+}
+
+.btn-tangem-glow::after {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: linear-gradient(60deg, transparent 20%, rgba(255, 255, 255, 0.3) 50%, transparent 80%);
+  transform: rotate(30deg);
+  animation: shimmerSweep 3.5s infinite;
+  pointer-events: none;
+}
+
+@keyframes shimmerSweep {
+  0% { transform: translate(-100%, -100%) rotate(30deg); }
+  25%, 100% { transform: translate(100%, 100%) rotate(30deg); }
+}
+
+/* Form Shake Error Animation */
+@keyframes shakeError {
+  0%, 100% { transform: translateX(0); }
+  20%, 60% { transform: translateX(-6px); }
+  40%, 80% { transform: translateX(6px); }
+}
+
+.animate-shake {
+  animation: shakeError 0.4s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
+}
+
+/* Spring Checkmark on Success */
+@keyframes springCheck {
+  0% { transform: scale(0) rotate(-45deg); opacity: 0; }
+  70% { transform: scale(1.2) rotate(5deg); }
+  100% { transform: scale(1) rotate(0); opacity: 1; }
+}
+
+.animate-spring-check {
+  animation: springCheck 0.45s cubic-bezier(0.175, 0.885, 0.32, 1.275) both;
+}
+
+/* Pulse Glow for Cold Wallet Hardware Security */
+@keyframes coldWalletPulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(0, 207, 255, 0.4); }
+  50% { box-shadow: 0 0 25px 6px rgba(0, 207, 255, 0.25); }
+}
+
+.cold-wallet-card-active {
+  animation: coldWalletPulse 2.5s infinite ease-in-out;
+}
+
+/* Responsive Table Wrapper */
+.table-responsive {
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  border-radius: var(--radius-md);
+  margin-bottom: 12px;
+}
+
+/* Block Button utility */
+.btn-block {
+  width: 100% !important;
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
+}
+
+/* =====================================================
+   MEDIA QUERIES (TABLETS & MOBILE SMARTPHONES)
+   ===================================================== */
 @media (max-width: 768px) {
+  .sidebar-desktop {
+    display: none !important;
+  }
+
+  .sidebar-mobile {
+    display: flex !important;
+  }
+
+  .main-area {
+    margin-left: 0 !important;
+    width: 100% !important;
+    min-width: 0 !important;
+  }
+
   .page-header {
     flex-direction: column;
     gap: 12px;
     align-items: stretch;
   }
 
-  .modal-box {
-    max-width: calc(100vw - 32px) !important;
-    border-radius: 16px;
+  .page-content {
+    padding: 18px 14px 96px 14px !important;
   }
 
   .card {
-    padding: 16px !important;
+    padding: 18px 16px !important;
   }
 
-  /* Stack grids to single column on mobile */
-  [style*="gridTemplateColumns: repeat(auto-fit"] {
-    grid-template-columns: 1fr !important;
+  .modal-overlay {
+    padding: 12px;
+    align-items: flex-end;
+  }
+
+  .modal-box {
+    max-width: 100% !important;
+    width: 100% !important;
+    max-height: 88vh;
+    border-radius: 24px 24px 12px 12px !important;
+    padding: 20px 16px !important;
+  }
+
+  /* Don't blow up every button, only adjust padding and tap ergonomics */
+  .btn {
+    min-height: 44px;
+    touch-action: manipulation;
+  }
+
+  .btn-sm {
+    min-height: 36px;
+    padding: 6px 12px;
   }
 }
 
 @media (max-width: 480px) {
   .page-title {
-    font-size: 1.2rem;
+    font-size: 1.25rem !important;
   }
 
   .page-subtitle {
-    font-size: 0.78rem;
+    font-size: 0.78rem !important;
   }
 
   .modal-overlay {
-    padding: 8px;
-    align-items: flex-end;
+    padding: 0 !important;
   }
 
   .modal-box {
-    max-height: 85vh;
-    border-radius: 20px 20px 0 0;
-    width: 100% !important;
-    max-width: 100% !important;
+    max-height: 92vh !important;
+    border-radius: 20px 20px 0 0 !important;
+    padding: 18px 14px !important;
+    margin: 0 !important;
   }
 
-  .btn {
-    width: 100%;
-    justify-content: center;
+  .topbar {
+    padding: 0 12px !important;
+    height: 56px !important;
+  }
+
+  .user-profile-chip {
+    padding: 4px 8px 4px 4px !important;
+  }
+
+  .user-profile-chip > div > div:last-child {
+    display: none; /* Hide role subtitle on ultra-narrow phones */
+  }
+
+  .stat-card {
+    padding: 16px 14px !important;
+    gap: 12px !important;
+  }
+
+  .stat-value {
+    font-size: 1.4rem !important;
   }
 }
 
@@ -2074,4 +2257,5 @@ textarea.input {
   color: var(--brand-red);
   border: 1px solid rgba(255, 77, 109, 0.2);
 }
+
 

@@ -484,17 +484,19 @@ export default function HeritagePage() {
             </div>
           </div>
 
-          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '8px' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '8px', flex: '1 1 240px' }}>
             <button
               type="button"
               onClick={() => handleHeartbeat()}
-              className="btn btn-primary"
+              className="btn btn-primary btn-pressable"
               style={{
                 display: 'flex',
                 alignItems: 'center',
                 gap: '8px',
                 padding: '10px 20px',
                 boxShadow: '0 0 20px rgba(0,207,255,0.3)',
+                width: '100%',
+                justifyContent: 'center',
               }}
             >
               <RefreshCw size={16} /> Confirmar que sigo activo (Ping L2)
@@ -503,21 +505,21 @@ export default function HeritagePage() {
             <button
               type="button"
               onClick={() => setIsTangemModalOpen(true)}
-              className="btn btn-outline btn-sm"
+              className="btn btn-tangem-glow btn-pressable btn-sm"
               style={{
                 display: 'flex',
                 alignItems: 'center',
                 gap: '6px',
-                borderColor: 'var(--brand-cyan)',
-                color: 'var(--brand-cyan)',
-                fontSize: '0.75rem',
+                fontSize: '0.78rem',
+                width: '100%',
+                justifyContent: 'center',
               }}
             >
-              <Wifi size={13} /> Ping con Tarjeta Tangem (NFC EAL6+)
+              <Wifi size={14} style={{ transform: 'rotate(90deg)' }} /> Ping con Tarjeta Tangem (NFC EAL6+)
             </button>
 
             {heartbeatSuccess && (
-              <div style={{ fontSize: '0.78rem', color: 'var(--brand-emerald)', display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <div className="animate-spring-check" style={{ fontSize: '0.78rem', color: 'var(--brand-emerald)', display: 'flex', alignItems: 'center', gap: '6px', alignSelf: 'center' }}>
                 <CheckCircle2 size={15} /> ¡Presencia confirmada en Base L2! Tx: {heartbeatTx?.slice(0, 10)}...
               </div>
             )}

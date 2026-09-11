@@ -223,32 +223,32 @@ export default function OrdersPage() {
                     <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
                       <Link 
                         href={`/dashboard/tracking/${order.order_code || order.id}`} 
-                        className="btn btn-ghost btn-sm" 
-                        style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '0.75rem', color: 'var(--brand-cyan)' }}
+                        className="btn btn-ghost btn-sm btn-pressable" 
+                        style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '0.75rem', color: 'var(--brand-cyan)', borderColor: 'rgba(0,207,255,0.25)' }}
                       >
                         <Truck size={13} /> Tracking
                       </Link>
-                      <button type="button" onClick={() => setDetailOrder(order)} className="btn btn-ghost btn-sm" style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                      <button type="button" onClick={() => setDetailOrder(order)} className="btn btn-ghost btn-sm btn-pressable" style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '0.75rem' }}>
                         <Eye size={13} /> Detalle
                       </button>
                       {/* Status transition buttons based on role */}
                       {role === 'traveler' && order.status === 'funded' && (
-                        <button type="button" onClick={() => updateOrderStatus(order.id, 'purchased')} className="btn btn-primary btn-sm" style={{ fontSize: '0.75rem' }}>
+                        <button type="button" onClick={() => updateOrderStatus(order.id, 'purchased')} className="btn btn-primary btn-sm btn-pressable" style={{ fontSize: '0.75rem' }}>
                           Confirmar Compra
                         </button>
                       )}
                       {role === 'traveler' && order.status === 'purchased' && (
-                        <button type="button" onClick={() => updateOrderStatus(order.id, 'in_transit')} className="btn btn-primary btn-sm" style={{ fontSize: '0.75rem' }}>
+                        <button type="button" onClick={() => updateOrderStatus(order.id, 'in_transit')} className="btn btn-primary btn-sm btn-pressable" style={{ fontSize: '0.75rem' }}>
                           Marcar En Tránsito
                         </button>
                       )}
                       {(role === 'client' || role === 'traveler') && order.status === 'in_transit' && (
-                        <button type="button" onClick={() => setDetailOrder(order)} className="btn btn-primary btn-sm" style={{ fontSize: '0.75rem' }}>
+                        <button type="button" onClick={() => setDetailOrder(order)} className="btn btn-tangem-glow btn-sm btn-pressable" style={{ fontSize: '0.75rem' }}>
                           <Key size={12} /> Verificar OTP
                         </button>
                       )}
                       {role === 'client' && (order.status === 'funded' || order.status === 'purchased') && (
-                        <button type="button" onClick={() => updateOrderStatus(order.id, 'disputed')} className="btn btn-ghost btn-sm" style={{ fontSize: '0.75rem', color: 'var(--brand-red)' }}>
+                        <button type="button" onClick={() => updateOrderStatus(order.id, 'disputed')} className="btn btn-ghost btn-sm btn-pressable" style={{ fontSize: '0.75rem', color: 'var(--brand-red)', borderColor: 'rgba(255,77,109,0.25)' }}>
                           <AlertTriangle size={12} /> Disputa
                         </button>
                       )}

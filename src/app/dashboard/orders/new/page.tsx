@@ -207,11 +207,11 @@ export default function NewOrderPage() {
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '24px' }}>
         {/* Form */}
-        <div className="card" style={{ padding: '28px' }}>
-          <form onSubmit={handlePreSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+        <div className="card" style={{ padding: '28px', border: '1px solid rgba(0, 207, 255, 0.2)' }}>
+          <form onSubmit={handlePreSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>
             <div className="input-group">
               <label className="input-label">Tipo de Encargo</label>
-              <select value={orderType} onChange={e => setOrderType(e.target.value)} className="input">
+              <select value={orderType} onChange={e => setOrderType(e.target.value)} className="input input-interactive">
                 <option value="foot_shopping">Compra a Pie (Foot Shopping)</option>
                 <option value="parcel_transport">Transporte de Paquete</option>
                 <option value="cross_border_nostalgia">Cross-Border Nostalgia</option>
@@ -219,48 +219,72 @@ export default function NewOrderPage() {
             </div>
 
             <div className="input-group">
-              <label className="input-label">Descripción del Encargo *</label>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <label className="input-label">Descripción del Encargo *</label>
+                <span style={{ fontSize: '0.7rem', color: description.length > 400 ? 'var(--brand-gold)' : 'var(--text-muted)' }}>
+                  {description.length}/500
+                </span>
+              </div>
               <textarea
                 required
                 value={description}
                 onChange={e => setDescription(e.target.value)}
-                className="input"
+                className="input input-interactive"
                 rows={4}
                 maxLength={500}
-                placeholder="Describe lo que necesitas comprar, marca, modelo, cantidad, dirección de tienda..."
+                placeholder="Describe lo que necesitas comprar, marca, modelo, cantidad, especificaciones de empaque..."
                 style={{ resize: 'vertical' }}
               />
-              <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>{description.length}/500</span>
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '12px' }}>
               <div className="input-group">
                 <label className="input-label">Precio Producto (USDC) *</label>
-                <input type="number" required min="0.5" step="0.01" value={productPrice} onChange={e => setProductPrice(e.target.value)} className="input" />
+                <input 
+                  type="number" 
+                  required 
+                  min="0.5" 
+                  step="0.01" 
+                  value={productPrice} 
+                  onChange={e => setProductPrice(e.target.value)} 
+                  className="input input-interactive" 
+                  placeholder="0.00"
+                />
               </div>
               <div className="input-group">
                 <label className="input-label">Fee Viajero (USDC)</label>
-                <input type="number" min="0" step="0.5" value={travelerFee} onChange={e => setTravelerFee(e.target.value)} className="input" />
+                <input 
+                  type="number" 
+                  min="0" 
+                  step="0.5" 
+                  value={travelerFee} 
+                  onChange={e => setTravelerFee(e.target.value)} 
+                  className="input input-interactive" 
+                  placeholder="0.00"
+                />
               </div>
             </div>
 
             <button
               type="submit"
               disabled={submitting}
-              className="btn btn-primary"
-              style={{ width: '100%', padding: '14px', fontSize: '1rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}
+              className="btn btn-tangem-glow btn-pressable btn-block"
+              style={{ padding: '14px', fontSize: '1rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', marginTop: '6px' }}
             >
               {submitting ? <Loader2 size={18} className="spin" /> : <ShieldCheck size={18} />}
-              {submitting ? 'Procesando...' : `Continuar al Pago Escrow ($${totalEscrow} USDC)`}
+              {submitting ? 'Verificando con Tangem...' : `Continuar al Pago Tangem Escrow ($${totalEscrow} USDC)`}
             </button>
           </form>
         </div>
 
         {/* Fee Preview */}
         <div className="card" style={{ padding: '28px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '20px' }}>
-            <DollarSign size={20} color="var(--brand-gold)" />
-            <h3 style={{ fontSize: '1.1rem', fontWeight: 700, margin: 0 }}>Desglose de Costos</h3>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <DollarSign size={20} color="var(--brand-gold)" />
+              <h3 style={{ fontSize: '1.1rem', fontWeight: 700, margin: 0 }}>Desglose de Costos</h3>
+            </div>
+            <span className="badge badge-cyan" style={{ fontSize: '0.68rem' }}>Tangem Escrow</span>
           </div>
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', fontSize: '0.88rem' }}>
@@ -282,13 +306,13 @@ export default function NewOrderPage() {
             </div>
             <div style={{ display: 'flex', justifyContent: 'space-between', padding: '10px 0', marginTop: '4px' }}>
               <span style={{ fontWeight: 700, fontSize: '1rem' }}>Total Escrow</span>
-              <span style={{ fontWeight: 800, fontSize: '1.3rem', color: 'var(--brand-gold)' }}>${totalEscrow.toFixed(2)}</span>
+              <span style={{ fontWeight: 800, fontSize: '1.3rem', color: 'var(--brand-gold)', fontFamily: 'var(--font-display)' }}>${totalEscrow.toFixed(2)}</span>
             </div>
           </div>
 
-          <div style={{ marginTop: '16px', padding: '12px 16px', background: 'rgba(0,207,255,0.05)', borderRadius: '12px', border: '1px solid rgba(0,207,255,0.15)', fontSize: '0.78rem', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
+          <div style={{ marginTop: '16px', padding: '12px 16px', background: 'rgba(0,207,255,0.06)', borderRadius: '12px', border: '1px solid rgba(0,207,255,0.2)', fontSize: '0.78rem', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
             <ShieldCheck size={14} color="var(--brand-cyan)" style={{ float: 'left', marginRight: '8px', marginTop: '2px' }} />
-            Los fondos se bloquean en el Smart Contract Escrow hasta que confirmes la entrega con tu código OTP.
+            Fondos custodiados bajo hardware criptográfico Tangem EAL6+ en Base L2 hasta que confirmes la entrega con tu OTP.
           </div>
         </div>
       </div>

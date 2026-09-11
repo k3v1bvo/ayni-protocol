@@ -262,42 +262,51 @@ function SidebarContent({ onClose }: { onClose?: () => void }) {
 export function AppSidebar({ mobileOpen, onClose }: SidebarProps) {
   return (
     <>
-      {/* Desktop Sidebar */}
-      <div className="sidebar" style={{ display: 'flex' }}>
+      {/* Desktop Sidebar - Hidden on mobile screens <= 768px */}
+      <aside className="sidebar sidebar-desktop" aria-label="Navegación principal">
         <SidebarContent />
-      </div>
+      </aside>
 
-      {/* Mobile Overlay */}
+      {/* Mobile Backdrop Overlay */}
       {mobileOpen && (
         <div
           style={{
             position: 'fixed',
             inset: 0,
-            background: 'rgba(0,0,0,0.6)',
-            zIndex: 49,
-            backdropFilter: 'blur(4px)',
+            background: 'rgba(5, 8, 16, 0.78)',
+            zIndex: 90,
+            backdropFilter: 'blur(8px)',
+            animation: 'fadeIn 0.25s ease-out',
           }}
           onClick={onClose}
+          aria-hidden="true"
         />
       )}
 
-      {/* Mobile Sidebar */}
-      <div
-        className="sidebar"
+      {/* Mobile Drawer Sidebar */}
+      <aside
+        className="sidebar sidebar-mobile"
+        aria-label="Menú móvil"
         style={{
           transform: mobileOpen ? 'translateX(0)' : 'translateX(-100%)',
-          transition: 'transform 0.25s ease',
-          zIndex: 51,
-          display: 'flex',
+          transition: 'transform 0.32s cubic-bezier(0.16, 1, 0.3, 1)',
+          zIndex: 100,
+          boxShadow: mobileOpen ? '10px 0 50px rgba(0, 0, 0, 0.85), 0 0 40px rgba(0, 207, 255, 0.1)' : 'none',
         }}
       >
-        <div style={{ position: 'absolute', top: 16, right: 16 }}>
-          <button type="button" onClick={onClose} className="btn btn-ghost btn-sm">
-            <X size={16} />
+        <div style={{ position: 'absolute', top: 18, right: 16, zIndex: 10 }}>
+          <button 
+            type="button" 
+            onClick={onClose} 
+            className="btn btn-ghost btn-sm btn-pressable" 
+            style={{ width: 36, height: 36, padding: 0, borderRadius: '50%' }}
+            aria-label="Cerrar menú"
+          >
+            <X size={18} />
           </button>
         </div>
         <SidebarContent onClose={onClose} />
-      </div>
+      </aside>
     </>
   );
 }

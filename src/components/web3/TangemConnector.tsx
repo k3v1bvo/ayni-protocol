@@ -218,20 +218,20 @@ export function TangemConnector({
                 <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)', marginBottom: '12px' }}>
                   Abre la <strong>App de Tangem</strong> en tu teléfono, ve a WalletConnect y escanea este código.
                 </p>
-                <div style={{ display: 'flex', gap: '10px' }}>
+                <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
                   <button
                     type="button"
                     onClick={handleWalletConnectDeepLink}
-                    className="btn btn-primary"
-                    style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}
+                    className="btn btn-tangem-glow btn-pressable"
+                    style={{ flex: '1 1 180px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}
                   >
                     <Smartphone size={14} /> Abrir en App Tangem
                   </button>
                   <button
                     type="button"
                     onClick={handleSimulateTap}
-                    className="btn btn-outline"
-                    style={{ flex: 1, borderColor: 'var(--brand-cyan)', color: 'var(--brand-cyan)' }}
+                    className="btn btn-outline btn-pressable"
+                    style={{ flex: '1 1 160px', borderColor: 'var(--brand-cyan)', color: 'var(--brand-cyan)' }}
                   >
                     Simular Firma 1-Click
                   </button>
@@ -261,8 +261,7 @@ export function TangemConnector({
                 <button
                   type="button"
                   onClick={handleSimulateTap}
-                  className="btn btn-primary"
-                  style={{ width: '100%' }}
+                  className="btn btn-tangem-glow btn-pressable btn-block"
                 >
                   Detectar Tarjeta Tangem
                 </button>

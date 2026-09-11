@@ -498,77 +498,80 @@ export default function DisputesPage() {
             {selectedDispute.status === 'open' || selectedDispute.status === 'investigating' ? (
               <div style={{ marginBottom: '16px' }}>
                 <div style={{
-                  padding: '14px',
+                  padding: '16px',
                   background: 'linear-gradient(135deg, rgba(0,207,255,0.08) 0%, rgba(155,114,255,0.08) 100%)',
-                  border: '1px solid rgba(0,207,255,0.25)',
-                  borderRadius: '12px',
+                  border: '1px solid rgba(0,207,255,0.3)',
+                  borderRadius: '14px',
                   marginBottom: '16px',
                 }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px', flexWrap: 'wrap', gap: '8px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px', flexWrap: 'wrap', gap: '8px' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                       <Sparkles size={16} color="var(--brand-cyan)" />
                       <span style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--brand-cyan)' }}>
-                        Oráculo IA Descentralizado (Chainlink Functions)
+                        Oráculo IA Descentralizado (Chainlink Functions + Gemini)
                       </span>
                     </div>
                     <button
                       type="button"
                       disabled={isAiAnalyzing}
                       onClick={handleRunAiAudit}
-                      className="btn btn-sm btn-primary"
-                      style={{ fontSize: '0.75rem', display: 'flex', alignItems: 'center', gap: '4px' }}
+                      className="btn btn-sm btn-tangem-glow btn-pressable"
+                      style={{ fontSize: '0.75rem', display: 'flex', alignItems: 'center', gap: '5px' }}
                     >
-                      {isAiAnalyzing ? <RefreshCw size={12} className="spin" /> : <Sparkles size={12} />}
+                      {isAiAnalyzing ? <RefreshCw size={13} className="spin" /> : <Sparkles size={13} />}
                       {isAiAnalyzing ? 'Analizando en Chainlink...' : '⚡ Evaluar con IA en < 5s'}
                     </button>
                   </div>
 
                   {aiVerdict ? (
-                    <div style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', lineHeight: 1.4 }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
+                    <div className="animate-spring-check" style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', lineHeight: 1.45, background: 'rgba(0,0,0,0.25)', padding: '12px', borderRadius: '10px', border: '1px solid rgba(0,207,255,0.2)' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px', flexWrap: 'wrap' }}>
                         <span className="badge badge-emerald" style={{ fontSize: '0.72rem' }}>
                           Veredicto: {aiVerdict.verdict === 'buyer_wins' ? 'Comprador Gana' : aiVerdict.verdict === 'seller_wins' ? 'Vendedor Gana' : 'Split 50/50'}
                         </span>
                         <span className="badge badge-cyan" style={{ fontSize: '0.72rem' }}>
                           Confianza: {aiVerdict.confidenceScore}
                         </span>
+                        <span style={{ fontSize: '0.68rem', color: 'var(--text-muted)' }}>
+                          Motor: {aiVerdict.oracleProvider}
+                        </span>
                       </div>
                       <p style={{ margin: '0 0 6px', color: 'var(--text-primary)' }}>
                         {aiVerdict.rationale}
                       </p>
                       {aiVerdict.recommendedPayout && (
-                        <div style={{ fontSize: '0.75rem', color: 'var(--brand-gold)' }}>
+                        <div style={{ fontSize: '0.75rem', color: 'var(--brand-gold)', fontWeight: 600 }}>
                           Distribución sugerida: Comprador ${aiVerdict.recommendedPayout.buyerAmount} USDC | Vendedor ${aiVerdict.recommendedPayout.sellerAmount} USDC
                         </div>
                       )}
                     </div>
                   ) : (
                     <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)', margin: 0 }}>
-                      Pulsa el botón para ejecutar el modelo pericial de visión OCR y reputación on-chain antes de dictar sentencia.
+                      Pulsa el botón para ejecutar el peritaje de visión artificial y reputación on-chain antes de dictar sentencia.
                     </p>
                   )}
                 </div>
 
-                <label className="label">Dictamen & Justificación del Mediador:</label>
+                <label className="input-label" style={{ marginBottom: '6px' }}>Dictamen & Justificación del Mediador:</label>
                 <textarea
                   rows={2}
                   value={resolutionNote}
                   onChange={e => setResolutionNote(e.target.value)}
-                  placeholder="Ej: Se comprobó embalaje deficiente. Reembolso total acordado."
-                  className="input"
+                  placeholder="Ej: Se comprobó daño en embalaje. Reembolso total acordado."
+                  className="input input-interactive"
                   style={{ marginBottom: '16px' }}
                 />
 
                 <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '8px' }}>
-                  Selecciona la resolución a ejecutar en el Smart Contract:
+                  Selecciona la resolución a ejecutar en el Smart Contract Base L2:
                 </div>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '8px' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: '8px' }}>
                   <button
                     type="button"
                     disabled={isResolving}
                     onClick={() => handleResolve('refund')}
-                    className="btn btn-outline"
-                    style={{ borderColor: '#ef4444', color: '#ef4444', fontSize: '0.75rem', padding: '10px 6px' }}
+                    className="btn btn-outline btn-pressable"
+                    style={{ borderColor: '#ef4444', color: '#ef4444', fontSize: '0.78rem', padding: '10px 8px' }}
                   >
                     ↩️ 100% Reembolso
                   </button>
@@ -576,8 +579,8 @@ export default function DisputesPage() {
                     type="button"
                     disabled={isResolving}
                     onClick={() => handleResolve('split')}
-                    className="btn btn-outline"
-                    style={{ borderColor: 'var(--brand-gold)', color: 'var(--brand-gold)', fontSize: '0.75rem', padding: '10px 6px' }}
+                    className="btn btn-outline btn-pressable"
+                    style={{ borderColor: 'var(--brand-gold)', color: 'var(--brand-gold)', fontSize: '0.78rem', padding: '10px 8px' }}
                   >
                     ⚖️ Split 50% / 50%
                   </button>
@@ -585,8 +588,8 @@ export default function DisputesPage() {
                     type="button"
                     disabled={isResolving}
                     onClick={() => handleResolve('release')}
-                    className="btn btn-primary"
-                    style={{ fontSize: '0.75rem', padding: '10px 6px' }}
+                    className="btn btn-primary btn-pressable"
+                    style={{ fontSize: '0.78rem', padding: '10px 8px' }}
                   >
                     🛡️ Liberar a Vendedor
                   </button>

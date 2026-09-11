@@ -261,11 +261,11 @@ export default function TrackingDetailPage() {
             )}
 
             {releaseSuccess ? (
-              <div className="alert alert-success" style={{ fontSize: '0.82rem' }}>
-                <CheckCircle2 size={16} /> {releaseSuccess}
+              <div className="alert alert-success animate-spring-check" style={{ fontSize: '0.82rem', padding: '14px' }}>
+                <CheckCircle2 size={18} /> {releaseSuccess}
               </div>
             ) : (
-              <form onSubmit={handleVerifyOtp} style={{ display: 'flex', gap: '8px' }}>
+              <form onSubmit={handleVerifyOtp} style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
                 <input
                   type="text"
                   maxLength={6}
@@ -273,17 +273,17 @@ export default function TrackingDetailPage() {
                   placeholder="Código OTP (6 dígitos)"
                   value={otpInput}
                   onChange={e => setOtpInput(e.target.value.replace(/\s+/g, ''))}
-                  className="input"
-                  style={{ fontFamily: 'monospace', letterSpacing: '2px', textAlign: 'center', fontSize: '1.05rem', flex: 1 }}
+                  className="input input-interactive"
+                  style={{ fontFamily: 'monospace', letterSpacing: '4px', textAlign: 'center', fontSize: '1.15rem', flex: '1 1 160px', height: '46px' }}
                 />
                 <button
                   type="submit"
                   disabled={isReleasing}
-                  className="btn btn-primary"
-                  style={{ display: 'flex', alignItems: 'center', gap: '6px' }}
+                  className="btn btn-tangem-glow btn-pressable"
+                  style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', flex: '1 1 140px', height: '46px' }}
                 >
-                  {isReleasing ? <RefreshCw size={14} className="spin" /> : <ShieldCheck size={14} />}
-                  Liberar Pago
+                  {isReleasing ? <RefreshCw size={15} className="spin" /> : <ShieldCheck size={15} />}
+                  Liberar en Base L2
                 </button>
               </form>
             )}

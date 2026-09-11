@@ -2,11 +2,11 @@
 
 import React, { useState } from 'react';
 import { 
-  ShieldCheck, Wallet, QrCode, ArrowRight, CheckCircle2, 
-  ExternalLink, Copy, Check, X, Sparkles, RefreshCw, Smartphone
+  ShieldCheck, Smartphone, Wifi, ArrowRight, CheckCircle2, 
+  ExternalLink, Copy, Check, X, Sparkles, RefreshCw, Lock,
+  Key, Cpu, CreditCard
 } from 'lucide-react';
 import { executeEscrowDeposit } from '@/lib/web3/contracts';
-import { TangemConnector } from '@/components/web3/TangemConnector';
 
 interface PaymentModalProps {
   isOpen: boolean;
@@ -29,10 +29,9 @@ export function PaymentModal({
   originCity = 'España',
   destinationCity = 'Bolivia',
 }: PaymentModalProps) {
-  const [activeTab, setActiveTab] = useState<'web3' | 'eldorado' | 'binance' | 'demo'>('web3');
-  const [isProcessing, setIsProcessing] = useState(false);
-  const [copiedAddress, setCopiedAddress] = useState(false);
-  const [isTangemOpen, setIsTangemOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState<'tap' | 'mobile' | 'demo'>('tap');
+  const [tapState, setTapState] = useState<'idle' | 'approaching' | 'authenticating' | 'signing'>('idle');
+  const [copiedWcUri, setCopiedWcUri] = useState(false);
   const [paidSuccessData, setPaidSuccessData] = useState<{ txHash: string; otp: string } | null>(null);
 
   if (!isOpen) return null;
@@ -40,26 +39,20 @@ export function PaymentModal({
   // Cálculo de comisiones según especificaciones técnicas (5% plataforma)
   const systemFeeUsdc = parseFloat((productPriceUsdc * 0.05).toFixed(2));
   const totalEscrowUsdc = (productPriceUsdc + travelerFeeUsdc + systemFeeUsdc).toFixed(2);
-  
-  // Tasa de cambio estimada P2P El Dorado: 1 USDC ≈ 9.50 BOB
-  const totalInBob = (parseFloat(totalEscrowUsdc) * 9.50).toFixed(2);
+  const mockTangemAddress = '0x9a8F23B15a7B9c1D3f5A7b9C1d3F5a7B9c1D3F5A';
+  const wcUri = `tangem://wc?uri=wc:ayni-base-escrow-${Date.now()}`;
 
-  const escrowContractAddress = '0x71C93475A6E46949Cbc4928Eb811b7d566bEB49a';
-
-  const copyAddress = () => {
-    navigator.clipboard.writeText(escrowContractAddress);
-    setCopiedAddress(true);
-    setTimeout(() => setCopiedAddress(false), 2000);
+  const copyWcUri = () => {
+    navigator.clipboard.writeText(wcUri);
+    setCopiedWcUri(true);
+    setTimeout(() => setCopiedWcUri(false), 2000);
   };
 
-  const handleProcessPayment = async (method: string) => {
-    setIsProcessing(true);
-
-    // Generar OTP de 6 dígitos seguro
+  const handleExecuteEscrow = async (method: string) => {
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
 
     const res = await executeEscrowDeposit({
-      buyerAddress: '0x3d4b8e2b9c1d3f5a6e8d2c4b7a9e1f3d5c7b9a1e',
+      buyerAddress: mockTangemAddress,
       amountUsdc: parseFloat(totalEscrowUsdc),
       otpPlain: otp,
       travelerFeeUsdc,
@@ -67,359 +60,424 @@ export function PaymentModal({
     });
 
     setPaidSuccessData({ txHash: res.txHash, otp });
-    setIsProcessing(false);
 
     setTimeout(() => {
       onPaymentSuccess({ txHash: res.txHash, otpCode: otp, method });
-    }, 2200);
+    }, 2400);
+  };
+
+  const handleSimulatePhysicalTap = () => {
+    setTapState('approaching');
+    setTimeout(() => {
+      setTapState('authenticating');
+      setTimeout(() => {
+        setTapState('signing');
+        setTimeout(() => {
+          handleExecuteEscrow('tangem_nfc_hardware');
+        }, 1200);
+      }, 1200);
+    }, 1000);
+  };
+
+  const handleMobileAppOpen = () => {
+    if (typeof window !== 'undefined') {
+      window.location.href = wcUri;
+    }
+    setTapState('signing');
+    setTimeout(() => {
+      handleExecuteEscrow('tangem_mobile_app');
+    }, 1500);
   };
 
   return (
-    <>
-      <div className="modal-overlay" onClick={onClose}>
-        <div 
-          className="modal-box" 
+    <div className="modal-overlay" onClick={onClose} role="dialog" aria-modal="true">
+      <div 
+        className="modal-box" 
+        style={{ 
+          maxWidth: 520, 
+          width: '100%',
+          padding: '24px', 
+          background: 'linear-gradient(180deg, #090e1c 0%, #04060d 100%)',
+          border: '1px solid rgba(0, 207, 255, 0.35)',
+          boxShadow: '0 25px 70px rgba(0,0,0,0.85), 0 0 50px rgba(0, 207, 255, 0.12)',
+          position: 'relative',
+        }} 
+        onClick={e => e.stopPropagation()}
+      >
+        {/* Close Button */}
+        <button 
+          type="button" 
+          onClick={onClose} 
+          className="btn-pressable"
           style={{ 
-            maxWidth: 540, 
-            padding: '28px', 
-            background: 'linear-gradient(180deg, #0d1527 0%, #060a14 100%)',
-            border: '1px solid rgba(0, 207, 255, 0.25)',
-            boxShadow: '0 20px 60px rgba(0,0,0,0.7)',
-            position: 'relative',
-          }} 
-          onClick={e => e.stopPropagation()}
+            position: 'absolute', 
+            top: 16, 
+            right: 16, 
+            background: 'rgba(255,255,255,0.05)', 
+            border: '1px solid rgba(255,255,255,0.1)', 
+            borderRadius: '50%',
+            width: 32,
+            height: 32,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            color: 'var(--text-muted)', 
+            cursor: 'pointer',
+            zIndex: 10
+          }}
+          aria-label="Cerrar modal"
         >
-          <button 
-            type="button" 
-            onClick={onClose} 
-            style={{ position: 'absolute', top: 16, right: 16, background: 'transparent', border: 'none', color: 'var(--text-muted)', cursor: 'pointer' }}
-          >
-            <X size={18} />
-          </button>
+          <X size={16} />
+        </button>
 
-          {/* Header */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
-            <span className="badge badge-emerald" style={{ fontSize: '0.72rem' }}>
-              <ShieldCheck size={12} /> Custodia Smart Contract Base L2
+        {/* Tangem Branding Header */}
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '14px', flexWrap: 'wrap', gap: '8px', paddingRight: '36px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <div style={{ 
+              background: 'linear-gradient(135deg, #00d68f, #00cfff)', 
+              borderRadius: '8px', 
+              padding: '4px 10px', 
+              fontWeight: 900, 
+              fontSize: '0.82rem', 
+              color: '#050810',
+              letterSpacing: '1px',
+              boxShadow: '0 0 16px rgba(0, 207, 255, 0.4)'
+            }}>
+              TANGEM
+            </div>
+            <span className="badge badge-cyan" style={{ fontSize: '0.68rem', padding: '3px 8px' }}>
+              <ShieldCheck size={11} /> Sponsor Oficial ETH Bolivia 2026
             </span>
           </div>
+          <span style={{ fontSize: '0.72rem', color: 'var(--brand-emerald)', fontWeight: 700 }}>
+            Red Base L2 • Gas &lt; $0.001
+          </span>
+        </div>
 
-          <h3 style={{ fontSize: '1.3rem', fontWeight: 800, color: 'var(--text-primary)', margin: '0 0 6px' }}>
-            Bloquear Pago en Escrow Seguro
-          </h3>
-          <p style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', margin: '0 0 18px', lineHeight: 1.4 }}>
-            Tus fondos quedan salvaguardados en el Smart Contract y <strong>solo se liberan cuando confirmes tu código OTP</strong> al recibir el producto.
-          </p>
+        <h3 style={{ fontSize: '1.25rem', fontWeight: 800, color: 'var(--text-primary)', margin: '0 0 4px', letterSpacing: '-0.01em' }}>
+          Custodia Escrow con Tangem Cold Wallet
+        </h3>
+        <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', margin: '0 0 16px', lineHeight: 1.4 }}>
+          Tus fondos se resguardan mediante hardware criptográfico EAL6+. <strong>Solo tú liberas el pago mediante tu código secreto OTP</strong> al recibir el encargo conforme.
+        </p>
 
-          {/* Resumen Financiero */}
-          <div style={{ 
-            background: 'rgba(255,255,255,0.03)', 
-            border: '1px solid var(--border-subtle)', 
-            borderRadius: '12px', 
-            padding: '14px 18px', 
-            marginBottom: '18px' 
-          }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px', fontSize: '0.84rem' }}>
-              <span style={{ color: 'var(--text-secondary)' }}>Producto ({orderTitle.slice(0, 32)}):</span>
-              <strong style={{ color: 'var(--text-primary)' }}>${productPriceUsdc.toFixed(2)} USDC</strong>
+        {/* Financial Summary */}
+        <div style={{ 
+          background: 'rgba(255,255,255,0.02)', 
+          border: '1px solid rgba(0, 207, 255, 0.15)', 
+          borderRadius: '12px', 
+          padding: '12px 16px', 
+          marginBottom: '16px' 
+        }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px', fontSize: '0.82rem' }}>
+            <span style={{ color: 'var(--text-secondary)' }}>Encargo ({orderTitle.slice(0, 28)}):</span>
+            <strong style={{ color: 'var(--text-primary)' }}>${productPriceUsdc.toFixed(2)} USDC</strong>
+          </div>
+          {travelerFeeUsdc > 0 && (
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px', fontSize: '0.82rem' }}>
+              <span style={{ color: 'var(--text-secondary)' }}>Honorario Transporte / Envío:</span>
+              <strong style={{ color: 'var(--brand-cyan)' }}>+${travelerFeeUsdc.toFixed(2)} USDC</strong>
             </div>
-            {travelerFeeUsdc > 0 && (
-              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px', fontSize: '0.84rem' }}>
-                <span style={{ color: 'var(--text-secondary)' }}>Honorario de Transporte / Envío:</span>
-                <strong style={{ color: 'var(--brand-cyan)' }}>+${travelerFeeUsdc.toFixed(2)} USDC</strong>
-              </div>
-            )}
-            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px', fontSize: '0.84rem' }}>
-              <span style={{ color: 'var(--text-secondary)' }}>Comisión AYNI (5% Escrow + Soporte):</span>
-              <strong style={{ color: 'var(--text-muted)' }}>+${systemFeeUsdc.toFixed(2)} USDC</strong>
+          )}
+          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px', fontSize: '0.82rem' }}>
+            <span style={{ color: 'var(--text-secondary)' }}>Comisión Escrow AYNI (5%):</span>
+            <strong style={{ color: 'var(--text-muted)' }}>+${systemFeeUsdc.toFixed(2)} USDC</strong>
+          </div>
+          <div style={{ borderTop: '1px solid rgba(255,255,255,0.06)', paddingTop: '6px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)', fontWeight: 600 }}>MONTO TOTAL EN CUSTODIA:</span>
+            <span style={{ fontSize: '1.25rem', fontWeight: 900, color: 'var(--brand-gold)', fontFamily: 'var(--font-display)' }}>
+              ${totalEscrowUsdc} USDC
+            </span>
+          </div>
+        </div>
+
+        {/* Success State */}
+        {paidSuccessData ? (
+          <div style={{ textAlign: 'center', padding: '16px 0', animation: 'fadeIn 0.3s ease-out' }}>
+            <div className="animate-spring-check" style={{ 
+              width: 58, 
+              height: 58, 
+              borderRadius: '50%', 
+              background: 'rgba(0,214,143,0.18)', 
+              color: 'var(--brand-emerald)', 
+              display: 'flex', 
+              alignItems: 'center', 
+              justifyContent: 'center', 
+              margin: '0 auto 12px',
+              boxShadow: '0 0 30px rgba(0,214,143,0.3)'
+            }}>
+              <CheckCircle2 size={34} />
             </div>
-            <div style={{ borderTop: '1px solid var(--border-subtle)', paddingTop: '8px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <div>
-                <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>TOTAL A BLOQUEAR:</div>
-                <div style={{ fontSize: '1.25rem', fontWeight: 800, color: 'var(--brand-gold)' }}>
-                  ${totalEscrowUsdc} USDC
-                </div>
-              </div>
-              <div style={{ textAlign: 'right' }}>
-                <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>Equivalente P2P Bolivia:</div>
-                <div style={{ fontSize: '0.92rem', fontWeight: 700, color: 'var(--brand-emerald)' }}>
-                  ≈ Bs. {totalInBob} BOB
-                </div>
-              </div>
+
+            <h4 style={{ fontSize: '1.15rem', fontWeight: 800, color: 'var(--brand-emerald)', marginBottom: '4px' }}>
+              ¡Custodia Tangem Bloqueada en Base L2!
+            </h4>
+            <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginBottom: '14px' }}>
+              Tu código secreto de entrega OTP ha sido generado criptográficamente:
+            </p>
+
+            <div style={{ 
+              display: 'inline-block', 
+              background: 'rgba(0,207,255,0.12)', 
+              border: '2px dashed var(--brand-cyan)', 
+              borderRadius: '12px', 
+              padding: '10px 24px', 
+              fontSize: '1.75rem', 
+              fontWeight: 900, 
+              letterSpacing: '5px',
+              fontFamily: 'monospace',
+              color: 'var(--brand-cyan)',
+              boxShadow: '0 0 24px rgba(0,207,255,0.2)',
+              marginBottom: '12px'
+            }}>
+              {paidSuccessData.otp}
+            </div>
+
+            <div style={{ fontSize: '0.74rem', color: 'var(--brand-gold)', marginBottom: '8px' }}>
+              ⚠️ Guárdalo seguro. Solo entrégalo al recibir físicamente el producto en mano.
+            </div>
+            <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', fontFamily: 'monospace' }}>
+              Tx: {paidSuccessData.txHash.slice(0, 14)}...{paidSuccessData.txHash.slice(-8)}
             </div>
           </div>
-
-          {/* Success state */}
-          {paidSuccessData ? (
-            <div style={{ textAlign: 'center', padding: '24px 0' }}>
-              <div style={{ width: 64, height: 64, borderRadius: '50%', background: 'rgba(0,214,143,0.2)', color: 'var(--brand-emerald)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px' }}>
-                <CheckCircle2 size={36} />
-              </div>
-              <h4 style={{ fontSize: '1.2rem', fontWeight: 800, color: 'var(--brand-emerald)', marginBottom: '6px' }}>
-                ¡Pago Bloqueado en Escrow con Éxito!
-              </h4>
-              <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginBottom: '16px' }}>
-                Tu código de entrega secreto para reclamar el pedido es:
-              </p>
-              <div style={{ 
-                display: 'inline-block', 
-                background: 'rgba(0,207,255,0.15)', 
-                border: '2px dashed var(--brand-cyan)', 
-                borderRadius: '12px', 
-                padding: '10px 24px', 
-                fontSize: '1.6rem', 
-                fontWeight: 900, 
-                letterSpacing: '4px',
-                fontFamily: 'monospace',
-                color: 'var(--brand-cyan)',
-                marginBottom: '16px'
-              }}>
-                {paidSuccessData.otp}
-              </div>
-              <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
-                Guarda este código. Solo entrégalo al recibir físicamente tu producto.
-              </div>
+        ) : (
+          <>
+            {/* Exclusive Tangem Tabs */}
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '6px', marginBottom: '16px' }}>
+              <button
+                type="button"
+                onClick={() => { setActiveTab('tap'); setTapState('idle'); }}
+                className={`btn btn-sm btn-pressable ${activeTab === 'tap' ? 'btn-primary' : 'btn-ghost'}`}
+                style={{ fontSize: '0.75rem', padding: '8px 4px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '5px' }}
+              >
+                <Wifi size={13} style={{ transform: 'rotate(90deg)' }} /> Tarjeta NFC
+              </button>
+              <button
+                type="button"
+                onClick={() => { setActiveTab('mobile'); setTapState('idle'); }}
+                className={`btn btn-sm btn-pressable ${activeTab === 'mobile' ? 'btn-primary' : 'btn-ghost'}`}
+                style={{ fontSize: '0.75rem', padding: '8px 4px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '5px' }}
+              >
+                <Smartphone size={13} /> App Tangem
+              </button>
+              <button
+                type="button"
+                onClick={() => { setActiveTab('demo'); setTapState('idle'); }}
+                className={`btn btn-sm btn-pressable ${activeTab === 'demo' ? 'btn-gold' : 'btn-ghost'}`}
+                style={{ fontSize: '0.75rem', padding: '8px 4px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '5px' }}
+              >
+                <Sparkles size={13} /> Demo Jurado
+              </button>
             </div>
-          ) : (
-            <>
-              {/* Payment Tabs */}
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '6px', marginBottom: '18px' }}>
-                {[
-                  { id: 'web3', label: 'Web3 L2', icon: '⚡' },
-                  { id: 'eldorado', label: 'El Dorado', icon: '🇧🇴' },
-                  { id: 'binance', label: 'Binance', icon: '🟡' },
-                  { id: 'demo', label: 'Demo Jurado', icon: '🧪' },
-                ].map(t => (
-                  <button
-                    key={t.id}
-                    type="button"
-                    onClick={() => setActiveTab(t.id as typeof activeTab)}
-                    className={`btn btn-sm ${activeTab === t.id ? 'btn-primary' : 'btn-ghost'}`}
-                    style={{ fontSize: '0.72rem', padding: '6px 2px', display: 'flex', flexDirection: 'column', gap: '2px', alignItems: 'center' }}
-                  >
-                    <span>{t.icon}</span>
-                    <span>{t.label}</span>
-                  </button>
-                ))}
-              </div>
 
-              {/* TAB 1: WEB3 DIRECTO (BASE L2) */}
-              {activeTab === 'web3' && (
-                <div>
-                  <div style={{ 
-                    padding: '12px', 
-                    background: 'rgba(0,207,255,0.06)', 
-                    border: '1px solid rgba(0,207,255,0.2)', 
-                    borderRadius: '10px', 
-                    marginBottom: '16px',
-                    fontSize: '0.82rem',
-                    color: 'var(--text-secondary)',
-                    lineHeight: 1.4
-                  }}>
-                    Conecta tu wallet (MetaMask, Coinbase Wallet, Trust) o firma con tu tarjeta física <strong>Tangem</strong> en la red Base Sepolia. Costo de gas: <strong>&lt; $0.005 USDC</strong>.
-                  </div>
-
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                    <button
-                      type="button"
-                      disabled={isProcessing}
-                      onClick={() => handleProcessPayment('web3_wallet')}
-                      className="btn btn-primary"
-                      style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}
-                    >
-                      {isProcessing ? <RefreshCw size={16} className="spin" /> : <Wallet size={16} />}
-                      Pagar ${totalEscrowUsdc} USDC con Wallet Web3
-                    </button>
-
-                    <button
-                      type="button"
-                      onClick={() => setIsTangemOpen(true)}
-                      className="btn btn-outline"
-                      style={{ 
-                        width: '100%', 
-                        display: 'flex', 
-                        alignItems: 'center', 
-                        justifyContent: 'center', 
-                        gap: '8px',
-                        borderColor: 'var(--brand-cyan)',
-                        color: 'var(--brand-cyan)'
-                      }}
-                    >
-                      <Smartphone size={16} /> Firmar con Billetera Fría Tangem (NFC/App)
-                    </button>
-                  </div>
-                </div>
-              )}
-
-              {/* TAB 2: EL DORADO P2P (BOLIVIA BOB) */}
-              {activeTab === 'eldorado' && (
-                <div style={{ textAlign: 'center' }}>
-                  <div style={{ 
-                    padding: '12px', 
-                    background: 'rgba(245,166,35,0.08)', 
-                    border: '1px solid rgba(245,166,35,0.25)', 
-                    borderRadius: '10px', 
-                    marginBottom: '14px',
-                    fontSize: '0.8rem',
-                    color: 'var(--text-secondary)',
-                    textAlign: 'left'
-                  }}>
-                    <strong>Pago P2P en Bolivianos (BOB):</strong> Abre El Dorado con la orden precargada para comprar USDT/USDC con transferencia QR bancaria boliviana (Banco Unión, BCP, BNB, etc.) y transferir al contrato.
-                  </div>
-
-                  <div style={{
-                    width: 130,
-                    height: 130,
-                    margin: '0 auto 12px',
-                    background: '#ffffff',
-                    borderRadius: '10px',
-                    padding: '8px',
+            {/* TAB 1: TARJETA FÍSICA TANGEM (NFC TAP SIMULATOR) */}
+            {activeTab === 'tap' && (
+              <div>
+                {/* 3D Tangem Hardware Card Visualizer */}
+                <div 
+                  className={`cold-wallet-card-active ${tapState !== 'idle' ? 'animate-pulse' : ''}`}
+                  style={{
+                    position: 'relative',
+                    height: '170px',
+                    borderRadius: '14px',
+                    background: 'linear-gradient(135deg, #0e1628 0%, #040813 60%, #0d1e38 100%)',
+                    border: '1.5px solid rgba(0, 207, 255, 0.4)',
+                    padding: '16px 20px',
                     display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                  }}>
-                    <img 
-                      src={`https://api.qrserver.com/v1/create-qr-code/?size=115x115&data=eldorado://pay?amount=${totalEscrowUsdc}&currency=USDC&address=${escrowContractAddress}`}
-                      alt="El Dorado QR" 
-                      style={{ width: '100%', height: '100%' }}
-                    />
-                  </div>
-
-                  <div style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--brand-gold)', marginBottom: '12px' }}>
-                    Bs. {totalInBob} BOB → ${totalEscrowUsdc} USDC
-                  </div>
-
-                  <div style={{ display: 'flex', gap: '8px' }}>
-                    <a
-                      href={`eldorado://pay?amount=${totalEscrowUsdc}&currency=USDC&address=${escrowContractAddress}`}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="btn btn-gold"
-                      style={{ flex: 1, fontSize: '0.78rem' }}
-                    >
-                      Abrir App El Dorado
-                    </a>
-                    <button
-                      type="button"
-                      onClick={() => handleProcessPayment('eldorado_p2p')}
-                      className="btn btn-primary"
-                      style={{ flex: 1, fontSize: '0.78rem' }}
-                    >
-                      Confirmar Depósito P2P
-                    </button>
-                  </div>
-                </div>
-              )}
-
-              {/* TAB 3: BINANCE PAY */}
-              {activeTab === 'binance' && (
-                <div style={{ textAlign: 'center' }}>
-                  <div style={{ 
-                    padding: '12px', 
-                    background: 'rgba(245,166,35,0.06)', 
-                    border: '1px solid rgba(245,166,35,0.2)', 
-                    borderRadius: '10px', 
-                    marginBottom: '14px',
-                    fontSize: '0.8rem',
-                    color: 'var(--text-secondary)',
-                    textAlign: 'left'
-                  }}>
-                    <strong>Binance Pay (0% Comisión):</strong> Escanea con la app de Binance o transfiere directo a la dirección del Smart Contract en Base L2.
-                  </div>
-
-                  <div style={{
-                    width: 130,
-                    height: 130,
-                    margin: '0 auto 12px',
-                    background: '#ffffff',
-                    borderRadius: '10px',
-                    padding: '8px',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                  }}>
-                    <img 
-                      src={`https://api.qrserver.com/v1/create-qr-code/?size=115x115&data=ethereum:${escrowContractAddress}@84532?value=${totalEscrowUsdc}`}
-                      alt="Binance Pay QR" 
-                      style={{ width: '100%', height: '100%' }}
-                    />
-                  </div>
-
-                  <div style={{ 
-                    background: 'rgba(255,255,255,0.04)', 
-                    borderRadius: '8px', 
-                    padding: '8px 12px', 
-                    display: 'flex', 
-                    alignItems: 'center', 
+                    flexDirection: 'column',
                     justifyContent: 'space-between',
-                    marginBottom: '14px' 
-                  }}>
-                    <span style={{ fontSize: '0.75rem', fontFamily: 'monospace', color: 'var(--text-muted)' }}>
-                      {escrowContractAddress.slice(0, 10)}...{escrowContractAddress.slice(-8)}
-                    </span>
-                    <button type="button" onClick={copyAddress} className="btn btn-ghost btn-sm" style={{ padding: '2px 8px', fontSize: '0.75rem' }}>
-                      {copiedAddress ? <Check size={12} color="var(--brand-emerald)" /> : <Copy size={12} />}
-                    </button>
-                  </div>
-
-                  <button
-                    type="button"
-                    onClick={() => handleProcessPayment('binance_pay')}
-                    className="btn btn-primary"
-                    style={{ width: '100%' }}
-                  >
-                    Confirmar Pago Binance Pay
-                  </button>
-                </div>
-              )}
-
-              {/* TAB 4: MODO JURADO / DEMO 1-CLICK */}
-              {activeTab === 'demo' && (
-                <div>
-                  <div style={{ 
-                    padding: '14px', 
-                    background: 'rgba(155,114,255,0.1)', 
-                    border: '1px solid rgba(155,114,255,0.3)', 
-                    borderRadius: '10px', 
+                    overflow: 'hidden',
                     marginBottom: '16px',
-                    fontSize: '0.82rem',
-                    color: 'var(--text-secondary)',
-                    lineHeight: 1.4
-                  }}>
-                    <div style={{ fontWeight: 700, color: 'var(--brand-purple)', marginBottom: '4px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                      <Sparkles size={14} /> Modo Rápido para Jurados (ETH Bolivia 2026)
+                  }}
+                >
+                  {/* Laser Shine Beam */}
+                  <div style={{
+                    position: 'absolute',
+                    top: 0,
+                    left: tapState !== 'idle' ? '120%' : '-40%',
+                    width: '40%',
+                    height: '100%',
+                    background: 'linear-gradient(90deg, transparent, rgba(0,207,255,0.35), transparent)',
+                    transform: 'skewX(-25deg)',
+                    transition: 'left 1.4s ease-in-out',
+                    pointerEvents: 'none',
+                  }} />
+
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <span style={{ fontWeight: 900, fontSize: '1.15rem', letterSpacing: '2px', color: '#ffffff' }}>
+                        tangem
+                      </span>
+                      <span style={{ fontSize: '0.65rem', background: 'rgba(0,214,143,0.2)', color: 'var(--brand-emerald)', padding: '2px 6px', borderRadius: '4px', fontWeight: 700 }}>
+                        EAL6+ CHIP
+                      </span>
                     </div>
-                    Permite probar el flujo íntegro de custodia, emisión de OTP y bloqueo en el Smart Contract sin requerir saldo real de gas o tokens en Base Sepolia.
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+                      <Wifi size={16} color="var(--brand-cyan)" style={{ transform: 'rotate(90deg)' }} />
+                      <span style={{ fontSize: '0.7rem', color: 'var(--brand-cyan)', fontWeight: 700 }}>NFC</span>
+                    </div>
                   </div>
+
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                    <div style={{
+                      width: 36,
+                      height: 26,
+                      borderRadius: '5px',
+                      background: 'linear-gradient(135deg, #f5a623, #b45309)',
+                      border: '1px solid rgba(255,255,255,0.4)',
+                      boxShadow: '0 2px 6px rgba(0,0,0,0.5)',
+                    }} />
+                    <div style={{ fontSize: '0.78rem', color: 'rgba(255,255,255,0.7)', fontFamily: 'monospace', letterSpacing: '2px' }}>
+                      •••• •••• •••• 849A
+                    </div>
+                  </div>
+
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
+                    <div>
+                      <div style={{ fontSize: '0.62rem', color: 'rgba(255,255,255,0.45)', textTransform: 'uppercase' }}>
+                        SMART CONTRACT ESCROW
+                      </div>
+                      <div style={{ fontSize: '0.78rem', color: 'var(--brand-emerald)', fontWeight: 700 }}>
+                        Base L2 • AyniEscrow.sol
+                      </div>
+                    </div>
+                    <div style={{ textAlign: 'right' }}>
+                      <div style={{ fontSize: '0.62rem', color: 'rgba(255,255,255,0.45)' }}>TOTAL</div>
+                      <div style={{ fontSize: '1.05rem', fontWeight: 900, color: 'var(--brand-gold)' }}>
+                        ${totalEscrowUsdc} USDC
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* State description */}
+                {tapState === 'idle' && (
+                  <button
+                    type="button"
+                    onClick={handleSimulatePhysicalTap}
+                    className="btn btn-tangem-glow btn-pressable btn-block"
+                    style={{ padding: '13px', fontSize: '0.92rem' }}
+                  >
+                    <Wifi size={16} style={{ transform: 'rotate(90deg)' }} />
+                    Aproximar Tarjeta Tangem (Tap NFC)
+                  </button>
+                )}
+
+                {tapState === 'approaching' && (
+                  <div style={{ textAlign: 'center', padding: '12px 0' }}>
+                    <div style={{ fontSize: '0.88rem', fontWeight: 700, color: 'var(--brand-cyan)' }}>
+                      Detectando sensor NFC...
+                    </div>
+                    <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+                      Mantén la tarjeta Tangem apoyada en el teléfono
+                    </div>
+                  </div>
+                )}
+
+                {tapState === 'authenticating' && (
+                  <div style={{ textAlign: 'center', padding: '12px 0' }}>
+                    <div style={{ fontSize: '0.88rem', fontWeight: 700, color: 'var(--brand-emerald)' }}>
+                      Autenticando enclave criptográfico EAL6+...
+                    </div>
+                    <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+                      Firma de clave privada cold wallet generada
+                    </div>
+                  </div>
+                )}
+
+                {tapState === 'signing' && (
+                  <div style={{ textAlign: 'center', padding: '12px 0', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
+                    <RefreshCw size={16} className="spin" color="var(--brand-cyan)" />
+                    <span style={{ fontSize: '0.88rem', fontWeight: 700, color: 'var(--text-primary)' }}>
+                      Bloqueando fondos en Smart Contract Base L2...
+                    </span>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* TAB 2: APP TANGEM MÓVIL (WALLETCONNECT) */}
+            {activeTab === 'mobile' && (
+              <div style={{ textAlign: 'center' }}>
+                <div style={{
+                  width: 140,
+                  height: 140,
+                  margin: '0 auto 12px',
+                  background: '#ffffff',
+                  borderRadius: '12px',
+                  padding: '10px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  boxShadow: '0 8px 30px rgba(0, 207, 255, 0.25)',
+                }}>
+                  <img 
+                    src={`https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=tangem://wc?uri=wc:ayni-base-escrow-${Date.now()}`}
+                    alt="Tangem WalletConnect QR" 
+                    style={{ width: '100%', height: '100%' }}
+                  />
+                </div>
+
+                <p style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', marginBottom: '14px' }}>
+                  Abre la <strong>App de Tangem</strong> en tu móvil, pulsa en WalletConnect y escanea este código QR o pulsa abajo:
+                </p>
+
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                  <button
+                    type="button"
+                    onClick={handleMobileAppOpen}
+                    className="btn btn-tangem-glow btn-pressable btn-block"
+                    style={{ padding: '12px', fontSize: '0.88rem' }}
+                  >
+                    <Smartphone size={16} /> Abrir Directamente en App Tangem
+                  </button>
 
                   <button
                     type="button"
-                    disabled={isProcessing}
-                    onClick={() => handleProcessPayment('demo_judge_1click')}
-                    className="btn btn-gold"
-                    style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', padding: '12px' }}
+                    onClick={copyWcUri}
+                    className="btn btn-ghost btn-sm btn-pressable"
+                    style={{ fontSize: '0.75rem', alignSelf: 'center' }}
                   >
-                    {isProcessing ? <RefreshCw size={16} className="spin" /> : <Sparkles size={16} />}
-                    ⚡ Simular Bloqueo Escrow 1-Click (${totalEscrowUsdc} USDC)
+                    {copiedWcUri ? <Check size={12} color="var(--brand-emerald)" /> : <Copy size={12} />}
+                    {copiedWcUri ? 'Enlace WalletConnect Copiado' : 'Copiar URI WalletConnect'}
                   </button>
                 </div>
-              )}
-            </>
-          )}
-        </div>
-      </div>
+              </div>
+            )}
 
-      {/* Modal Tangem integrado */}
-      <TangemConnector
-        isOpen={isTangemOpen}
-        onClose={() => setIsTangemOpen(false)}
-        amountUsdc={parseFloat(totalEscrowUsdc)}
-        actionTitle="Firmar Depósito Escrow con Tangem"
-        actionDescription="Aproxima tu tarjeta física Tangem o escanea desde la app para firmar el depósito de custodia en Base L2."
-        onSuccess={(address, tx) => {
-          handleProcessPayment('tangem_card');
-        }}
-      />
-    </>
+            {/* TAB 3: DEMO RÁPIDO PARA JURADO 1-CLICK */}
+            {activeTab === 'demo' && (
+              <div>
+                <div style={{ 
+                  padding: '14px', 
+                  background: 'rgba(245,166,35,0.08)', 
+                  border: '1px solid rgba(245,166,35,0.3)', 
+                  borderRadius: '12px', 
+                  marginBottom: '16px',
+                  fontSize: '0.82rem',
+                  color: 'var(--text-secondary)',
+                  lineHeight: 1.45
+                }}>
+                  <div style={{ fontWeight: 700, color: 'var(--brand-gold)', marginBottom: '4px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <Sparkles size={15} /> Flujo Evaluador ETH Bolivia 2026
+                  </div>
+                  Permite validar el ciclo completo de custodia en Base L2, simulación de firma Tangem y generación de clave secreta OTP sin demoras ni necesidad de gas.
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => handleExecuteEscrow('demo_judge_1click')}
+                  className="btn btn-gold btn-pressable btn-block"
+                  style={{ padding: '13px', fontSize: '0.92rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}
+                >
+                  <Sparkles size={16} />
+                  ⚡ Ejecutar Bloqueo Escrow Instantáneo (${totalEscrowUsdc} USDC)
+                </button>
+              </div>
+            )}
+          </>
+        )}
+      </div>
+    </div>
   );
 }
