@@ -121,9 +121,53 @@ export default function ReportsPage() {
     }, 1200);
   };
 
-  const handleStartScan = () => {
+  const handleStartScan = async () => {
     setScanState('scanning');
     setVerifiedResult(null);
+
+    try {
+      const apiRes = await fetch('/api/ocr', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          receiptText: selectedReceipt.previewText,
+          merchant: selectedReceipt.merchant,
+          expectedAmount: selectedReceipt.amount,
+          items: selectedReceipt.items,
+          city: selectedReceipt.city,
+        }),
+      });
+
+      if (apiRes.ok) {
+        const data = await apiRes.json();
+        const res = {
+          txHash: data.txHash,
+          confidence: data.confidence,
+          block: data.blockNumber,
+          match: data.verdict === 'VERIFICADO_CONFORME',
+        };
+
+        setVerifiedResult(res);
+        setScanState('verified');
+
+        const newRecord: AuditRecord = {
+          id: `AUD-${Date.now().toString().slice(-3)}`,
+          orderId: selectedReceipt.orderId,
+          merchant: selectedReceipt.merchant,
+          detectedAmount: selectedReceipt.amount,
+          expectedAmount: selectedReceipt.amount,
+          confidence: data.confidence,
+          status: 'approved',
+          date: 'Hoy (En vivo)',
+          txHash: data.txHash.slice(0, 6) + '...' + data.txHash.slice(-4),
+        };
+
+        setAudits(prev => [newRecord, ...prev]);
+        return;
+      }
+    } catch (err) {
+      console.warn('Fallback OCR local:', err);
+    }
 
     setTimeout(() => {
       const tx = '0x' + Array.from({ length: 40 }, () => Math.floor(Math.random() * 16).toString(16)).join('');
@@ -140,7 +184,6 @@ export default function ReportsPage() {
       setVerifiedResult(res);
       setScanState('verified');
 
-      // Add to table
       const newRecord: AuditRecord = {
         id: `AUD-${Date.now().toString().slice(-3)}`,
         orderId: selectedReceipt.orderId,
@@ -154,7 +197,7 @@ export default function ReportsPage() {
       };
 
       setAudits(prev => [newRecord, ...prev]);
-    }, 1600);
+    }, 1400);
   };
 
   const handleExport = () => {
