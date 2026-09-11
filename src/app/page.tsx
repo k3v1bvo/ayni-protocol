@@ -294,7 +294,7 @@ export default function LandingPage() {
               Monetiza el equipaje de tus viajes, encarga condimentos y alimentos típicos que no se consiguen en el extranjero, y asegura el legado de tu familia con bóvedas de herencia protegidas por Smart Contracts inmutables.
             </p>
 
-            <div style={{ display: 'flex', justifyContent: 'center', gap: '14px', flexWrap: 'wrap', marginBottom: '50px' }}>
+            <div style={{ display: 'flex', justifyContent: 'center', gap: '14px', flexWrap: 'wrap', marginBottom: '32px' }}>
               <Link
                 href="/auth?mode=signup"
                 className="btn btn-primary btn-lg"
@@ -309,14 +309,57 @@ export default function LandingPage() {
               >
                 Explorar Marketplace 🌶️
               </Link>
+              <a
+                href="#radar-showcase"
+                className="btn btn-ghost btn-lg"
+                style={{ padding: '14px 22px', fontSize: '0.92rem', border: '1px solid rgba(0, 207, 255, 0.35)', color: 'var(--brand-cyan)', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '8px' }}
+              >
+                <Plane size={16} /> Ver Radar en Vivo
+              </a>
+            </div>
+
+            {/* Radar Flagship Live Indicator */}
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', marginBottom: '28px', fontSize: '0.78rem', color: 'var(--text-muted)' }}>
+              <span style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--brand-emerald)', display: 'inline-block', boxShadow: '0 0 10px var(--brand-emerald)' }} />
+              <span>Centro de Monitoreo Cripto-Logístico en Tiempo Real</span>
+              <span style={{ opacity: 0.3 }}>•</span>
+              <span style={{ color: 'var(--brand-cyan)' }}>Simulación Vectorial en Código Puro · Base L2</span>
             </div>
           </div>
 
-          {/* Simulador Interactivo de Vuelos P2P y Radar Mundial en Código Puro */}
+          {/* ========================================================
+              FLAGSHIP VISUAL: Simulador Interactivo de Vuelos P2P
+              ======================================================== */}
           <InteractiveWorldRadar />
 
+          {/* Stats row directly anchoring the world radar */}
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
+            gap: '16px',
+            marginBottom: '48px',
+          }}>
+            {STATS.map(s => (
+              <div key={s.label} style={{
+                background: 'rgba(9, 14, 28, 0.8)',
+                backdropFilter: 'blur(12px)',
+                border: '1px solid rgba(255, 255, 255, 0.08)',
+                borderRadius: '16px',
+                padding: '20px',
+                textAlign: 'center',
+                boxShadow: '0 8px 30px rgba(0,0,0,0.4)',
+                transition: 'all 0.25s ease',
+              }}>
+                <div style={{ fontFamily: 'var(--font-display)', fontSize: '2.1rem', fontWeight: 800, color: s.color }}>
+                  {s.value}
+                </div>
+                <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginTop: '4px' }}>{s.label}</div>
+              </div>
+            ))}
+          </div>
+
           {/* INTERACTIVE LIVE COMPARISON CALCULATOR (SCROLL-CRAFT ENGINE) */}
-          <div className="sc-live-hud sc-card-depth" style={{ padding: '36px 30px', marginBottom: '60px' }}>
+          <div className="sc-live-hud sc-card-depth" style={{ padding: '36px 30px', marginBottom: '20px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px', marginBottom: '24px' }}>
               <div>
                 <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
@@ -459,28 +502,6 @@ export default function LandingPage() {
               </div>
 
             </div>
-          </div>
-
-          {/* Stats row */}
-          <div style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
-            gap: '16px',
-          }}>
-            {STATS.map(s => (
-              <div key={s.label} style={{
-                background: 'var(--bg-card)',
-                border: '1px solid var(--border-default)',
-                borderRadius: '16px',
-                padding: '20px',
-                textAlign: 'center',
-              }}>
-                <div style={{ fontFamily: 'var(--font-display)', fontSize: '2.1rem', fontWeight: 800, color: s.color }}>
-                  {s.value}
-                </div>
-                <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginTop: '4px' }}>{s.label}</div>
-              </div>
-            ))}
           </div>
         </div>
       </section>
