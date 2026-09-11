@@ -7,6 +7,7 @@ import { AppSidebar } from '@/components/layout/Sidebar';
 import { BottomNav } from '@/components/layout/BottomNav';
 import { CartDrawer } from '@/components/marketplace/CartDrawer';
 import { NotificationCenter } from '@/components/layout/NotificationCenter';
+import { AiSupportChat } from '@/components/chat/AiSupportChat';
 import { Search, Menu } from 'lucide-react';
 import Link from 'next/link';
 
@@ -166,6 +167,9 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
 
       {/* Cart Drawer */}
       <CartDrawer />
+
+      {/* Floating AI Support Chatbot */}
+      <AiSupportChat />
 
       {/* Mobile Bottom Navigation Bar */}
       <BottomNav />

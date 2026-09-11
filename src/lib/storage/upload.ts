@@ -12,6 +12,27 @@ export async function uploadToSupabase(
   file: File,
   path?: string
 ): Promise<string | null> {
+  // 1. Prioridad: Subir a ImgBB para no consumir el límite de almacenamiento de Supabase
+  try {
+    const formData = new FormData();
+    formData.append('image', file);
+
+    const res = await fetch('/api/upload', {
+      method: 'POST',
+      body: formData,
+    });
+
+    if (res.ok) {
+      const data = await res.json();
+      if (data.url) {
+        return data.url;
+      }
+    }
+  } catch (imgbbErr) {
+    console.warn('Fallo ImgBB, aplicando fallback a Supabase Storage:', imgbbErr);
+  }
+
+  // 2. Fallback: Supabase Storage nativo
   try {
     const supabase = getSupabaseBrowserClient();
 

@@ -8,7 +8,7 @@ import { getSupabaseBrowserClient, isSupabaseConfigured } from '@/lib/supabase/c
 import { playSuccessSound, playNotificationSound } from '@/lib/notifications/sound';
 import {
   ShoppingBag, Key, CheckCircle2, Truck, AlertTriangle, Clock, ShieldCheck,
-  Plus, Search, Eye, Filter, Loader2, X, Copy, Sparkles, RefreshCw
+  Plus, Search, Eye, Filter, Loader2, X, Copy, Sparkles, RefreshCw, Store
 } from 'lucide-react';
 
 interface OrderItem {
@@ -21,6 +21,10 @@ interface OrderItem {
   guarantee_fund_usd: number;
   total_escrow_usd: number;
   status: string;
+  store_name?: string;
+  store_location?: string;
+  store_instructions?: string;
+  reference_images?: string[];
   otp_plain_simulated?: string;
   otp_hash?: string;
   created_at?: string;
@@ -299,6 +303,37 @@ export default function OrdersPage() {
                 </div>
               </div>
             </div>
+
+            {/* Store / Market Info if present */}
+            {(detailOrder.store_name || detailOrder.store_location || (detailOrder.reference_images && detailOrder.reference_images.length > 0)) && (
+              <div style={{ marginTop: '14px', padding: '14px', background: 'rgba(0,207,255,0.05)', borderRadius: '12px', border: '1px solid rgba(0,207,255,0.2)' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontWeight: 700, fontSize: '0.84rem', color: 'var(--brand-cyan)', marginBottom: '4px' }}>
+                  <Store size={15} /> Punto de Compra: {detailOrder.store_name || 'Comercio físico'}
+                </div>
+                {detailOrder.store_location && (
+                  <div style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', marginBottom: '4px' }}>
+                    📍 Ubicación: {detailOrder.store_location}
+                  </div>
+                )}
+                {detailOrder.store_instructions && (
+                  <div style={{ fontSize: '0.75rem', color: 'var(--brand-gold)', background: 'rgba(245,166,35,0.08)', padding: '6px 10px', borderRadius: '8px', marginTop: '6px' }}>
+                    💡 Instrucciones: {detailOrder.store_instructions}
+                  </div>
+                )}
+                {detailOrder.reference_images && detailOrder.reference_images.length > 0 && (
+                  <div style={{ marginTop: '10px' }}>
+                    <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginBottom: '6px' }}>Fotos de Referencia (ImgBB):</div>
+                    <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                      {detailOrder.reference_images.map((imgUrl, i) => (
+                        <a key={i} href={imgUrl} target="_blank" rel="noopener noreferrer" style={{ display: 'block', width: 48, height: 48, borderRadius: 8, overflow: 'hidden', border: '1px solid var(--border-default)' }}>
+                          <img src={imgUrl} alt="Referencia" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                        </a>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
 
             {/* OTP Section */}
             {detailOrder.status === 'in_transit' && (
