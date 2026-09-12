@@ -12,6 +12,7 @@ import {
 } from 'lucide-react';
 import { InteractiveWorldRadar } from '@/components/home/InteractiveWorldRadar';
 import { AiSupportChat } from '@/components/chat/AiSupportChat';
+import { WalletButton } from '@pollar/react';
 
 
 const STATS = [
@@ -222,6 +223,9 @@ export default function LandingPage() {
           </nav>
 
           <div style={{ display: 'flex', gap: '10px', alignItems: 'center', flexShrink: 0 }}>
+            {/* Pollar: wallet Stellar con login social (Google) + pagos USDC */}
+            <WalletButton />
+
             {user ? (
               <Link
                 href="/dashboard"

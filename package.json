@@ -7,11 +7,19 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "contracts:compile": "hardhat compile",
+    "deploy:hsk-testnet": "hardhat run scripts/deploy.js --network hskTestnet",
+    "deploy:hsk-mainnet": "hardhat run scripts/deploy.js --network hskMainnet",
+    "deploy:avalanche-fuji": "hardhat run scripts/deploy.js --network avalancheFuji",
+    "deploy:avalanche-mainnet": "hardhat run scripts/deploy.js --network avalancheMainnet"
   },
   "dependencies": {
+    "@pollar/react": "^0.11.3",
     "@supabase/ssr": "^0.5.2",
     "@supabase/supabase-js": "^2.48.1",
+    "@unlock-protocol/networks": "^0.0.25",
+    "@unlock-protocol/paywall": "^0.8.1",
     "clsx": "^2.1.1",
     "lucide-react": "^0.475.0",
     "next": "^14.2.24",
@@ -21,10 +29,13 @@
     "viem": "^2.56.3"
   },
   "devDependencies": {
+    "@nomicfoundation/hardhat-toolbox": "^5.0.0",
     "@types/node": "^20.17.19",
     "@types/nodemailer": "^8.0.1",
     "@types/react": "^18.3.18",
     "@types/react-dom": "^18.3.5",
+    "dotenv": "^17.4.2",
+    "hardhat": "^2.29.1",
     "typescript": "^5.7.3"
   }
 }

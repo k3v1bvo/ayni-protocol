@@ -1,12 +1,16 @@
 'use client';
 
 import React, { useState } from 'react';
-import { 
-  ShieldCheck, Smartphone, Wifi, ArrowRight, CheckCircle2, 
+import {
+  ShieldCheck, Smartphone, Wifi, ArrowRight, CheckCircle2,
   ExternalLink, Copy, Check, X, Sparkles, RefreshCw, Lock,
-  Key, Cpu, CreditCard
+  Key, Cpu, CreditCard, Coins, LogIn, AlertTriangle
 } from 'lucide-react';
 import { executeEscrowDeposit } from '@/lib/web3/contracts';
+import { usePollar } from '@pollar/react';
+
+const POLLAR_USDC_ISSUER = process.env.NEXT_PUBLIC_POLLAR_USDC_ISSUER || 'GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5';
+const POLLAR_TREASURY_ADDRESS = process.env.NEXT_PUBLIC_POLLAR_TREASURY_ADDRESS || '';
 
 interface PaymentModalProps {
   isOpen: boolean;
@@ -29,10 +33,13 @@ export function PaymentModal({
   originCity = 'España',
   destinationCity = 'Bolivia',
 }: PaymentModalProps) {
-  const [activeTab, setActiveTab] = useState<'tap' | 'mobile' | 'demo'>('tap');
+  const [activeTab, setActiveTab] = useState<'tap' | 'mobile' | 'demo' | 'pollar'>('tap');
   const [tapState, setTapState] = useState<'idle' | 'approaching' | 'authenticating' | 'signing'>('idle');
   const [copiedWcUri, setCopiedWcUri] = useState(false);
   const [paidSuccessData, setPaidSuccessData] = useState<{ txHash: string; otp: string } | null>(null);
+  const [pollarPaying, setPollarPaying] = useState(false);
+  const [pollarError, setPollarError] = useState<string | null>(null);
+  const { isAuthenticated, wallet, openLoginModal, runTx } = usePollar();
 
   if (!isOpen) return null;
 
@@ -64,6 +71,41 @@ export function PaymentModal({
     setTimeout(() => {
       onPaymentSuccess({ txHash: res.txHash, otpCode: otp, method });
     }, 2400);
+  };
+
+  const handlePollarPayment = async () => {
+    if (!isAuthenticated) {
+      openLoginModal();
+      return;
+    }
+    if (!POLLAR_TREASURY_ADDRESS) {
+      setPollarError('Falta configurar la wallet de tesorería de Pollar (NEXT_PUBLIC_POLLAR_TREASURY_ADDRESS).');
+      return;
+    }
+
+    setPollarError(null);
+    setPollarPaying(true);
+    try {
+      const outcome = await runTx('payment', {
+        destination: POLLAR_TREASURY_ADDRESS,
+        amount: totalEscrowUsdc,
+        asset: { type: 'credit_alphanum4', code: 'USDC', issuer: POLLAR_USDC_ISSUER },
+      });
+
+      if (outcome.status === 'error') {
+        throw new Error(outcome.message || outcome.details || 'La transacción fue rechazada por la red Stellar.');
+      }
+
+      const otp = Math.floor(100000 + Math.random() * 900000).toString();
+      setPaidSuccessData({ txHash: outcome.hash, otp });
+      setTimeout(() => {
+        onPaymentSuccess({ txHash: outcome.hash, otpCode: otp, method: 'pollar_stellar_usdc' });
+      }, 2400);
+    } catch (error: any) {
+      setPollarError(error?.message || 'No se pudo completar el pago con Pollar. Verifica tu saldo de USDC.');
+    } finally {
+      setPollarPaying(false);
+    }
   };
 
   const handleSimulatePhysicalTap = () => {
@@ -243,7 +285,7 @@ export function PaymentModal({
         ) : (
           <>
             {/* Exclusive Tangem Tabs */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '6px', marginBottom: '16px' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '6px', marginBottom: '16px' }}>
               <button
                 type="button"
                 onClick={() => { setActiveTab('tap'); setTapState('idle'); }}
@@ -264,9 +306,17 @@ export function PaymentModal({
                 type="button"
                 onClick={() => { setActiveTab('demo'); setTapState('idle'); }}
                 className={`btn btn-sm btn-pressable ${activeTab === 'demo' ? 'btn-gold' : 'btn-ghost'}`}
-                style={{ fontSize: '0.78rem' }}
+                style={{ fontSize: '0.75rem', padding: '8px 4px' }}
               >
-                <Key size={13} /> Firma Rápida EAL6+
+                <Key size={13} /> Firma Rápida
+              </button>
+              <button
+                type="button"
+                onClick={() => { setActiveTab('pollar'); setPollarError(null); }}
+                className={`btn btn-sm btn-pressable ${activeTab === 'pollar' ? 'btn-primary' : 'btn-ghost'}`}
+                style={{ fontSize: '0.75rem', padding: '8px 4px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '5px' }}
+              >
+                <Coins size={13} /> Pollar (Stellar)
               </button>
             </div>
 
@@ -473,6 +523,73 @@ export function PaymentModal({
                   <Lock size={16} />
                   ⚡ Firmar & Custodiar en Escrow (${totalEscrowUsdc} USDC)
                 </button>
+              </div>
+            )}
+
+            {/* TAB 4: PAGO REAL CON POLLAR (STELLAR) */}
+            {activeTab === 'pollar' && (
+              <div>
+                <div style={{
+                  padding: '14px',
+                  background: 'rgba(0,93,180,0.08)',
+                  border: '1px solid rgba(0,93,180,0.3)',
+                  borderRadius: '12px',
+                  marginBottom: '16px',
+                  fontSize: '0.82rem',
+                  color: 'var(--text-secondary)',
+                  lineHeight: 1.45
+                }}>
+                  <div style={{ fontWeight: 700, color: '#3fa9f5', marginBottom: '4px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <Coins size={15} /> Pago real en USDC vía Stellar (Pollar)
+                  </div>
+                  A diferencia de las otras opciones, esta ejecuta una <strong>transacción real</strong> en la red Stellar usando tu wallet de Pollar — no es una simulación.
+                </div>
+
+                {!isAuthenticated ? (
+                  <button
+                    type="button"
+                    onClick={handlePollarPayment}
+                    className="btn btn-primary btn-pressable btn-block"
+                    style={{ padding: '13px', fontSize: '0.92rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}
+                  >
+                    <LogIn size={16} />
+                    Iniciar sesión con Pollar para pagar
+                  </button>
+                ) : (
+                  <>
+                    <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginBottom: '10px', fontFamily: 'monospace' }}>
+                      Wallet conectada: {wallet?.address ? `${wallet.address.slice(0, 8)}...${wallet.address.slice(-6)}` : '—'}
+                    </div>
+                    <button
+                      type="button"
+                      onClick={handlePollarPayment}
+                      disabled={pollarPaying}
+                      className="btn btn-primary btn-pressable btn-block"
+                      style={{ padding: '13px', fontSize: '0.92rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', opacity: pollarPaying ? 0.7 : 1 }}
+                    >
+                      {pollarPaying ? <RefreshCw size={16} className="spin" /> : <Coins size={16} />}
+                      {pollarPaying ? 'Enviando pago en Stellar...' : `Pagar ${totalEscrowUsdc} USDC con Pollar`}
+                    </button>
+                  </>
+                )}
+
+                {pollarError && (
+                  <div style={{
+                    marginTop: '10px',
+                    padding: '10px 12px',
+                    background: 'rgba(239,68,68,0.1)',
+                    border: '1px solid rgba(239,68,68,0.3)',
+                    borderRadius: '8px',
+                    fontSize: '0.75rem',
+                    color: '#f87171',
+                    display: 'flex',
+                    alignItems: 'flex-start',
+                    gap: '6px',
+                  }}>
+                    <AlertTriangle size={14} style={{ flexShrink: 0, marginTop: '1px' }} />
+                    {pollarError}
+                  </div>
+                )}
               </div>
             )}
           </>
