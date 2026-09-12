@@ -1,0 +1,11 @@
+{
+  "network": "avalancheMainnet",
+  "chainId": 43114,
+  "deployer": "0x53a97d2f0DAE06cDE58a89bEEb0FbcA98Cf98ad8",
+  "AyniEscrow": "0x7A9fe51c8688281Ed66e0A98401B46a277c86D80",
+  "USDC": "0xB97EF9Ef8734C71904D8002F8b6Bc66Dd9c48a6E",
+  "treasury": "0x53a97d2f0DAE06cDE58a89bEEb0FbcA98Cf98ad8",
+  "reserve": "0x53a97d2f0DAE06cDE58a89bEEb0FbcA98Cf98ad8",
+  "aiOracle": "0x53a97d2f0DAE06cDE58a89bEEb0FbcA98Cf98ad8",
+  "deployedAt": "2026-09-12T17:28:58.344Z"
+}

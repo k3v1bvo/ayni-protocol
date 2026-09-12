@@ -1087,14 +1087,7 @@ export function InteractiveWorldRadar() {
         onNextRoute={handleNextRoute}
       />
 
-      {/* Mini HUD flotante al bajar */}
-      {isScrolledPast && (
-        <MiniFlightHUD
-          activeRouteId={activeRoute.id}
-          flightProgress={flightProgress}
-          onNextRoute={handleNextRoute}
-        />
-      )}
+      {/* Mini HUD flotante al bajar — desactivado por pedido de diseño, se conserva el componente por si se retoma */}
     </>
   );
 }
