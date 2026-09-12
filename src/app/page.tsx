@@ -222,21 +222,21 @@ export default function LandingPage() {
             ))}
           </nav>
 
-          <div style={{ display: 'flex', gap: '10px', alignItems: 'center', flexShrink: 0 }}>
+          <div className="landing-header-actions" style={{ display: 'flex', gap: '10px', alignItems: 'center', flexShrink: 0 }}>
             {/* Pollar: wallet Stellar con login social (Google) + pagos USDC */}
             <WalletButton />
 
             {user ? (
               <Link
                 href="/dashboard"
-                className="btn btn-primary btn-sm"
+                className="btn btn-primary btn-sm hide-on-small-mobile"
                 style={{ display: 'flex', alignItems: 'center', gap: '6px', textDecoration: 'none' }}
               >
                 <span>Ir al Dashboard ({user.full_name?.split(' ')[0] || user.role})</span>
                 <ChevronRight size={14} />
               </Link>
             ) : (
-              <>
+              <span className="hide-on-small-mobile" style={{ display: 'flex', gap: '10px' }}>
                 <Link
                   href="/auth?mode=signin"
                   className="btn btn-ghost btn-sm"
@@ -251,7 +251,7 @@ export default function LandingPage() {
                 >
                   Crear Cuenta
                 </Link>
-              </>
+              </span>
             )}
           </div>
         </div>
