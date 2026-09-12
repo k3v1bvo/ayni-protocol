@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSupabaseServerClient } from '@/lib/supabase/server';
+import { sendEmail } from '@/lib/email/mailer';
+import { getOtpDeliveryEmail } from '@/lib/email/templates';
 
 /**
  * GET /api/orders?client_id=...&traveler_id=...&store_owner_id=...&status=...
@@ -114,6 +116,38 @@ export async function POST(req: NextRequest) {
     if (error) {
       return NextResponse.json({ error: error.message }, { status: 400 });
     }
+
+    // Despacho asíncrono de correo electrónico con el código OTP
+    (async () => {
+      try {
+        const { data: clientProfile } = await supabase
+          .from('profiles')
+          .select('email, full_name')
+          .eq('id', client_id)
+          .single();
+
+        const recipientEmail = clientProfile?.email || body.client_email;
+        if (recipientEmail && recipientEmail.includes('@')) {
+          const emailData = getOtpDeliveryEmail({
+            recipientName: clientProfile?.full_name || 'Comprador AYNI',
+            orderCode,
+            otpCode: otp,
+            productTitle: String(description).slice(0, 100),
+            travelerName: 'Viajero Asignado AYNI',
+            escrowAmountUsd: totalEscrow,
+          });
+
+          await sendEmail({
+            to: recipientEmail,
+            subject: emailData.subject,
+            html: emailData.html,
+            text: emailData.text,
+          });
+        }
+      } catch (emailErr) {
+        console.warn('[EMAIL NOTIFICATION NON-BLOCKING ERROR]:', emailErr);
+      }
+    })();
 
     return NextResponse.json({ order, otp_code: otp }, { status: 201 });
   } catch (err) {
