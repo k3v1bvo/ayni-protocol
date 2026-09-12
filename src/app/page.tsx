@@ -222,9 +222,11 @@ export default function LandingPage() {
             ))}
           </nav>
 
-          <div className="landing-header-actions" style={{ display: 'flex', gap: '10px', alignItems: 'center', flexShrink: 0 }}>
+          <div className="landing-header-actions" style={{ display: 'flex', gap: '10px', alignItems: 'center', flexShrink: 0, minWidth: 0 }}>
             {/* Pollar: wallet Stellar con login social (Google) + pagos USDC */}
-            <WalletButton />
+            <div className="pollar-wallet-btn-wrap">
+              <WalletButton />
+            </div>
 
             {user ? (
               <Link

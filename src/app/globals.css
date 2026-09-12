@@ -1257,6 +1257,15 @@ button:focus-visible, .btn:focus-visible {
     display: none; /* Keep clean on ultra-narrow phones */
   }
 
+  /* WalletButton de Pollar es un componente externo que no podemos re-dimensionar
+     con clases propias — se achica con un transform (funciona sin importar sus
+     estilos internos) para que quepa en telefonos angostos reales. */
+  .pollar-wallet-btn-wrap {
+    transform: scale(0.72);
+    transform-origin: right center;
+    margin-left: -18px;
+  }
+
   .product-grid {
     grid-template-columns: 1fr !important;
     gap: 14px;
