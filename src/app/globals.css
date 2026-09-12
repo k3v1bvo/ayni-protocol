@@ -1257,6 +1257,13 @@ button:focus-visible, .btn:focus-visible {
     display: none; /* Keep clean on ultra-narrow phones */
   }
 
+  /* Selector de rol del dashboard: la etiqueta pasa a su propia linea para que
+     los 4 botones de rol tengan espacio para envolver en varias filas en vez
+     de aplastarse en una sola linea ilegible */
+  .role-switcher-label {
+    flex-basis: 100%;
+  }
+
   /* WalletButton de Pollar es un componente externo que no podemos re-dimensionar
      con clases propias — se achica con un transform (funciona sin importar sus
      estilos internos) para que quepa en telefonos angostos reales. */
@@ -1600,6 +1607,17 @@ button:focus-visible, .btn:focus-visible, a:focus-visible, input:focus-visible {
   display: flex;
   flex-direction: column;
   justify-content: center;
+  min-width: 0;
+}
+
+@media (max-width: 480px) {
+  .auth-page-wrapper {
+    padding: 20px 10px;
+  }
+
+  .auth-form-panel {
+    padding: 28px 18px;
+  }
 }
 
 .auth-tab-pill {

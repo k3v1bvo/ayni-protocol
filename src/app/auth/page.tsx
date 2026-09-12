@@ -380,7 +380,7 @@ function AuthContent() {
                   <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '8px' }}>
                     Selecciona tu Rol Principal
                   </label>
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '10px' }}>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(95px, 1fr))', gap: '10px' }}>
                     {[
                       { id: 'client', label: 'Cliente', desc: 'Envía encargos', icon: ShoppingBag },
                       { id: 'traveler', label: 'Viajero', desc: 'Lleva maletas', icon: Plane },

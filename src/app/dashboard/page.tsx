@@ -144,13 +144,14 @@ export default function DashboardPage() {
         <div style={{
           display: 'flex',
           alignItems: 'center',
+          flexWrap: 'wrap',
           gap: '8px',
           background: 'rgba(5, 8, 16, 0.6)',
-          padding: '6px 10px',
+          padding: '8px 10px',
           borderRadius: '14px',
           border: '1px solid rgba(255, 255, 255, 0.08)',
         }}>
-          <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)', fontWeight: 600, marginRight: '4px' }}>
+          <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)', fontWeight: 600, marginRight: '4px' }} className="role-switcher-label">
             Cambiar Perfil / Rol:
           </span>
           <button
