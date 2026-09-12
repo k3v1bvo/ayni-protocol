@@ -31,10 +31,12 @@ function getTransporter() {
   const host = process.env.SMTP_HOST || 'smtp.gmail.com';
   const port = parseInt(process.env.SMTP_PORT || '465', 10);
   const secure = process.env.SMTP_SECURE === 'true' || port === 465;
-  const user = process.env.SMTP_USER;
-  const pass = process.env.SMTP_PASS;
+  const user = process.env.SMTP_USER?.trim();
+  // Strip spaces from Google App Password (e.g. 'xxxx xxxx xxxx xxxx' -> 'xxxxxxxxxxxxxxxx')
+  const pass = process.env.SMTP_PASS?.replace(/\s+/g, '').trim();
 
   return nodemailer.createTransport({
+    service: 'gmail', // Optimización nativa de Nodemailer para Google Workspace / Gmail
     host,
     port,
     secure,
@@ -42,9 +44,8 @@ function getTransporter() {
       user,
       pass,
     },
-    // Compatibilidad TLS
     tls: {
-      rejectUnauthorized: process.env.NODE_ENV === 'production',
+      rejectUnauthorized: false, // Evita bloqueos por certificados intermedios
     },
   });
 }
