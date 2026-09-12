@@ -86,7 +86,7 @@ Responde estrictamente en JSON con esta estructura exacta:
 }`;
 
     // 3. Llamar a la API de Gemini 1.5 Flash Multimodal
-    const geminiRes = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${geminiApiKey}`, {
+    const geminiRes = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key=${geminiApiKey}`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

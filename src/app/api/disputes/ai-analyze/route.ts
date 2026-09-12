@@ -125,7 +125,7 @@ Responde estrictamente en formato JSON con la siguiente estructura:
         const parts: any[] = [{ text: prompt }];
         if (imagePart) parts.push(imagePart);
 
-        const geminiRes = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${geminiApiKey}`, {
+        const geminiRes = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key=${geminiApiKey}`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({

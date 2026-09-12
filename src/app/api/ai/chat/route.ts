@@ -145,7 +145,7 @@ export async function POST(req: NextRequest) {
         const contents = buildGeminiContents(messages, userRole, currentOrderCode, imageUrl, imageBase64, imageMime);
 
         const geminiRes = await fetchWithRetry(
-          `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${geminiApiKey}`,
+          `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key=${geminiApiKey}`,
           {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
