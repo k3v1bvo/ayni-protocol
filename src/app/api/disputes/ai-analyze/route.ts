@@ -77,30 +77,59 @@ export async function POST(req: NextRequest) {
     const geminiApiKey = process.env.GEMINI_API_KEY;
     if (geminiApiKey) {
       try {
+        // Descarga la primera foto de evidencia (si existe) para que la IA la vea de verdad,
+        // en vez de razonar solo con el texto que escribió el usuario.
+        const evidenceImageUrl: string | undefined = evidence_images?.[0];
+        let imagePart: { inlineData: { mimeType: string; data: string } } | null = null;
+
+        if (evidenceImageUrl) {
+          try {
+            const imgRes = await fetch(evidenceImageUrl);
+            if (imgRes.ok) {
+              const arrayBuffer = await imgRes.arrayBuffer();
+              const mimeType = (imgRes.headers.get('content-type') || 'image/jpeg').split(';')[0];
+              imagePart = {
+                inlineData: {
+                  mimeType,
+                  data: Buffer.from(arrayBuffer).toString('base64'),
+                },
+              };
+            }
+          } catch (imgErr) {
+            console.warn('[Disputes AI] No se pudo descargar la foto de evidencia:', imgErr);
+          }
+        }
+
         const prompt = `Actúa como el oráculo pericial descentralizado de AYNI Protocol (ETH Bolivia 2026).
 Evalúa la siguiente disputa comercial:
 - Motivo: ${dispute_reason}
-- Evidencia: ${evidence_description}
+- Evidencia escrita: ${evidence_description}
 - Monto en custodia: $${amount_usd} USDC
 - Comprador: ${buyer_name || 'Comprador'}
 - Transportista: ${traveler_name || 'Transportista'}
+${imagePart ? '\nSe adjunta una fotografía real de evidencia. Analízala con atención: describe exactamente qué se ve (daños, roturas, estado del empaque, coincidencia con lo declarado) y usa eso como base principal del veredicto, no solo el texto.' : '\nNo se adjuntó ninguna foto de evidencia legible — basa el veredicto únicamente en el texto y dilo explícitamente en el razonamiento.'}
 
 Responde estrictamente en formato JSON con la siguiente estructura:
 {
   "verdict": "buyer_wins" | "seller_wins" | "split_50_50",
   "confidenceScore": "XX.X%",
-  "rationale": "Explicación pericial jurídica y de smart contract en 2-3 frases.",
+  "photoMatchesClaim": true | false | null,
+  "photoFindings": "Qué se observa exactamente en la foto (o null si no había foto).",
+  "rationale": "Explicación pericial jurídica y de smart contract en 2-3 frases, mencionando explícitamente si la foto respalda o contradice el reclamo.",
   "recommendedPayout": {
     "buyerAmount": number,
     "sellerAmount": number
   }
 }`;
 
+        const parts: any[] = [{ text: prompt }];
+        if (imagePart) parts.push(imagePart);
+
         const geminiRes = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${geminiApiKey}`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            contents: [{ parts: [{ text: prompt }] }],
+            contents: [{ parts }],
             generationConfig: { responseMimeType: 'application/json' }
           })
         });
@@ -116,7 +145,10 @@ Responde estrictamente en formato JSON con la siguiente estructura:
               confidenceScore: parsed.confidenceScore || `${confidence}%`,
               rationale: parsed.rationale || rationale,
               recommendedPayout: parsed.recommendedPayout || recommendedPayout,
-              oracleProvider: 'Google Gemini 1.5 Flash + Chainlink Functions',
+              photoMatchesClaim: parsed.photoMatchesClaim ?? null,
+              photoFindings: parsed.photoFindings ?? null,
+              photoAnalyzed: Boolean(imagePart),
+              oracleProvider: 'Google Gemini 1.5 Flash Vision + Chainlink Functions',
               executionTimeMs: 820,
             });
           }

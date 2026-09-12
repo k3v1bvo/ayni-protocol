@@ -101,6 +101,9 @@ export default function DisputesPage() {
     rationale: string;
     oracleProvider: string;
     recommendedPayout?: { buyerAmount: number; sellerAmount: number };
+    photoMatchesClaim?: boolean | null;
+    photoFindings?: string | null;
+    photoAnalyzed?: boolean;
   } | null>(null);
 
   const handleRunAiAudit = async () => {
@@ -124,7 +127,10 @@ export default function DisputesPage() {
       if (res.ok) {
         const data = await res.json();
         setAiVerdict(data);
-        setResolutionNote(`[${data.oracleProvider}] Dictamen: ${data.rationale}`);
+        const photoNote = data.photoAnalyzed
+          ? ` Foto de evidencia: ${data.photoMatchesClaim ? 'SÍ coincide' : 'NO coincide'} con lo declarado — ${data.photoFindings || ''}`
+          : '';
+        setResolutionNote(`[${data.oracleProvider}] Dictamen: ${data.rationale}${photoNote}`);
       }
     } catch (e) {
       console.error('Error running AI audit:', e);
@@ -535,7 +541,20 @@ export default function DisputesPage() {
                         <span style={{ fontSize: '0.68rem', color: 'var(--text-muted)' }}>
                           Motor: {aiVerdict.oracleProvider}
                         </span>
+                        {aiVerdict.photoAnalyzed && (
+                          <span
+                            className={aiVerdict.photoMatchesClaim ? 'badge badge-emerald' : 'badge badge-gold'}
+                            style={{ fontSize: '0.72rem' }}
+                          >
+                            📷 Foto: {aiVerdict.photoMatchesClaim ? 'SÍ coincide' : 'NO coincide'}
+                          </span>
+                        )}
                       </div>
+                      {aiVerdict.photoFindings && (
+                        <p style={{ margin: '0 0 6px', fontSize: '0.78rem', color: 'var(--text-secondary)', fontStyle: 'italic' }}>
+                          Lo que ve la IA en la foto: {aiVerdict.photoFindings}
+                        </p>
+                      )}
                       <p style={{ margin: '0 0 6px', color: 'var(--text-primary)' }}>
                         {aiVerdict.rationale}
                       </p>
