@@ -190,12 +190,12 @@ export default function SmartContractsStudioPage() {
         </div>
 
         {/* Tabs */}
-        <div style={{ display: 'flex', gap: '8px', marginBottom: '20px' }}>
+        <div style={{ display: 'flex', gap: '8px', marginBottom: '20px', overflowX: 'auto', WebkitOverflowScrolling: 'touch', paddingBottom: '4px' }}>
           <button
             type="button"
             onClick={() => setActiveTab('clauses')}
             className={`btn btn-sm btn-pressable ${activeTab === 'clauses' ? 'btn-primary' : 'btn-ghost'}`}
-            style={{ display: 'flex', alignItems: 'center', gap: '6px' }}
+            style={{ display: 'flex', alignItems: 'center', gap: '6px', flexShrink: 0, whiteSpace: 'nowrap' }}
           >
             <Sliders size={14} /> Configurador de Cláusulas
           </button>
@@ -203,7 +203,7 @@ export default function SmartContractsStudioPage() {
             type="button"
             onClick={() => setActiveTab('code')}
             className={`btn btn-sm btn-pressable ${activeTab === 'code' ? 'btn-primary' : 'btn-ghost'}`}
-            style={{ display: 'flex', alignItems: 'center', gap: '6px' }}
+            style={{ display: 'flex', alignItems: 'center', gap: '6px', flexShrink: 0, whiteSpace: 'nowrap' }}
           >
             <FileCode size={14} /> Código Solidity (^0.8.20)
           </button>
@@ -211,7 +211,7 @@ export default function SmartContractsStudioPage() {
             type="button"
             onClick={() => setActiveTab('audit')}
             className={`btn btn-sm btn-pressable ${activeTab === 'audit' ? 'btn-primary' : 'btn-ghost'}`}
-            style={{ display: 'flex', alignItems: 'center', gap: '6px' }}
+            style={{ display: 'flex', alignItems: 'center', gap: '6px', flexShrink: 0, whiteSpace: 'nowrap' }}
           >
             <ShieldCheck size={14} /> Auditoría & Seguridad
           </button>
