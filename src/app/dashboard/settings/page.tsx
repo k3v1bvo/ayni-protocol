@@ -11,6 +11,7 @@ import {
   Phone, MapPin, Globe, Linkedin, MessageCircle, FileText, Camera,
   AlertTriangle, Loader2
 } from 'lucide-react';
+import { EmailNotificationTester } from '@/components/dashboard/EmailNotificationTester';
 
 export default function ProfilePage() {
   const { user, role } = useAuth();
@@ -392,6 +393,9 @@ export default function ProfilePage() {
             </div>
           </div>
         </div>
+
+        {/* Panel de Diagnóstico & Notificaciones Google SMTP */}
+        <EmailNotificationTester />
       </div>
     </DashboardLayout>
   );
