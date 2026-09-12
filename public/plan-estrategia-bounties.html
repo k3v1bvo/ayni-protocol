@@ -1,0 +1,830 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AYNI — Plan de Implementación Multi-Bounty (ETH Bolivia 2026)</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary: #0284c7;
+      --primary-dark: #0369a1;
+      --accent: #f59e0b;
+      --success: #10b981;
+      --danger: #ef4444;
+      --purple: #8b5cf6;
+      --bg: #ffffff;
+      --surface: #f8fafc;
+      --border: #e2e8f0;
+      --text: #0f172a;
+      --text-muted: #64748b;
+      --card-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.05), 0 2px 4px -2px rgb(0 0 0 / 0.05);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #f1f5f9;
+      color: var(--text);
+      line-height: 1.55;
+      font-size: 14px;
+      padding: 24px;
+    }
+
+    .toolbar {
+      max-width: 960px;
+      margin: 0 auto 20px auto;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: #0f172a;
+      color: #fff;
+      padding: 14px 24px;
+      border-radius: 12px;
+      box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1);
+    }
+
+    .toolbar-title {
+      font-weight: 700;
+      font-size: 15px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .btn-print {
+      background: #38bdf8;
+      color: #0f172a;
+      font-weight: 700;
+      padding: 8px 18px;
+      border-radius: 8px;
+      border: none;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+      transition: all 0.2s ease;
+    }
+
+    .btn-print:hover {
+      background: #7dd3fc;
+      transform: translateY(-1px);
+    }
+
+    .page-container {
+      max-width: 960px;
+      margin: 0 auto;
+      background: var(--bg);
+      padding: 44px 52px;
+      border-radius: 16px;
+      box-shadow: 0 10px 25px -5px rgba(0,0,0,0.08);
+      border: 1px solid var(--border);
+    }
+
+    /* HEADER */
+    .doc-header {
+      border-bottom: 2px solid #0f172a;
+      padding-bottom: 20px;
+      margin-bottom: 28px;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 20px;
+    }
+
+    .brand-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: #0f172a;
+      color: #38bdf8;
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      padding: 4px 10px;
+      border-radius: 6px;
+      margin-bottom: 12px;
+    }
+
+    h1 {
+      font-size: 26px;
+      font-weight: 800;
+      color: #0f172a;
+      line-height: 1.25;
+      letter-spacing: -0.02em;
+    }
+
+    .doc-subtitle {
+      color: var(--text-muted);
+      font-size: 14px;
+      margin-top: 6px;
+      font-weight: 500;
+    }
+
+    .meta-box {
+      background: #fff;
+      border: 1px solid #cbd5e1;
+      padding: 12px 18px;
+      border-radius: 10px;
+      text-align: right;
+      min-width: 220px;
+    }
+
+    .meta-item {
+      font-size: 11px;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      font-weight: 600;
+      letter-spacing: 0.05em;
+    }
+
+    .meta-value {
+      font-size: 13px;
+      font-weight: 700;
+      color: #0f172a;
+      margin-bottom: 6px;
+    }
+
+    /* URGENCY ALERT */
+    .alert-deadline {
+      background: #fef2f2;
+      border: 1.5px solid #f87171;
+      border-left: 6px solid #dc2626;
+      border-radius: 10px;
+      padding: 16px 20px;
+      margin-bottom: 28px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .alert-icon {
+      font-size: 28px;
+      line-height: 1;
+    }
+
+    .alert-content h3 {
+      font-size: 15px;
+      font-weight: 800;
+      color: #991b1b;
+      margin-bottom: 2px;
+    }
+
+    .alert-content p {
+      font-size: 13px;
+      color: #7f1d1d;
+      margin: 0;
+    }
+
+    /* SECTION HEADERS */
+    h2 {
+      font-size: 18px;
+      font-weight: 800;
+      color: #0f172a;
+      border-bottom: 1.5px solid var(--border);
+      padding-bottom: 8px;
+      margin-top: 32px;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    h3 {
+      font-size: 15px;
+      font-weight: 700;
+      color: #1e293b;
+      margin-top: 18px;
+      margin-bottom: 8px;
+    }
+
+    p {
+      margin-bottom: 12px;
+      color: #334155;
+    }
+
+    /* TABLES */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 16px 0 24px 0;
+      font-size: 13px;
+    }
+
+    th {
+      background: #0f172a;
+      color: #f8fafc;
+      text-align: left;
+      padding: 10px 14px;
+      font-weight: 600;
+      letter-spacing: 0.03em;
+      font-size: 12px;
+    }
+
+    th:first-child { border-top-left-radius: 8px; }
+    th:last-child { border-top-right-radius: 8px; }
+
+    td {
+      padding: 10px 14px;
+      border-bottom: 1px solid var(--border);
+      vertical-align: middle;
+      color: #334155;
+    }
+
+    tr:nth-child(even) td {
+      background: #f8fafc;
+    }
+
+    /* BADGES */
+    .badge {
+      display: inline-block;
+      padding: 3px 8px;
+      border-radius: 6px;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.02em;
+    }
+
+    .badge-high { background: #fee2e2; color: #991b1b; border: 1px solid #fca5a5; }
+    .badge-mid { background: #fef3c7; color: #92400e; border: 1px solid #fde68a; }
+    .badge-low { background: #dcfce7; color: #166534; border: 1px solid #86efac; }
+    .badge-purple { background: #ede9fe; color: #5b21b6; border: 1px solid #c4b5fd; }
+    .badge-blue { background: #e0f2fe; color: #0369a1; border: 1px solid #7dd3fc; }
+
+    /* CARDS */
+    .bounty-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 16px;
+      margin: 18px 0;
+    }
+
+    .bounty-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 18px 22px;
+      break-inside: avoid;
+      page-break-inside: avoid;
+    }
+
+    .bounty-card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 10px;
+    }
+
+    .bounty-title {
+      font-size: 16px;
+      font-weight: 800;
+      color: #0f172a;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .bounty-prize {
+      font-weight: 800;
+      color: #047857;
+      font-size: 15px;
+      background: #ecfdf5;
+      padding: 4px 12px;
+      border-radius: 20px;
+      border: 1px solid #a7f3d0;
+    }
+
+    .req-list {
+      list-style: none;
+      margin: 10px 0;
+    }
+
+    .req-list li {
+      position: relative;
+      padding-left: 22px;
+      margin-bottom: 6px;
+      font-size: 12.5px;
+      color: #334155;
+    }
+
+    .req-list li::before {
+      content: "✓";
+      position: absolute;
+      left: 0;
+      color: #10b981;
+      font-weight: 800;
+    }
+
+    .code-block {
+      background: #0f172a;
+      color: #38bdf8;
+      font-family: 'JetBrains Mono', monospace;
+      padding: 10px 14px;
+      border-radius: 8px;
+      font-size: 12px;
+      margin: 10px 0;
+      overflow-x: auto;
+    }
+
+    /* TIMELINE */
+    .block-card {
+      background: #fff;
+      border: 1.5px solid #cbd5e1;
+      border-left: 5px solid #0284c7;
+      border-radius: 10px;
+      padding: 14px 18px;
+      margin-bottom: 14px;
+      break-inside: avoid;
+      page-break-inside: avoid;
+    }
+
+    .block-card.block-now {
+      border-left-color: #dc2626;
+      background: #fffafa;
+    }
+
+    .block-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+
+    .block-title {
+      font-size: 14px;
+      font-weight: 800;
+      color: #0f172a;
+    }
+
+    .task-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 6px 0;
+      border-bottom: 1px dashed #e2e8f0;
+      font-size: 12.5px;
+    }
+
+    .task-item:last-child {
+      border-bottom: none;
+    }
+
+    .task-name {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: #1e293b;
+    }
+
+    .checkbox-box {
+      width: 14px;
+      height: 14px;
+      border: 1.5px solid #94a3b8;
+      border-radius: 3px;
+      display: inline-block;
+    }
+
+    /* DIAGRAM */
+    .architecture-box {
+      background: #0f172a;
+      color: #e2e8f0;
+      padding: 20px;
+      border-radius: 12px;
+      margin: 18px 0;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      line-height: 1.4;
+      white-space: pre;
+      overflow-x: auto;
+      border: 1px solid #334155;
+      break-inside: avoid;
+      page-break-inside: avoid;
+    }
+
+    /* QUESTIONS */
+    .action-box {
+      background: #eff6ff;
+      border: 1px solid #bfdbfe;
+      border-radius: 10px;
+      padding: 16px 20px;
+      margin-bottom: 12px;
+      break-inside: avoid;
+      page-break-inside: avoid;
+    }
+
+    .action-box-title {
+      font-size: 13.5px;
+      font-weight: 800;
+      color: #1e40af;
+      margin-bottom: 4px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .action-box-desc {
+      font-size: 12px;
+      color: #1e3a8a;
+      margin: 0;
+    }
+
+    /* FOOTER */
+    .doc-footer {
+      border-top: 1px solid var(--border);
+      margin-top: 36px;
+      padding-top: 18px;
+      display: flex;
+      justify-content: space-between;
+      color: var(--text-muted);
+      font-size: 11px;
+    }
+
+    /* PRINT SPECIFIC STYLES */
+    @media print {
+      body {
+        background: #fff;
+        padding: 0;
+        font-size: 11.5pt;
+        color: #000;
+      }
+
+      .toolbar {
+        display: none !important;
+      }
+
+      .page-container {
+        padding: 0;
+        max-width: 100%;
+        border: none;
+        box-shadow: none;
+        background: transparent;
+      }
+
+      .bounty-card, .block-card, .architecture-box, .action-box, table {
+        break-inside: avoid;
+        page-break-inside: avoid;
+      }
+
+      .code-block, .architecture-box {
+        background: #f8fafc !important;
+        color: #0f172a !important;
+        border: 1px solid #cbd5e1 !important;
+      }
+
+      th {
+        background: #e2e8f0 !important;
+        color: #0f172a !important;
+      }
+
+      a {
+        color: #0f172a;
+        text-decoration: underline;
+      }
+
+      @page {
+        size: A4;
+        margin: 1.2cm 1.5cm;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Floating toolbar (hidden in print) -->
+  <div class="toolbar">
+    <div class="toolbar-title">
+      <span>📄 Plan de Implementación Estratégico · AYNI Protocol</span>
+    </div>
+    <div style="display: flex; gap: 10px;">
+      <a href="/Estrategia_MultiBounty_AYNI_ETHBolivia2026.pdf" download class="btn-print" style="background: #10b981; color: #fff; text-decoration: none;">
+        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
+        </svg>
+        Descargar Archivo PDF
+      </a>
+      <button class="btn-print" onclick="window.print()">
+        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M6 9V2h12v7M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2m-12 0h12m-12 0v4h12v-4"></path>
+        </svg>
+        Imprimir / Guardar
+      </button>
+    </div>
+  </div>
+
+  <div class="page-container">
+    <!-- Header -->
+    <div class="doc-header">
+      <div>
+        <div class="brand-tag">AYNI PROTOCOL · HACKATHON BLUEPRINT</div>
+        <h1>Estrategia Multi-Bounty</h1>
+        <div class="doc-subtitle">ETH Bolivia Buildathon 2026 · Cochabamba, 11 al 13 de Septiembre</div>
+      </div>
+      <div class="meta-box">
+        <div class="meta-item">Bolsa Objetivo</div>
+        <div class="meta-value" style="color: #059669; font-size: 16px;">$2,050 USD + Beca $800</div>
+        <div class="meta-item">Tiempo Restante</div>
+        <div class="meta-value" style="color: #dc2626;">~36 Horas</div>
+      </div>
+    </div>
+
+    <!-- Deadline Alert -->
+    <div class="alert-deadline">
+      <div class="alert-icon">⏳</div>
+      <div class="alert-content">
+        <h3>DEADLINE CRÍTICO: 13 de Septiembre, 8:30 AM (Hora Bolivia)</h3>
+        <p>Regla de oro verificada: <strong>Se permite competir en múltiples bounties simultáneamente con el mismo proyecto.</strong> Optimizamos esfuerzos reutilizando el smart contract y el front-end de AYNI en 6 frentes.</p>
+      </div>
+    </div>
+
+    <!-- Resumen Ejecutivo -->
+    <h2>1. Matriz de Bounties & Asignación de Recursos</h2>
+    <p>AYNI aplica a 6 tracks aprovechando su arquitectura nativa: Smart Contracts EVM, pagos con stablecoins, IA multimodal y comercio transfronterizo.</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Track / Protocolo</th>
+          <th>Bolsa Máx</th>
+          <th>Alineación AYNI</th>
+          <th>Prioridad</th>
+          <th>Esfuerzo Est.</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>💳 Pollar (Stellar)</strong></td>
+          <td>$200 ($120 / $80)</td>
+          <td><span class="badge badge-high">100% Nativo</span></td>
+          <td><span class="badge badge-high">Alta</span></td>
+          <td>~3 Horas</td>
+        </tr>
+        <tr>
+          <td><strong>🔗 HSK Chain Mainnet</strong></td>
+          <td>$1,000 ($500 / $300 / $200)</td>
+          <td><span class="badge badge-blue">EVM Directo</span></td>
+          <td><span class="badge badge-high">Alta</span></td>
+          <td>~2 Horas</td>
+        </tr>
+        <tr>
+          <td><strong>✈️ Road to ShanhaiWoo (EAG)</strong></td>
+          <td>$800 Beca Shenzhen</td>
+          <td><span class="badge badge-purple">Web3 Destacado</span></td>
+          <td><span class="badge badge-high">Alta</span></td>
+          <td>30 Min (Setup)</td>
+        </tr>
+        <tr>
+          <td><strong>🔓 Unlock Protocol</strong></td>
+          <td>$250 / $150</td>
+          <td><span class="badge badge-mid">Token-Gating</span></td>
+          <td><span class="badge badge-mid">Media</span></td>
+          <td>~4 Horas</td>
+        </tr>
+        <tr>
+          <td><strong>🔺 Avalanche C-Chain</strong></td>
+          <td>$200</td>
+          <td><span class="badge badge-blue">EVM Directo</span></td>
+          <td><span class="badge badge-mid">Media</span></td>
+          <td>~2 Horas</td>
+        </tr>
+        <tr>
+          <td><strong>🐮 Vaquita Protocol</strong></td>
+          <td>$100</td>
+          <td><span class="badge badge-low">Rampa Fiat</span></td>
+          <td><span class="badge badge-low">Baja</span></td>
+          <td>TBD</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <!-- Detalle por Bounty -->
+    <h2>2. Hoja de Ruta Técnica por Bounty</h2>
+
+    <div class="bounty-grid">
+      <!-- Pollar -->
+      <div class="bounty-card">
+        <div class="bounty-card-header">
+          <div class="bounty-title">💳 1. Pollar Track — Pagos Reales en Mainnet</div>
+          <div class="bounty-prize">Premio: $200 USD</div>
+        </div>
+        <p><strong>Por qué es prioritario:</strong> Pollar busca aplicaciones reales que resuelvan problemas del día a día en Bolivia/Latam usando pagos en mainnet Stellar. AYNI soluciona el crowdshipping y remesas de compras internacionales.</p>
+        <ul class="req-list">
+          <li><strong>SDK:</strong> Envolver aplicación con <code>@pollar/react</code> mediante <code>PollarProvider</code>.</li>
+          <li><strong>Flujo:</strong> Integrar login social + wallet Stellar sin fricción para el usuario.</li>
+          <li><strong>Transacción Real:</strong> Ejecutar mínimo 1 transacción de pago real de 1 USDC en Stellar Mainnet.</li>
+          <li><strong>Entregable:</strong> Enviar formulario de acceso a mainnet, repo público, README y video de 3 minutos.</li>
+        </ul>
+        <div class="code-block">npm install @pollar/react @pollar/core</div>
+      </div>
+
+      <!-- HSK Chain -->
+      <div class="bounty-card">
+        <div class="bounty-card-header">
+          <div class="bounty-title">🔗 2. HSK Chain — Despliegue en Mainnet / Testnet</div>
+          <div class="bounty-prize">Premio: $1,000 USD</div>
+        </div>
+        <p><strong>El premio más grande:</strong> HSK Chain es 100% compatible con EVM. Nuestro smart contract <code>AyniEscrow.sol</code> está listo y no requiere modificaciones de sintaxis.</p>
+        <ul class="req-list">
+          <li><strong>Smart Contract:</strong> Compilar y desplegar <code>AyniEscrow.sol</code> en HSK Chain con Hardhat.</li>
+          <li><strong>Verificación:</strong> Verificar el código fuente en el block explorer oficial de HSK.</li>
+          <li><strong>Frontend:</strong> Agregar HSK RPC y Chain ID en la configuración de Wagmi/Viem de AYNI.</li>
+          <li><strong>⚠️ REQUISITO OBLIGATORIO:</strong> Doble postulación en Devfolio Ethereum Bolivia y Devfolio EAG Global.</li>
+        </ul>
+      </div>
+
+      <!-- Road to ShanhaiWoo -->
+      <div class="bounty-card">
+        <div class="bounty-card-header">
+          <div class="bounty-title">✈️ 3. Road to ShanhaiWoo — Beca $800 para Shenzhen</div>
+          <div class="bounty-prize">Beca: $800 USD</div>
+        </div>
+        <p><strong>Máximo retorno / Mínimo esfuerzo:</strong> No requiere código adicional específico. Se otorga al proyecto Web3 más destacado seleccionado por los jueces de EAG.</p>
+        <ul class="req-list">
+          <li>Postular proyecto en Devfolio EAG Global Buildathon: <em>Real-World Ethereum Applications</em>.</li>
+          <li>Destacar el impacto en comunidades andinas, remesas y oráculos de IA multimodal.</li>
+        </ul>
+      </div>
+
+      <!-- Unlock Protocol -->
+      <div class="bounty-card">
+        <div class="bounty-card-header">
+          <div class="bounty-title">🔓 4. Unlock Protocol — Portal Token-Gated</div>
+          <div class="bounty-prize">Premio: $250 / $150 USD</div>
+        </div>
+        <p>Creación de una ruta exclusiva <code>/dashboard/premium</code> para viajeros VIP y compradores frecuentes con reputación verificada onchain.</p>
+        <ul class="req-list">
+          <li>Desplegar contrato Lock en Base Sepolia o red EVM soportada por Unlock.</li>
+          <li>Instalar <code>@unlock-protocol/unlock.js</code> y verificar llaves con <code>hasValidKey()</code>.</li>
+          <li>Integrar checkout modal para adquisición de credenciales de viajero confiable.</li>
+        </ul>
+      </div>
+
+      <!-- Avalanche -->
+      <div class="bounty-card">
+        <div class="bounty-card-header">
+          <div class="bounty-title">🔺 5. Avalanche C-Chain — Despliegue EVM</div>
+          <div class="bounty-prize">Premio: $200 USD</div>
+        </div>
+        <p>Aprovechamiento de la compatibilidad EVM para tener redundancia multi-chain de custodia de fondos.</p>
+        <ul class="req-list">
+          <li>Desplegar <code>AyniEscrow.sol</code> en Avalanche Fuji Testnet o Avalanche C-Chain.</li>
+          <li>Verificar contrato en Snowtrace Explorer y conectar botón de red en el Header.</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Arquitectura -->
+    <h2>3. Arquitectura Multi-Chain Integrada</h2>
+    <div class="architecture-box">
+                                     ┌───────────────────────────────────┐
+                                     │           AYNI PROTOCOL           │
+                                     │    Plataforma P2P + Oráculo IA    │
+                                     └─────────────────┬─────────────────┘
+                                                       │
+                   ┌───────────────────────────────────┼───────────────────────────────────┐
+                   │                                   │                                   │
+         ┌─────────▼─────────┐               ┌─────────▼─────────┐               ┌─────────▼─────────┐
+         │   Base Layer 2    │               │     HSK Chain     │               │ Avalanche C-Chain │
+         │  (Cadena Nativa)  │               │   (Bounty $1,000) │               │   (Bounty $200)   │
+         │  AyniEscrow.sol   │               │  AyniEscrow.sol   │               │  AyniEscrow.sol   │
+         └─────────┬─────────┘               └─────────┬─────────┘               └─────────┬─────────┘
+                   │                                   │                                   │
+                   └───────────────────────────────────┼───────────────────────────────────┘
+                                                       │
+                                     ┌─────────────────┴─────────────────┐
+                                     │       Rieles Complementarios      │
+                                     ├───────────────────────────────────┤
+                                     │ • Pollar (Stellar): Pagos USDC    │
+                                     │ • Unlock: Membresías Token-Gated  │
+                                     │ • Gemini IA: Verificación de Foto │
+                                     └───────────────────────────────────┘
+    </div>
+
+    <!-- Cronograma de 36 Horas -->
+    <h2>4. Cronograma Táctico de Ejecución (36 Horas)</h2>
+
+    <div class="block-card block-now">
+      <div class="block-header">
+        <div class="block-title">🔴 BLOQUE 1: INMEDIATO (Noche del 11 de Septiembre) · Registros & Setup</div>
+        <span class="badge badge-high">URGENTE</span>
+      </div>
+      <div class="task-item">
+        <div class="task-name"><span class="checkbox-box"></span> Registro en Devfolio Ethereum Bolivia (Tracks: Hackathon + HSK)</div>
+        <span class="badge badge-high">HSK + Shanhai</span>
+      </div>
+      <div class="task-item">
+        <div class="task-name"><span class="checkbox-box"></span> Registro en Devfolio EAG Global Buildathon (Requisito doble postulación)</div>
+        <span class="badge badge-purple">ShanhaiWoo</span>
+      </div>
+      <div class="task-item">
+        <div class="task-name"><span class="checkbox-box"></span> Envío de Formulario de Acceso a Mainnet de Pollar</div>
+        <span class="badge badge-high">Pollar Mainnet</span>
+      </div>
+      <div class="task-item">
+        <div class="task-name"><span class="checkbox-box"></span> Creación de cuenta en Pollar Dashboard y obtención de Client ID</div>
+        <span class="badge badge-blue">Pollar Dev</span>
+      </div>
+    </div>
+
+    <div class="block-card">
+      <div class="block-header">
+        <div class="block-title">🟡 BLOQUE 2: Mañana del 12 de Septiembre (08:00 - 13:00) · Integraciones Core</div>
+        <span class="badge badge-mid">DESARROLLO</span>
+      </div>
+      <div class="task-item">
+        <div class="task-name"><span class="checkbox-box"></span> Instalación de SDK <code>@pollar/react</code> y configuración de Provider</div>
+        <span class="badge badge-blue">Pollar</span>
+      </div>
+      <div class="task-item">
+        <div class="task-name"><span class="checkbox-box"></span> Integración del modal de pago USDC Pollar en el flujo de Escrow</div>
+        <span class="badge badge-blue">Pollar</span>
+      </div>
+      <div class="task-item">
+        <div class="task-name"><span class="checkbox-box"></span> Deploy de <code>AyniEscrow.sol</code> en HSK Chain con Hardhat</div>
+        <span class="badge badge-high">HSK Chain</span>
+      </div>
+      <div class="task-item">
+        <div class="task-name"><span class="checkbox-box"></span> Verificación del contrato en explorer de HSK y guardado de Tx Hash</div>
+        <span class="badge badge-high">HSK Chain</span>
+      </div>
+    </div>
+
+    <div class="block-card">
+      <div class="block-header">
+        <div class="block-title">🟢 BLOQUE 3: Tarde del 12 de Septiembre (14:00 - 19:00) · Multi-Chain & Unlock</div>
+        <span class="badge badge-low">EXPANSIÓN</span>
+      </div>
+      <div class="task-item">
+        <div class="task-name"><span class="checkbox-box"></span> Deploy y verificación de <code>AyniEscrow.sol</code> en Avalanche C-Chain / Fuji</div>
+        <span class="badge badge-mid">Avalanche</span>
+      </div>
+      <div class="task-item">
+        <div class="task-name"><span class="checkbox-box"></span> Implementación de sección Token-Gated con Unlock Protocol (Checkout)</div>
+        <span class="badge badge-mid">Unlock</span>
+      </div>
+      <div class="task-item">
+        <div class="task-name"><span class="checkbox-box"></span> Ejecución de 1 transacción real en Pollar Mainnet (1 USDC)</div>
+        <span class="badge badge-high">Pollar Mainnet</span>
+      </div>
+    </div>
+
+    <div class="block-card">
+      <div class="block-header">
+        <div class="block-title">🔵 BLOQUE 4: Noche del 12 de Septiembre (20:00 - 02:00) · Entregables & Media</div>
+        <span class="badge badge-blue">CIERRE</span>
+      </div>
+      <div class="task-item">
+        <div class="task-name"><span class="checkbox-box"></span> Grabación de video demo de 3 minutos (guión estructurado con cada track)</div>
+        <span class="badge badge-high">Todos</span>
+      </div>
+      <div class="task-item">
+        <div class="task-name"><span class="checkbox-box"></span> Actualización de README con insignias, contratos verificados y guías</div>
+        <span class="badge badge-blue">Docs</span>
+      </div>
+      <div class="task-item">
+        <div class="task-name"><span class="checkbox-box"></span> Despliegue de producción en Vercel con dominio activo</div>
+        <span class="badge badge-high">Vercel</span>
+      </div>
+      <div class="task-item">
+        <div class="task-name"><span class="checkbox-box"></span> Envío de links en formularios y canales de Telegram designados</div>
+        <span class="badge badge-high">Sumisión</span>
+      </div>
+    </div>
+
+    <!-- Acciones Requeridas del Usuario -->
+    <h2>5. Acciones Inmediatas Requeridas por el Usuario</h2>
+
+    <div class="action-box">
+      <div class="action-box-title">📌 1. Registrarse en Devfolio (Doble Postulación)</div>
+      <div class="action-box-desc">Ingresar a <a href="https://ethereum-bolivia-buildathon.devfolio.co/" target="_blank">Devfolio Bolivia</a> y a <a href="https://eag-global-buildathon.devfolio.co/overview" target="_blank">Devfolio EAG Global</a> con la misma cuenta.</div>
+    </div>
+
+    <div class="action-box">
+      <div class="action-box-title">📌 2. Enviar Formulario de Pollar Mainnet</div>
+      <div class="action-box-desc">Llenar el formulario oficial en <a href="https://docs.pollar.xyz" target="_blank">docs.pollar.xyz</a> para habilitar las API Keys en producción antes de mañana.</div>
+    </div>
+
+    <div class="action-box">
+      <div class="action-box-title">📌 3. Fondear 1 USDC en Stellar</div>
+      <div class="action-box-desc">Se requiere 1 USDC real en una wallet Stellar para certificar la transacción en vivo que exige el jurado de Pollar.</div>
+    </div>
+
+    <!-- Footer -->
+    <div class="doc-footer">
+      <div>AYNI Protocol · Protocolo Global de Crowdshipping, Custodia Escrow y Finanzas P2P</div>
+      <div>Documento de Planificación Oficial · Generado para impresión y exportación PDF</div>
+    </div>
+  </div>
+
+</body>
+</html>

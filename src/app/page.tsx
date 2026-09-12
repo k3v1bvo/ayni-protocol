@@ -11,6 +11,7 @@ import {
   RefreshCw, Key, ExternalLink
 } from 'lucide-react';
 import { InteractiveWorldRadar } from '@/components/home/InteractiveWorldRadar';
+import { AiSupportChat } from '@/components/chat/AiSupportChat';
 
 
 const STATS = [
@@ -294,7 +295,7 @@ export default function LandingPage() {
               Monetiza el equipaje de tus viajes, encarga condimentos y alimentos típicos que no se consiguen en el extranjero, y asegura el legado de tu familia con bóvedas de herencia protegidas por Smart Contracts inmutables.
             </p>
 
-            <div style={{ display: 'flex', justifyContent: 'center', gap: '14px', flexWrap: 'wrap', marginBottom: '32px' }}>
+            <div style={{ display: 'flex', justifyContent: 'center', gap: '14px', flexWrap: 'wrap', marginBottom: '36px' }}>
               <Link
                 href="/auth?mode=signup"
                 className="btn btn-primary btn-lg"
@@ -310,25 +311,17 @@ export default function LandingPage() {
                 Explorar Marketplace 🌶️
               </Link>
               <a
-                href="#radar-showcase"
+                href="#calculadora-p2p"
                 className="btn btn-ghost btn-lg"
                 style={{ padding: '14px 22px', fontSize: '0.92rem', border: '1px solid rgba(0, 207, 255, 0.35)', color: 'var(--brand-cyan)', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '8px' }}
               >
-                <Plane size={16} /> Ver Radar en Vivo
+                <Zap size={16} /> Calcular Ahorro P2P
               </a>
-            </div>
-
-            {/* Radar Flagship Live Indicator */}
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', marginBottom: '28px', fontSize: '0.78rem', color: 'var(--text-muted)' }}>
-              <span style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--brand-emerald)', display: 'inline-block', boxShadow: '0 0 10px var(--brand-emerald)' }} />
-              <span>Centro de Monitoreo Cripto-Logístico en Tiempo Real</span>
-              <span style={{ opacity: 0.3 }}>•</span>
-              <span style={{ color: 'var(--brand-cyan)' }}>Simulación Vectorial en Código Puro · Base L2</span>
             </div>
           </div>
 
           {/* ========================================================
-              FLAGSHIP VISUAL: Simulador Interactivo de Vuelos P2P
+              FLAGSHIP VISUAL: Radar Vectorial & Cápsula de Telemetría
               ======================================================== */}
           <InteractiveWorldRadar />
 
@@ -359,7 +352,7 @@ export default function LandingPage() {
           </div>
 
           {/* INTERACTIVE LIVE COMPARISON CALCULATOR (SCROLL-CRAFT ENGINE) */}
-          <div className="sc-live-hud sc-card-depth" style={{ padding: '36px 30px', marginBottom: '20px' }}>
+          <div id="calculadora-p2p" className="sc-live-hud sc-card-depth" style={{ padding: '36px 30px', marginBottom: '20px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px', marginBottom: '24px' }}>
               <div>
                 <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
@@ -1114,7 +1107,9 @@ export default function LandingPage() {
           </div>
         </div>
       </footer>
-
+      
+      {/* Oráculo de IA Multimodal & Soporte AYNI Guardian */}
+      <AiSupportChat />
     </>
   );
 }
