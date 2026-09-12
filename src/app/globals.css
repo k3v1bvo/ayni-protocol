@@ -1155,17 +1155,11 @@ button:focus-visible, .btn:focus-visible {
   }
 
   /* Sidebar Mobile Drawer */
-  .sidebar {
-    transform: translateX(-100%);
-    transition: transform var(--ease-smooth);
+  .sidebar-mobile {
     width: 82vw !important;
     max-width: 320px !important;
-    box-shadow: 10px 0 40px rgba(0, 0, 0, 0.8);
-    z-index: 60 !important;
-  }
-  
-  .sidebar.open {
-    transform: translateX(0) !important;
+    box-shadow: 10px 0 50px rgba(0, 0, 0, 0.85);
+    /* z-index se controla inline en el componente (100) para quedar sobre el backdrop (90) */
   }
 
   .main-area {
