@@ -180,22 +180,24 @@ export default function MyStorePage() {
       console.error('Error fetching products:', e);
     }
 
-    // 3. Fetch Orders
+    // 3. Fetch Orders (scoped to orders placed at MY store)
     try {
-      const resO = await fetch('/api/orders');
-      if (resO.ok) {
-        const dataO = await resO.json();
-        if (dataO.orders && dataO.orders.length > 0) {
-          setOrders(dataO.orders.map((o: any) => ({
-            id: o.id,
-            title: o.title || `Pedido #${o.id.slice(0, 6)}`,
-            buyer_name: o.client?.full_name || 'Comprador verificado',
-            total_price: Number(o.total_price) || 0,
-            status: o.status,
-            created_at: o.created_at,
-            destination_city: o.destination_city || 'Bolivia',
-            otp_code: o.delivery_otp,
-          })));
+      if (user?.id) {
+        const resO = await fetch(`/api/orders?store_owner_id=${user.id}`);
+        if (resO.ok) {
+          const dataO = await resO.json();
+          if (dataO.orders && dataO.orders.length > 0) {
+            setOrders(dataO.orders.map((o: any) => ({
+              id: o.id,
+              title: o.description || `Pedido #${o.id.slice(0, 6)}`,
+              buyer_name: o.client?.full_name || 'Comprador verificado',
+              total_price: Number(o.total_escrow_usd) || 0,
+              status: o.status,
+              created_at: o.created_at,
+              destination_city: o.destination_city || 'Bolivia',
+              otp_code: o.otp_plain_simulated,
+            })));
+          }
         }
       }
     } catch (e) {
