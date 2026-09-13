@@ -44,7 +44,7 @@ const NAV_ITEMS = {
 function SidebarContent({ onClose }: { onClose?: () => void }) {
   const pathname = usePathname();
   const router = useRouter();
-  const { user, role, signOut, setDemoUser } = useAuth();
+  const { user, role, signOut, switchRole } = useAuth();
   const [showRoleMenu, setShowRoleMenu] = useState(false);
 
   const roleItems = NAV_ITEMS[role] || [];
@@ -145,7 +145,7 @@ function SidebarContent({ onClose }: { onClose?: () => void }) {
                   <button
                     key={r}
                     type="button"
-                    onClick={() => { setDemoUser(r); setShowRoleMenu(false); }}
+                    onClick={() => { switchRole(r); setShowRoleMenu(false); }}
                     style={{
                       width: '100%',
                       textAlign: 'left',

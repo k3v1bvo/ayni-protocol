@@ -46,7 +46,7 @@ function StatusBadge({ status }: { status: string }) {
 }
 
 export default function DashboardPage() {
-  const { user, role, setDemoUser } = useAuth();
+  const { user, role, switchRole } = useAuth();
   const [quickOtpInput, setQuickOtpInput] = useState('');
   const [otpVerifyState, setOtpVerifyState] = useState<'idle' | 'verifying' | 'success' | 'error'>('idle');
 
@@ -156,7 +156,7 @@ export default function DashboardPage() {
           </span>
           <button
             type="button"
-            onClick={() => setDemoUser('traveler')}
+            onClick={() => switchRole('traveler')}
             style={{
               padding: '6px 12px',
               borderRadius: '8px',
@@ -173,7 +173,7 @@ export default function DashboardPage() {
           </button>
           <button
             type="button"
-            onClick={() => setDemoUser('client')}
+            onClick={() => switchRole('client')}
             style={{
               padding: '6px 12px',
               borderRadius: '8px',
@@ -190,7 +190,7 @@ export default function DashboardPage() {
           </button>
           <button
             type="button"
-            onClick={() => setDemoUser('merchant')}
+            onClick={() => switchRole('merchant')}
             style={{
               padding: '6px 12px',
               borderRadius: '8px',
@@ -207,7 +207,7 @@ export default function DashboardPage() {
           </button>
           <button
             type="button"
-            onClick={() => setDemoUser('admin')}
+            onClick={() => switchRole('admin')}
             style={{
               padding: '6px 12px',
               borderRadius: '8px',

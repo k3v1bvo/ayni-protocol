@@ -14,6 +14,7 @@ interface AuthContextType {
   signInWithGoogle: () => Promise<{ error: string | null }>;
   signOut: () => Promise<void>;
   setDemoUser: (role: UserRole) => void;
+  switchRole: (role: UserRole) => void;
 }
 
 const TEST_PROFILES: Record<UserRole, UserProfile> = {
@@ -469,6 +470,37 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
+  // Cambia el rol conservando la identidad de la cuenta activa (nombre, correo, id).
+  // Si la cuenta activa es una de las 4 personas de demostración (Ana, Alejandro,
+  // Demetrio, Admin), sí saltamos al perfil completo de esa persona porque cada una
+  // tiene datos reales sembrados (tiendas, viajes, pedidos) atados a su id fijo.
+  // Para cualquier otra cuenta (registro real, Google, etc.) solo actualizamos el rol.
+  const switchRole = (targetRole: UserRole) => {
+    if (!user) {
+      setDemoUser(targetRole);
+      return;
+    }
+
+    const isDemoPersona = Object.values(TEST_PROFILES).some(p => p.id === user.id);
+    if (isDemoPersona) {
+      setDemoUser(targetRole);
+      return;
+    }
+
+    const updated: UserProfile = { ...user, role: targetRole };
+    setUser(updated);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('ayni_active_profile', JSON.stringify(updated));
+    }
+    if (isSupabaseConfigured) {
+      fetch('/api/profile', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: user.id, role: targetRole }),
+      }).catch(() => {});
+    }
+  };
+
   return (
     <AuthContext.Provider
       value={{
@@ -481,6 +513,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         signInWithGoogle,
         signOut,
         setDemoUser,
+        switchRole,
       }}
     >
       {children}

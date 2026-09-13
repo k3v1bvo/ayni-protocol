@@ -52,6 +52,9 @@ export async function PUT(req: NextRequest) {
         allowed[key] = val || null;
       }
     }
+    if (fields.role && ['client', 'traveler', 'merchant', 'admin'].includes(fields.role)) {
+      allowed.role = fields.role;
+    }
 
     allowed['updated_at'] = new Date().toISOString();
 
