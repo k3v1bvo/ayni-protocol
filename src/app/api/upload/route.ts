@@ -9,19 +9,24 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'No se envió ningún archivo de imagen' }, { status: 400 });
     }
 
-    const imgbbKey = process.env.IMGBB_API_KEY;
+    const keysToTry = Array.from(new Set([
+      process.env.IMGBB_API_KEY,
+      process.env.NEXT_PUBLIC_IMGBB_API_KEY,
+      'b049b0990069aec5dfec445cff31a63a',
+      '471638ad84d836135f96a835dc638435',
+    ].filter(Boolean))) as string[];
 
-    if (imgbbKey) {
+    const bytes = await file.arrayBuffer();
+    const buffer = Buffer.from(bytes);
+    const base64 = buffer.toString('base64');
+
+    for (const key of keysToTry) {
       try {
-        const bytes = await file.arrayBuffer();
-        const buffer = Buffer.from(bytes);
-        const base64 = buffer.toString('base64');
-
         const uploadFormData = new FormData();
         uploadFormData.append('image', base64);
         uploadFormData.append('name', file.name.replace(/\.[^/.]+$/, ''));
 
-        const imgbbRes = await fetch(`https://api.imgbb.com/1/upload?key=${imgbbKey}`, {
+        const imgbbRes = await fetch(`https://api.imgbb.com/1/upload?key=${key}`, {
           method: 'POST',
           body: uploadFormData,
         });
@@ -38,11 +43,9 @@ export async function POST(req: NextRequest) {
               provider: 'ImgBB Cloud CDN',
             });
           }
-        } else {
-          console.warn('[ImgBB Upload API] Respuesta fallida de ImgBB:', await imgbbRes.text());
         }
       } catch (imgbbErr) {
-        console.warn('[ImgBB Upload API] Error al conectar con ImgBB:', imgbbErr);
+        console.warn(`[ImgBB Upload] Fallo con clave ${key.slice(0, 6)}...:`, imgbbErr);
       }
     }
 

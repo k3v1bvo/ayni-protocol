@@ -1,4 +1,7 @@
 import { getSupabaseBrowserClient } from '@/lib/supabase/client';
+import { uploadImageToImgBB, uploadMultipleImagesToImgBB } from '@/lib/utils/uploadImage';
+
+export { uploadImageToImgBB, uploadMultipleImagesToImgBB };
 
 /**
  * Upload a file to Supabase Storage.
@@ -14,19 +17,9 @@ export async function uploadToSupabase(
 ): Promise<string | null> {
   // 1. Prioridad: Subir a ImgBB para no consumir el límite de almacenamiento de Supabase
   try {
-    const formData = new FormData();
-    formData.append('image', file);
-
-    const res = await fetch('/api/upload', {
-      method: 'POST',
-      body: formData,
-    });
-
-    if (res.ok) {
-      const data = await res.json();
-      if (data.url) {
-        return data.url;
-      }
+    const imgbbUrl = await uploadImageToImgBB(file);
+    if (imgbbUrl) {
+      return imgbbUrl;
     }
   } catch (imgbbErr) {
     console.warn('Fallo ImgBB, aplicando fallback a Supabase Storage:', imgbbErr);
