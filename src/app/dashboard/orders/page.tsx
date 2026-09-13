@@ -21,6 +21,7 @@ interface OrderItem {
   guarantee_fund_usd: number;
   total_escrow_usd: number;
   status: string;
+  traveler_id?: string | null;
   store_name?: string;
   store_location?: string;
   store_instructions?: string;
@@ -52,6 +53,8 @@ export default function OrdersPage() {
   const [detailOrder, setDetailOrder] = useState<OrderItem | null>(null);
   const [otpInput, setOtpInput] = useState('');
   const [otpResult, setOtpResult] = useState<string | null>(null);
+  const [openOrders, setOpenOrders] = useState<OrderItem[]>([]);
+  const [accepting, setAccepting] = useState<string | null>(null);
 
   // AI Purchase Verification Modal State
   const [verifyingOrder, setVerifyingOrder] = useState<OrderItem | null>(null);
@@ -83,8 +86,23 @@ export default function OrdersPage() {
         const res = await fetch(`/api/orders?${params}`);
         if (res.ok) {
           const { orders: data } = await res.json();
-          if (data) { setOrders(data); setLoading(false); return; }
+          if (data) { setOrders(data); }
         }
+
+        // Los viajeros ademas ven encargos fondeados sin viajero asignado,
+        // para poder aceptarlos (no existe otro flujo de asignacion en la app).
+        if (role === 'traveler') {
+          const resOpen = await fetch('/api/orders?status=funded');
+          if (resOpen.ok) {
+            const { orders: openData } = await resOpen.json();
+            setOpenOrders((openData || []).filter((o: OrderItem) => !o.traveler_id));
+          }
+        } else {
+          setOpenOrders([]);
+        }
+
+        setLoading(false);
+        return;
       } catch (e) { console.warn(e); }
     }
 
@@ -92,6 +110,28 @@ export default function OrdersPage() {
     const saved = localStorage.getItem('ayni_orders');
     if (saved) { try { setOrders(JSON.parse(saved)); } catch {} }
     setLoading(false);
+  }
+
+  async function acceptOrder(orderId: string) {
+    if (!user?.id) return;
+    setAccepting(orderId);
+    try {
+      const res = await fetch('/api/orders', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: orderId, traveler_id: user.id, status: 'purchased' }),
+      });
+      if (res.ok) {
+        playSuccessSound();
+        setNotice('¡Encargo aceptado! Ya aparece en tu lista de pedidos.');
+        setTimeout(() => setNotice(null), 3000);
+        await loadOrders();
+      }
+    } catch (e) {
+      console.warn(e);
+    } finally {
+      setAccepting(null);
+    }
   }
 
   const updateOrderStatus = async (orderId: string, newStatus: string) => {
@@ -246,6 +286,33 @@ export default function OrdersPage() {
           <RefreshCw size={14} /> Refrescar
         </button>
       </div>
+
+      {role === 'traveler' && openOrders.length > 0 && (
+        <div className="card" style={{ padding: '16px', marginBottom: '20px', border: '1px solid rgba(0,207,255,0.25)', background: 'rgba(0,207,255,0.04)' }}>
+          <h3 style={{ fontSize: '0.95rem', fontWeight: 700, marginBottom: '10px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <ShoppingBag size={16} color="var(--brand-cyan)" /> Encargos Disponibles ({openOrders.length})
+          </h3>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+            {openOrders.map(order => (
+              <div key={order.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px', flexWrap: 'wrap', padding: '10px 12px', background: 'rgba(255,255,255,0.02)', borderRadius: '10px', border: '1px solid var(--border-subtle)' }}>
+                <div style={{ minWidth: 0 }}>
+                  <div style={{ fontWeight: 600, fontSize: '0.85rem' }}>{order.description}</div>
+                  <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>{order.order_code} · ${order.total_escrow_usd?.toFixed(2)} en Escrow</div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => acceptOrder(order.id)}
+                  disabled={accepting === order.id}
+                  className="btn btn-primary btn-sm btn-pressable"
+                  style={{ fontSize: '0.78rem', flexShrink: 0 }}
+                >
+                  {accepting === order.id ? 'Aceptando...' : 'Aceptar Encargo'}
+                </button>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {loading ? (
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '30vh', gap: '10px', color: 'var(--text-muted)' }}>
