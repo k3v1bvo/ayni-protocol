@@ -1,6 +1,6 @@
 \documentclass[10pt,aspectratio=169]{beamer}
 
-% Configuración de Idioma y Codificación
+% Configuración de Idioma, Fuentes y Codificación
 \usepackage[utf8]{inputenc}
 \usepackage[spanish,es-tabla]{babel}
 \usepackage{amsmath,amssymb}
@@ -9,19 +9,20 @@
 \usepackage{tikz}
 \usetikzlibrary{arrows.meta,positioning,shapes.geometric,calc}
 
-% Tema y Paleta de Colores de Alta Fidelidad
+% Tema Beamer Madrid con paleta personalizada de alta fidelidad
 \usetheme{Madrid}
 \usecolortheme{whale}
 
-% Definición de Colores de Marca AYNI
+% Paleta Cromática Institucional de AYNI Protocol
 \definecolor{AyniDark}{RGB}{11, 19, 43}
 \definecolor{AyniNavy}{RGB}{15, 23, 42}
 \definecolor{AyniCyan}{RGB}{2, 132, 199}
 \definecolor{AyniGold}{RGB}{245, 158, 11}
 \definecolor{AyniGreen}{RGB}{16, 185, 129}
+\definecolor{AyniPurple}{RGB}{123, 63, 228}
 \definecolor{AyniRed}{RGB}{239, 68, 68}
 
-% Personalización de Elementos Beamer
+% Configuración de Colores de Estructura
 \setbeamercolor{palette primary}{bg=AyniNavy,fg=white}
 \setbeamercolor{palette secondary}{bg=AyniCyan,fg=white}
 \setbeamercolor{palette tertiary}{bg=AyniDark,fg=white}
@@ -31,123 +32,222 @@
 \setbeamercolor{block body}{bg=gray!10,fg=AyniNavy}
 \setbeamercolor{block title example}{bg=AyniCyan,fg=white}
 \setbeamercolor{block body example}{bg=gray!10,fg=AyniNavy}
+\setbeamercolor{block title alerted}{bg=AyniGold,fg=black}
+\setbeamercolor{block body alerted}{bg=AyniGold!10,fg=black}
 
-% Eliminar botones de navegación inferiores
+% Limpieza de Interfaz
 \setbeamertemplate{navigation symbols}{}
 
-% Pie de página personalizado
+% Pie de página corporativo
 \setbeamertemplate{footline}{
   \leavevmode%
   \hbox{%
-  \begin{beamercolorbox}[wd=.333333\paperwidth,ht=2.25ex,dp=1ex,center]{author in head/foot}%
-    \usebeamerfont{author in head/foot}\textbf{AYNI / MINKA Protocol}
+  \begin{beamercolorbox}[wd=.333333\paperwidth,ht=2.4ex,dp=1.1ex,center]{author in head/foot}%
+    \usebeamerfont{author in head/foot}\textbf{AYNI Protocol} $\cdot$ \textit{Buildathon ETH Bolivia}
   \end{beamercolorbox}%
-  \begin{beamercolorbox}[wd=.333333\paperwidth,ht=2.25ex,dp=1ex,center]{title in head/foot}%
-    \usebeamerfont{title in head/foot}Buildathon ETH Bolivia 2026
+  \begin{beamercolorbox}[wd=.333333\paperwidth,ht=2.4ex,dp=1.1ex,center]{title in head/foot}%
+    \usebeamerfont{title in head/foot}Logística P2P, Remesas y Herencias Cripto
   \end{beamercolorbox}%
-  \begin{beamercolorbox}[wd=.333333\paperwidth,ht=2.25ex,dp=1ex,right]{date in head/foot}%
+  \begin{beamercolorbox}[wd=.333333\paperwidth,ht=2.4ex,dp=1.1ex,right]{date in head/foot}%
     \usebeamerfont{date in head/foot}\insertframenumber{} / \inserttotalframenumber\hspace*{2ex} 
   \end{beamercolorbox}}%
   \vskip0pt%
 }
 
 % ─────────────────────────────────────────────────────────────
-% PORTADA
+% METADATOS DE PORTADA
 % ─────────────────────────────────────────────────────────────
 \title[\textbf{AYNI Protocol}]{\Huge \textbf{AYNI PROTOCOL}}
 \subtitle{\large \textbf{Ecosistema P2P Descentralizado de Crowdshipping, Comercio Transfronterizo y Herencias Cripto}}
-\author[Equipo AYNI]{\textbf{Equipo AYNI / MINKA}}
+\author[Equipo AYNI]{\textbf{Equipo Fundador AYNI / MINKA}}
 \institute[ETH Bolivia]{\large \textbf{Buildathon ETH Bolivia 2026} \\ \small Cochabamba, Bolivia}
 \date{Septiembre 2026}
 
 \begin{document}
 
-% Slide 1: Portada
+% ═════════════════════════════════════════════════════════════
+% SLIDE 1: PORTADA VISUAL CON HERO BANNER
+% ═════════════════════════════════════════════════════════════
 \begin{frame}
-  \titlepage
-\end{frame}
-
-% Slide 2: El Dolor y la Problemática
-\begin{frame}{1. Problemática Estructural en Bolivia y Economías Emergentes}
-  \begin{columns}[T]
-    \begin{column}{0.55\textwidth}
-      \begin{block}{\textbf{Las Fallas del Sistema Tradicional}}
-        \begin{itemize}
-          \item \textbf{Crisis y Escasez de Divisas:} Restricciones severas de acceso a divisas y comisiones cambiarias desproporcionadas.
-          \item \textbf{Sobrecostos de Courier (DHL/FedEx):} Fletes de hasta un \textbf{30\%} sobre el valor del bien, sumados a barreras burocráticas aduaneras.
-          \item \textbf{Fricción en Remesas:} Comisiones de intermediarios (Western Union: \textbf{8--12\%}) que drenan el patrimonio familiar.
-        \end{itemize}
-      \end{block}
+  \begin{columns}[c]
+    \begin{column}{0.58\textwidth}
+      \vspace{0.2cm}
+      {\Huge \textbf{\textcolor{AyniNavy}{AYNI PROTOCOL}}}\\[0.2cm]
+      {\large \textbf{\textcolor{AyniCyan}{La Fuerza de la Reciprocidad Andina llevada a la Blockchain}}}\\[0.3cm]
+      {\small Crowdshipping P2P, Remesas en Stablecoins y Herencias Cripto con Escrow Inteligente y Oráculo IA Multimodal.}\\[0.4cm]
+      \hrule\vspace{0.3cm}
+      \textbf{Buildathon ETH Bolivia 2026} $\cdot$ Cochabamba\\
+      \textit{Multi-Chain: Avalanche Mainnet $\cdot$ Stellar Soroban $\cdot$ HashKey L2}
     \end{column}
-    \begin{column}{0.42\textwidth}
-      \begin{exampleblock}{\textbf{Oportunidad Desaprovechada}}
-        Miles de pasajeros viajan diariamente con \textbf{capacidad de equipaje ociosa} en rutas clave (EE.UU., España, Chile $\to$ Bolivia).\\
-        \vspace{0.3cm}
-        \centering
-        \textbf{\textcolor{AyniCyan}{\Large ¿Cómo conectar esa capacidad física con garantía criptográfica sin intermediarios?}}
-      \end{exampleblock}
+    \begin{column}{0.40\textwidth}
+      \centering
+      \includegraphics[width=\textwidth,height=5.2cm,keepaspectratio]{public/images/ayni_hero_banner.jpg}
     \end{column}
   \end{columns}
 \end{frame}
 
-% Slide 3: Fundamentación Filosófica y Modelo Económico
-\begin{frame}{2. Fundamentación Filosófica y Regla Económica de Competitividad}
+% ═════════════════════════════════════════════════════════════
+% SLIDE 2: IDENTIDAD, RAÍCES Y MODERNIDAD
+% ═════════════════════════════════════════════════════════════
+\begin{frame}{1. Raíces Bolivianas \& Vanguardia Tecnológica}
   \begin{columns}[T]
     \begin{column}{0.5\textwidth}
-      \begin{block}{\textbf{Cosmovisión Andina en Web3}}
+      \begin{block}{\textbf{Filosofía Andina Ancestral}}
         \begin{itemize}
-          \item \textbf{Ayni (Reciprocidad Simétrica):} \textit{Hoy por ti, mañana por mí}. Correspondencia justa entre el esfuerzo del viajero y el beneficio del comprador.
-          \item \textbf{Minka (Trabajo Protector):} Creación de un \textbf{Fondo Comunitario de Reserva (2\%)} para cubrir eventualidades aduaneras o siniestros.
+          \item \textbf{Ayni (Reciprocidad Simétrica):}\\
+          \textit{«Hoy por ti, mañana por mí».}\\
+          Equilibrio justo entre el esfuerzo del viajero que transporta y el beneficio del comprador que encarga.
+          \item \textbf{Minka (Trabajo Protector Comunal):}\\
+          Esfuerzo colectivo para resolver fallas estructurales del entorno. Damos vida a un \textbf{Fondo Comunitario de Reserva (2\%)} contra siniestros.
         \end{itemize}
       \end{block}
     \end{column}
     \begin{column}{0.48\textwidth}
-      \begin{exampleblock}{\textbf{Matriz de Comisiones \& Techo de Protección}}
-        Tarifas dinámicas escalonadas entre \textbf{4\% y 10\%} del pedido.\\
-        \vspace{0.2cm}
-        \textbf{Regla Matemática de Alto Valor:}
-        $$\text{Tarifa Traslado} = \min\left(\text{Monto} \times r_{\text{comisión}}, \; \$50.00\text{ USD}\right)$$
-        \vspace{0.1cm}
-        \textit{Garantiza que pedidos de alto costo nunca paguen tarifas exorbitantes, superando a cualquier courier global.}
+      \begin{exampleblock}{\textbf{Ingeniería de Confianza Cero (Web3)}}
+        \begin{itemize}
+          \item No pedimos que la gente confíe ciegamente en un desconocido.
+          \item Transformamos la tradición cultural en \textbf{código determinista e inmutable}.
+          \item Smart Contracts Escrow, Billeteras NFC Tangem y Oráculo Pericial IA reemplazan la burocracia bancaria.
+        \end{itemize}
       \end{exampleblock}
     \end{column}
   \end{columns}
 \end{frame}
 
-% Slide 4: Arquitectura Multi-Chain
-\begin{frame}{3. Arquitectura Multi-Chain Interoperable}
-  \begin{center}
-    \begin{tikzpicture}[node distance=1.2cm, auto,
-      box/.style={rectangle, draw=AyniNavy, fill=white, thick, rounded corners, minimum width=2.8cm, minimum height=1cm, align=center, font=\small},
-      mainbox/.style={rectangle, draw=AyniCyan, fill=AyniCyan!10, very thick, rounded corners, minimum width=3.2cm, minimum height=1.2cm, align=center, font=\small\bfseries}]
-      
-      % Nodos
-      \node[mainbox] (core) {AYNI Escrow Engine\\(Lógica Descentralizada)};
-      \node[box, above left=0.6cm and 0.5cm of core] (avax) {\textbf{Avalanche C-Chain}\\Mainnet ($<$ \$0.001 gas)\\USDC Oficial Circle};
-      \node[box, above right=0.6cm and 0.5cm of core] (hsk) {\textbf{HashKey Chain}\\L2 EVM Testnet\\MockUSDC (6 dec)};
-      \node[box, below left=0.6cm and 0.5cm of core] (pollar) {\textbf{Stellar (Pollar SDK)}\\Login Social con Google\\USDC Pagos Minoristas};
-      \node[box, below right=0.6cm and 0.5cm of core] (unlock) {\textbf{Unlock Protocol}\\Membresías VIP NFT\\Access Control On-Chain};
+% ═════════════════════════════════════════════════════════════
+% SLIDE 3: EL DOLOR REAL DEL MERCADO
+% ═════════════════════════════════════════════════════════════
+\begin{frame}{2. El Dolor: Asfixia Comercial y Cambiaria en Bolivia}
+  \begin{columns}[c]
+    \begin{column}{0.55\textwidth}
+      \begin{block}{\textbf{Tres Fallas Críticas que Vivimos a Diario}}
+        \begin{enumerate}
+          \item \textbf{Escasez de Divisas y Dólares Oficiales:}\\
+          Las importaciones formales están frenadas y las tarjetas bancarias tienen cupos ridículos (\$50--\$100/mes).
+          \item \textbf{Costos Abusivos de Courier Tradicional:}\\
+          DHL, FedEx y couriers cobran hasta un \textbf{30\% del valor} en fletes, desaduanajes e intermediarios.
+          \item \textbf{Sangría en Remesas Familiares:}\\
+          La diáspora envía más de \$1,400M USD al año a Bolivia; Western Union y agencias cobran \textbf{8\% al 12\%} más spreads cambiarios abusivos.
+        \end{enumerate}
+      \end{block}
+    \end{column}
+    \begin{column}{0.42\textwidth}
+      \centering
+      \includegraphics[width=\textwidth,height=4.8cm,keepaspectratio]{public/images/ayni_condiments_diaspora.jpg}\\
+      \vspace{0.1cm}
+      \scriptsize \textit{El comercio transfronterizo hoy depende de la informalidad sin protección o couriers inaccesibles.}
+    \end{column}
+  \end{columns}
+\end{frame}
 
-      % Conexiones
+% ═════════════════════════════════════════════════════════════
+% SLIDE 4: TARGET PERSONAS (A QUIÉN LE RESOLVEMOS LA VIDA)
+% ═════════════════════════════════════════════════════════════
+\begin{frame}{3. Target Personas: Nuestros Cuatro Segmentos Clave}
+  \begin{columns}[T]
+    \begin{column}{0.25\textwidth}
+      \begin{block}{\centering \textbf{Comprador Local}}
+        \scriptsize
+        \textbf{Quién es:} Médicos, fotógrafos, estudiantes, talleres y gamers en Bolivia.\\
+        \vspace{0.1cm}
+        \textbf{Su problema:} Necesita insumos de USA o Europa que no hay en el país o tienen sobreprecio del 100\%.\\
+        \vspace{0.1cm}
+        \textbf{Beneficio:} Paga precio real + comisión justa.
+      \end{block}
+    \end{column}
+    \begin{column}{0.25\textwidth}
+      \begin{block}{\centering \textbf{Viajero Frecuente}}
+        \scriptsize
+        \textbf{Quién es:} Pasajeros, estudiantes de intercambio o comerciantes.\\
+        \vspace{0.1cm}
+        \textbf{Su problema:} Vuela con 10--23 kg de maleta vacía sin monetizarla.\\
+        \vspace{0.1cm}
+        \textbf{Beneficio:} Gana entre \textbf{\$150 y \$500 USD} por vuelo, amortizando su pasaje de avión en 1 viaje.
+      \end{block}
+    \end{column}
+    \begin{column}{0.25\textwidth}
+      \begin{block}{\centering \textbf{Familia Migrante}}
+        \scriptsize
+        \textbf{Quién es:} Trabajadores bolivianos en España, USA, Chile o Argentina.\\
+        \vspace{0.1cm}
+        \textbf{Su problema:} Pierde dinero en remesas y sus ahorros no tienen seguro sucesorio.\\
+        \vspace{0.1cm}
+        \textbf{Beneficio:} Remesas P2P y Bóvedas Heritage automáticas.
+      \end{block}
+    \end{column}
+    \begin{column}{0.25\textwidth}
+      \begin{block}{\centering \textbf{Comercio Pyme}}
+        \scriptsize
+        \textbf{Quién es:} Tiendas de tecnología, repuestos y calzado.\\
+        \vspace{0.1cm}
+        \textbf{Su problema:} Compras presenciales específicas (\textit{Foot Shopping}) en mercadillos del exterior.\\
+        \vspace{0.1cm}
+        \textbf{Beneficio:} Compra asistida con auditoría de boletas por IA.
+      \end{block}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+% ═════════════════════════════════════════════════════════════
+% SLIDE 5: COMPARATIVA CONTRA LA COMPETENCIA
+% ═════════════════════════════════════════════════════════════
+\begin{frame}{4. ¿Por qué AYNI Aplasta a la Competencia?}
+  \begin{center}
+    \small
+    \begin{tabular}{lcccc}
+      \toprule
+      \textbf{Criterio de Evaluación} & \textbf{Courier (DHL/FedEx)} & \textbf{Western Union} & \textbf{Grupos de Facebook} & \textbf{AYNI Protocol} \\
+      \midrule
+      \textbf{Costo / Comisión} & 20\% -- 35\% & 8\% -- 12\% + Spread & Informal / Alto & \textcolor{AyniGreen}{\textbf{4\% -- 10\% (Tope \$50)}} \\
+      \textbf{Custodia de Fondos} & Centralizada & Centralizada & \textcolor{AyniRed}{\textbf{Ninguna (Riesgo Estafa)}} & \textcolor{AyniGreen}{\textbf{Smart Contract Escrow}} \\
+      \textbf{Liberación de Pago} & Al despachar & Al enviar & Anticipada & \textcolor{AyniGreen}{\textbf{Contra OTP en mano}} \\
+      \textbf{Tiempo de Entrega} & 7 -- 15 días & N/A & Incierto & \textcolor{AyniGreen}{\textbf{24 -- 72 horas (Vuelo)}} \\
+      \textbf{Arbitraje de Daños} & Reclamos de 60 días & N/A & \textcolor{AyniRed}{\textbf{Bloqueo de chat}} & \textcolor{AyniGreen}{\textbf{Oráculo IA Multimodal}} \\
+      \textbf{Acceso a Dólares} & Bloqueado por bancos & Tipo de cambio bajo & Mercado negro & \textcolor{AyniGreen}{\textbf{USDC Nativo Multi-Chain}} \\
+      \bottomrule
+    \end{tabular}
+  \end{center}
+\end{frame}
+
+% ═════════════════════════════════════════════════════════════
+% SLIDE 6: ARQUITECTURA MULTI-CHAIN
+% ═════════════════════════════════════════════════════════════
+\begin{frame}{5. Arquitectura Multi-Chain: Interoperable y Eficiente}
+  \begin{center}
+    \begin{tikzpicture}[node distance=1.1cm, auto,
+      box/.style={rectangle, draw=AyniNavy, fill=white, thick, rounded corners, minimum width=2.9cm, minimum height=1cm, align=center, font=\scriptsize},
+      mainbox/.style={rectangle, draw=AyniCyan, fill=AyniCyan!10, very thick, rounded corners, minimum width=3.3cm, minimum height=1.2cm, align=center, font=\small\bfseries}]
+      
+      \node[mainbox] (core) {AYNI Escrow Engine\\(Lógica de Custodia P2P)};
+      \node[box, above left=0.5cm and 0.4cm of core] (avax) {\textbf{Avalanche C-Chain}\\Mainnet ($<$ \$0.001 gas)\\USDC Oficial Circle};
+      \node[box, above right=0.5cm and 0.4cm of core] (hsk) {\textbf{HashKey Chain}\\L2 EVM Testnet\\MockUSDC (6 dec)};
+      \node[box, below left=0.5cm and 0.4cm of core] (pollar) {\textbf{Stellar (Pollar SDK)}\\Login Social con Google\\USDC Pagos Minoristas};
+      \node[box, below right=0.5cm and 0.4cm of core] (unlock) {\textbf{Unlock Protocol}\\Membresías VIP NFT\\Access Control On-Chain};
+
       \draw[->, thick, AyniCyan] (core) -- (avax);
       \draw[->, thick, AyniCyan] (core) -- (hsk);
       \draw[->, thick, AyniCyan] (core) -- (pollar);
       \draw[->, thick, AyniCyan] (core) -- (unlock);
     \end{tikzpicture}
   \end{center}
+  \vspace{0.1cm}
+  \centering
+  \scriptsize \textbf{Beneficio Clave:} Separamos liquidación institucional de alto volumen (Avalanche) de pagos minoristas sin fricción (Stellar).
 \end{frame}
 
-% Slide 5: El Flujo Escrow con OTP
-\begin{frame}{4. La Regla de Oro del Código OTP (Seguridad Cero-Confianza)}
+% ═════════════════════════════════════════════════════════════
+% SLIDE 7: EL PROTOCOLO OTP
+% ═════════════════════════════════════════════════════════════
+\begin{frame}{6. La Regla de Oro del OTP: Seguridad Cero-Confianza}
   \begin{center}
     \begin{tikzpicture}[node distance=1.8cm, auto,
-      stepbox/.style={rectangle, draw=AyniNavy, fill=white, thick, rounded corners, minimum width=2.5cm, minimum height=1cm, align=center, font=\scriptsize\bfseries},
+      stepbox/.style={rectangle, draw=AyniNavy, fill=white, thick, rounded corners, minimum width=2.6cm, minimum height=1cm, align=center, font=\scriptsize\bfseries},
       arrow/.style={->, >=stealth, very thick, AyniCyan}]
       
-      \node[stepbox, fill=AyniCyan!10] (dep) {1. Depósito Comprador\\(USDC Bloqueado en Escrow)};
-      \node[stepbox, right=0.8cm of dep] (otp) {2. Generación OTP\\(Código Secreto de 6 dígitos)};
-      \node[stepbox, right=0.8cm of otp] (del) {3. Entrega Presencial\\(Inspección Física del Bien)};
-      \node[stepbox, fill=AyniGold!20, right=0.8cm of del] (rel) {4. Validación On-Chain\\(Liquidación Inmediata)};
+      \node[stepbox, fill=AyniCyan!10] (dep) {1. Depósito en Escrow\\(USDC Bloqueado on-chain)};
+      \node[stepbox, right=0.7cm of dep] (otp) {2. Despacho de OTP\\(Código secreto por correo)};
+      \node[stepbox, right=0.7cm of otp] (del) {3. Encuentro Físico\\(Inspección y apertura)};
+      \node[stepbox, fill=AyniGold!20, right=0.7cm of del] (rel) {4. Validación On-Chain\\(Liquidación Inmediata)};
 
       \draw[arrow] (dep) -- (otp);
       \draw[arrow] (otp) -- (del);
@@ -155,24 +255,26 @@
     \end{tikzpicture}
   \end{center}
   \vspace{0.4cm}
-  \begin{block}{\textbf{Propiedades Criptográficas de la Custodia OTP}}
+  \begin{block}{\textbf{¿Por qué es invulnerable?}}
     \begin{itemize}
-      \item \textbf{Cero Custodia Centralizada:} Los fondos residen en el contrato inteligente; la plataforma no puede tocarlos.
-      \item \textbf{El OTP es la Llave Unidireccional:} El comprador \textbf{jamás entrega el OTP} hasta tener el producto en mano e inspeccionarlo físicamente.
-      \item \textbf{Despacho Multicanal con Google SMTP:} Confirmación inmediata por correo autenticado sin rate-limits.
+      \item \textbf{Cero Riesgo de Robo del Viajero:} El viajero no cobra nada hasta tener la llave de 6 dígitos que solo el comprador posee.
+      \item \textbf{Cero Riesgo de Desconocimiento del Comprador:} Si el comprador se niega a dar el OTP tras recibir el paquete, el tribunal pericial con IA arbitra la entrega basándose en fotografías y geolocalización.
+      \item \textbf{Servidor Google SMTP (Puerto 465 SSL):} Despacho formal bancario a \texttt{ayniprotocol@gmail.com} sin intermediarios.
     \end{itemize}
   \end{block}
 \end{frame}
 
-% Slide 6: Oráculo Pericial IA
-\begin{frame}{5. Oráculo Pericial IA Multimodal (Google Gemini 3.6 Flash)}
+% ═════════════════════════════════════════════════════════════
+% SLIDE 8: ORÁCULO PERICIAL IA MULTIMODAL
+% ═════════════════════════════════════════════════════════════
+\begin{frame}{7. Oráculo Pericial IA Multimodal (Gemini 3.6 Flash)}
   \begin{columns}[T]
     \begin{column}{0.5\textwidth}
-      \begin{block}{\textbf{Tribunal Forense Automatizado (4 Fases)}}
+      \begin{block}{\textbf{Resolución Forense en 4 Fases}}
         \begin{enumerate}
-          \item \textbf{Ingesta Descentralizada:} Carga de fotos de embalaje, etiquetas y boletas de compra física a IPFS/ImgBB.
-          \item \textbf{Visión Computacional:} Análisis pericial con Gemini 3.6 Flash detectando sellos IATA, roturas o alteraciones.
-          \item \textbf{Cotejo de SLAs:} Contraste de tolerancias frente al contrato de custodia.
+          \item \textbf{Ingesta Descentralizada:} Carga de fotos de evidencia del producto, recibos de compra y sellos a IPFS/ImgBB.
+          \item \textbf{Visión Computacional:} Gemini 3.6 Flash inspecciona roturas, empaques adulterados y OCR de facturas.
+          \item \textbf{Cotejo de SLAs:} Contraste automático frente a las condiciones del contrato de custodia.
           \item \textbf{Atestación Criptográfica:} Generación de hash \texttt{keccak256} con dictamen de liquidación (Reembolso, Liberación o Split 50/50).
         \end{enumerate}
       \end{block}
@@ -182,101 +284,138 @@
         \begin{itemize}
           \item Extracción automática de PNR, número de vuelo, aerolínea y fecha.
           \item Verificación de aeropuertos IATA (MAD, LPZ, MIA, VVI).
-          \item Sello digital de \textbf{``Viajero Verificado IATA''} anclado en la blockchain para eliminar perfiles falsos.
+          \item Sello digital de \textbf{«Viajero Verificado IATA»} anclado en la blockchain para eliminar perfiles falsos.
         \end{itemize}
       \end{exampleblock}
     \end{column}
   \end{columns}
 \end{frame}
 
-% Slide 7: AYNI Heritage
-\begin{frame}{6. AYNI Heritage: Bóvedas Sucesiorias (Dead Man's Switch)}
-  \begin{columns}[T]
+% ═════════════════════════════════════════════════════════════
+% SLIDE 9: AYNI HERITAGE (BÓVEDAS DE HERENCIA CRIPTO)
+% ═════════════════════════════════════════════════════════════
+\begin{frame}{8. AYNI Heritage: Bóvedas Sucesiorias (Dead Man's Switch)}
+  \begin{columns}[c]
     \begin{column}{0.55\textwidth}
-      \begin{block}{\textbf{El Problema de la Sucesión Migrante}}
-        Si un trabajador o migrante fallece o sufre un siniestro en el exterior, sus ahorros cripto se pierden o quedan atrapados en juicios sucesorios bancarios de años con costos notariales de hasta 30\%.
-      \end{block}
-      \begin{block}{\textbf{Mecánica Operativa}}
+      \begin{block}{\textbf{Protección del Patrimonio Familiar Migrante}}
         \begin{itemize}
-          \item El titular fija beneficiarios con porcentajes matemáticos (suma exacta: 100\%).
-          \item Establece una ventana de inactividad (ej. 90, 180 o 365 días).
-          \item Emite periódicamente un \textbf{Pulso de Vida (Heartbeat)}.
+          \item \textbf{El Problema:} Si un compatriota fallece en el exterior, su familia pierde los fondos o queda atrapada en juicios de 3 años con abogados que cobran hasta el 30\%.
+          \item \textbf{La Mecánica:} El titular crea su bóveda en \texttt{/dashboard/heritage}, fija beneficiarios con porcentajes exactos y un temporizador (ej. 180 días).
+          \item \textbf{El Pulso de Vida (Heartbeat):} El titular emite periódicamente un pulso acercando su tarjeta física \textbf{Tangem NFC (EAL6+)}.
+          \item \textbf{Ejecución Criptográfica:} Si el tiempo expira, el Smart Contract transfiere los fondos automáticamente a las billeteras de sus hijos.
         \end{itemize}
       \end{block}
     \end{column}
     \begin{column}{0.42\textwidth}
-      \begin{exampleblock}{\textbf{Firma Física con Hardware Tangem}}
-        \centering
-        \textbf{Chip Militar EAL6+ NFC}\\
-        \vspace{0.2cm}
-        El titular firma el pulso de vida acercando su tarjeta física Tangem al celular o mediante QR WalletConnect en PC.\\
-        \vspace{0.3cm}
-        \textit{Si el temporizador llega a cero, el Smart Contract distribuye los fondos automáticamente a los hijos y herederos.}
+      \centering
+      \includegraphics[width=\textwidth,height=4.8cm,keepaspectratio]{public/images/ayni_heritage_vault.jpg}\\
+      \vspace{0.1cm}
+      \scriptsize \textit{Bóveda suiza digital basada en contratos inteligentes inmutables.}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+% ═════════════════════════════════════════════════════════════
+% SLIDE 10: UNIT ECONOMICS (EL NEGOCIO SE PAGA SOLO)
+% ═════════════════════════════════════════════════════════════
+\begin{frame}{9. Unit Economics \& Sostenibilidad Financiera}
+  \begin{columns}[T]
+    \begin{column}{0.5\textwidth}
+      \begin{block}{\textbf{Flujos de Monetización de AYNI}}
+        \begin{itemize}
+          \item \textbf{Take Rate de Custodia:} 1\% a 3\% de comisión de mantenimiento sobre cada encargo o remesa.
+          \item \textbf{Membresías VIP NFT (Unlock Protocol):} \$50 USD/año para importadores frecuentes (comisión reducida al 4\%).
+          \item \textbf{Fondo de Reserva Comunitario (2\%):} Pool de tesorería descentralizada para contingencias aduaneras.
+        \end{itemize}
+      \end{block}
+    \end{column}
+    \begin{column}{0.48\textwidth}
+      \begin{exampleblock}{\textbf{Proyección Financiera (Escenario Base)}}
+        \begin{itemize}
+          \item \textbf{Volumen:} 3,000 órdenes/mes $\times$ \$150 USD promedio = \textbf{\$450,000 GMV/mes}.
+          \item \textbf{Ingreso Neto Protocolo (2.5\%):} \textbf{\$11,250 USD/mes}.
+          \item \textbf{Costo de Operación (Cloud + RPCs):} $<$ \$250 USD/mes.
+          \item \textbf{\textcolor{AyniGreen}{\Large Margen Operativo Bruto: $>$ 95\%}}
+        \end{itemize}
+        \vspace{0.1cm}
+        \small \textit{Arquitectura Serverless en Vercel + Smart Contracts en Avalanche/Stellar garantizan costo marginal cercano a cero.}
       \end{exampleblock}
     \end{column}
   \end{columns}
 \end{frame}
 
-% Slide 8: Seguridad y Defensa en Profundidad
-\begin{frame}{7. Ciberseguridad de Grado Bancario (Calificación A)}
+% ═════════════════════════════════════════════════════════════
+% SLIDE 11: CIBERSEGURIDAD BANCARIA (CALIFICACIÓN A)
+% ═════════════════════════════════════════════════════════════
+\begin{frame}{10. Ciberseguridad de Grado Bancario (Calificación A)}
   \begin{center}
-    \begin{tabular}{llp{7.5cm}}
+    \small
+    \begin{tabular}{llp{7.8cm}}
       \toprule
-      \textbf{Cabecera de Seguridad} & \textbf{Estado} & \textbf{Propósito en AYNI Protocol} \\
+      \textbf{Cabecera de Seguridad} & \textbf{Estado} & \textbf{Propósito y Defensa en AYNI Protocol} \\
       \midrule
-      \textbf{Content-Security-Policy} & \textcolor{AyniGreen}{\textbf{Válido (A)}} & Previene inyecciones XSS permitiendo hidratación de Next.js y Web3. \\
-      \textbf{Strict-Transport-Security} & \textcolor{AyniGreen}{\textbf{Preload}} & Forzado HTTPS con vigencia de 63,072,000 segundos (2 años). \\
-      \textbf{X-Frame-Options} & \textcolor{AyniGreen}{\textbf{SAMEORIGIN}} & Protección absoluta contra ataques de Clickjacking. \\
-      \textbf{X-Content-Type-Options} & \textcolor{AyniGreen}{\textbf{nosniff}} & Impide ataques de confusión de tipos MIME. \\
-      \textbf{Permissions-Policy} & \textcolor{AyniGreen}{\textbf{Hardened}} & Aislamiento de cámara para escaneo de comprobantes; micrófono bloqueado. \\
-      \textbf{Aislamiento COOP / CORP} & \textcolor{AyniGreen}{\textbf{Activo}} & Defensa contra ataques de temporización espectral (Spectre / Meltdown). \\
+      \textbf{Content-Security-Policy} & \textcolor{AyniGreen}{\textbf{Válido (A)}} & Previene ataques XSS permitiendo hidratación de Next.js y Web3. \\
+      \textbf{Strict-Transport-Security} & \textcolor{AyniGreen}{\textbf{Preload}} & HTTPS forzado con vigencia de 63,072,000 segundos (2 años). \\
+      \textbf{X-Frame-Options} & \textcolor{AyniGreen}{\textbf{SAMEORIGIN}} & Defensa total contra ataques de Clickjacking y framed embedded. \\
+      \textbf{X-Content-Type-Options} & \textcolor{AyniGreen}{\textbf{nosniff}} & Impide ataques de confusión de tipos MIME en navegadores. \\
+      \textbf{Permissions-Policy} & \textcolor{AyniGreen}{\textbf{Hardened}} & Aislamiento de cámara para escanear recibos; micrófono bloqueado. \\
+      \textbf{Aislamiento COOP / CORP} & \textcolor{AyniGreen}{\textbf{Activo}} & Protección contra ataques de temporización de CPU (Spectre). \\
       \bottomrule
     \end{tabular}
   \end{center}
+  \vspace{0.2cm}
+  \centering
+  \scriptsize \textbf{Validado en SecurityHeaders.com:} 6 de 6 cabeceras internacionales en verde.
 \end{frame}
 
-% Slide 9: Bounties y Despliegues Reales
-\begin{frame}{8. Cumplimiento Integral de Bounties — ETH Bolivia 2026}
+% ═════════════════════════════════════════════════════════════
+% SLIDE 12: EVIDENCIA Y CONTRATOS VERIFICADOS
+% ═════════════════════════════════════════════════════════════
+\begin{frame}{11. Evidencia en Vivo: Contratos Desplegados y Verificados}
   \begin{center}
+    \small
     \begin{tabular}{lll}
       \toprule
-      \textbf{Track / Patrocinador} & \textbf{Infraestructura} & \textbf{Evidencia de Despliegue / Verificación} \\
+      \textbf{Bounty / Red} & \textbf{Dirección del Contrato} & \textbf{Estado y Verificación} \\
       \midrule
-      \textbf{Avalanche Track} & C-Chain Mainnet & Contrato \texttt{0x7A9fe51...} con USDC Circle Oficial (SnowTrace) \\
-      \textbf{Pollar Track} & Stellar Soroban & SDK Oficial Integrado, Login Google y Modal de Pago Escrow \\
-      \textbf{HSK Chain Track} & HashKey L2 Testnet & Contrato \texttt{0x872660b...} y MockUSDC (HSK Explorer) \\
-      \textbf{Unlock Protocol} & Base Sepolia & Token-Gated VIP Portal en \texttt{/dashboard/premium} con Viem \\
-      \textbf{Track General ETH} & Stack Integral & Supabase RLS, Gemini 3.6 Flash, Google SMTP, Tangem NFC \\
+      \textbf{Avalanche Mainnet} & \texttt{0x7A9fe51c8688281Ed66e0A98401B46a277c86D80} & \textcolor{AyniGreen}{\textbf{Verificado en SnowTrace}} (Circle USDC) \\
+      \textbf{HSK Chain Testnet} & \texttt{0x872660b3324236c306b539f90a02f8b8D019E9Ea} & \textcolor{AyniGreen}{\textbf{Verificado en HSK Explorer}} \\
+      \textbf{Pollar (Stellar)} & SDK Oficial \texttt{@pollar/react} & \textcolor{AyniGreen}{\textbf{Integrado de punta a punta}} (Login + Pay) \\
+      \textbf{Unlock Protocol} & \texttt{/dashboard/premium} con Viem & \textcolor{AyniGreen}{\textbf{Token-Gated VIP Portal}} \\
       \bottomrule
     \end{tabular}
   \end{center}
   \vspace{0.4cm}
   \begin{center}
-    \textbf{Demo Pública en Vivo:} \href{https://ayni-protocool.vercel.app/}{\textcolor{AyniCyan}{\underline{https://ayni-protocool.vercel.app/}}}
+    \textbf{Demo Web en Producción:} \href{https://ayni-protocool.vercel.app/}{\textcolor{AyniCyan}{\underline{https://ayni-protocool.vercel.app/}}}\\
+    \textbf{Repositorio Oficial GitHub:} \href{https://github.com/k3v1bvo/ayni-protocol}{\textcolor{AyniNavy}{\underline{https://github.com/k3v1bvo/ayni-protocol}}}
   \end{center}
 \end{frame}
 
-% Slide 10: Conclusión y Cierre
-\begin{frame}{9. Conclusión: La Nueva Era de la Logística y Remesas P2P}
+% ═════════════════════════════════════════════════════════════
+% SLIDE 13: CONCLUSIÓN Y CIERRE (EL PITCH FINAL)
+% ═════════════════════════════════════════════════════════════
+\begin{frame}{12. Conclusión: El Futuro del Comercio y las Remesas en Bolivia}
   \begin{columns}[T]
     \begin{column}{0.5\textwidth}
-      \begin{block}{\textbf{El Impacto de AYNI}}
+      \begin{block}{\textbf{Por qué AYNI es la Solución Ganadora}}
         \begin{itemize}
-          \item \textbf{Desintermediación:} Reducción del 70\% en costos logísticos.
-          \item \textbf{Inclusión Financiera:} Pagos accesibles con login social sobre Stellar o liquidez institucional en Avalanche.
-          \item \textbf{Confianza Criptográfica:} Escrow inmutable, oráculo pericial IA y herencias sin burocracia.
+          \item \textbf{Problema Real, No Especulativo:} Resuelve el dolor de divisas y logística de 12 millones de bolivianos.
+          \item \textbf{Tracción Inmediata:} El viajero gana \$200 por vuelo y el comprador ahorra el 70\% de costos.
+          \item \textbf{Código Desplegado en Mainnet:} Cero simulaciones, contratos reales auditables en SnowTrace.
         \end{itemize}
       \end{block}
     \end{column}
     \begin{column}{0.48\textwidth}
-      \begin{exampleblock}{\textbf{Manka \& Ayni: Nuestro Lema}}
+      \begin{exampleblock}{\textbf{Filosofía AYNI}}
         \centering
-        \vspace{0.3cm}
-        \textit{``Hoy por ti, mañana por mí.''}\\
-        \vspace{0.3cm}
-        \textbf{\textcolor{AyniNavy}{\Large ¡Muchas gracias!}}\\
-        \vspace{0.3cm}
-        \small Quedamos abiertos a las preguntas del honorable jurado de \textbf{ETH Bolivia 2026}.
+        \vspace{0.2cm}
+        {\Large \textit{«Hoy por ti, mañana por mí»}}\\[0.3cm]
+        {\large \textbf{\textcolor{AyniNavy}{AYNI PROTOCOL}}}\\[0.2cm]
+        \small Descentralizando la confianza, multiplicando las oportunidades.\\[0.3cm]
+        \textbf{\large ¡Muchas gracias!}\\
+        \vspace{0.1cm}
+        \small Quedamos a disposición del tribunal para preguntas.
       \end{exampleblock}
     \end{column}
   \end{columns}
