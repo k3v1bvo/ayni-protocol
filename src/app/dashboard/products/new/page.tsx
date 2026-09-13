@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { useAuth } from '@/context/AuthContext';
 import { ImageUploader } from '@/components/ui/ImageUploader';
-import { getSupabaseBrowserClient, isSupabaseConfigured } from '@/lib/supabase/client';
+import { isSupabaseConfigured } from '@/lib/supabase/client';
 import { sanitizeText, sanitizeAmount } from '@/lib/utils/sanitizer';
 import { Package, ArrowLeft, CheckCircle2, Sparkles, AlertTriangle, Loader2 } from 'lucide-react';
 import Link from 'next/link';
@@ -44,13 +44,11 @@ export default function NewProductPage() {
     async function findStore() {
       if (!user?.id || !isSupabaseConfigured) return;
       try {
-        const supabase = getSupabaseBrowserClient();
-        const { data } = await supabase
-          .from('stores')
-          .select('id')
-          .eq('owner_id', user.id)
-          .single();
-        if (data) setStoreId(data.id);
+        const res = await fetch(`/api/stores?owner_id=${user.id}`);
+        if (res.ok) {
+          const data = await res.json();
+          if (data.stores && data.stores.length > 0) setStoreId(data.stores[0].id);
+        }
       } catch (e) {
         console.warn('No store found for merchant:', e);
       }
