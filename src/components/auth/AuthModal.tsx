@@ -8,7 +8,8 @@ import { sanitizeEmail, sanitizeText } from '@/lib/utils/sanitizer';
 import { obfuscateEmail } from '@/lib/utils/obfuscate';
 import {
   Mail, Lock, User, X, AlertCircle, CheckCircle, Sparkles, Eye,
-  EyeOff, ShieldCheck, Wifi, RefreshCw, ArrowLeft, KeyRound
+  EyeOff, ShieldCheck, Wifi, RefreshCw, ArrowLeft, KeyRound,
+  Smartphone, QrCode, Copy
 } from 'lucide-react';
 
 interface AuthModalProps {
@@ -44,6 +45,9 @@ export function AuthModal({ isOpen, onClose, initialMode = 'signin' }: AuthModal
   const [twoFaSending, setTwoFaSending] = useState(false);
   const [twoFaVerifying, setTwoFaVerifying] = useState(false);
   const [tangemState, setTangemState] = useState<'idle' | 'approaching' | 'verifying' | 'success'>('idle');
+  const [tangemMode, setTangemMode] = useState<'qr' | 'nfc'>('qr');
+  const [copiedTangemUri, setCopiedTangemUri] = useState(false);
+  const [tangemQrUri, setTangemQrUri] = useState('tangem://wc?uri=wc:ayni-auth-session-init');
 
   React.useEffect(() => {
     if (isOpen) {
@@ -467,54 +471,173 @@ export function AuthModal({ isOpen, onClose, initialMode = 'signin' }: AuthModal
             )}
 
             {twoFaMethod === 'tangem' && (
-              <div style={{ textAlign: 'center', padding: '10px 0' }}>
+              <div style={{ textAlign: 'center', padding: '6px 0' }}>
+                {/* Submode switcher: QR vs Fast Simulation */}
                 <div style={{
-                  width: 140,
-                  height: 85,
-                  margin: '0 auto 16px',
-                  borderRadius: '10px',
-                  background: 'linear-gradient(135deg, #0e1628, #040813)',
-                  border: '1.5px solid var(--brand-cyan)',
                   display: 'flex',
-                  flexDirection: 'column',
-                  justifyContent: 'space-between',
-                  padding: '10px',
-                  boxShadow: '0 0 20px rgba(0,207,255,0.2)',
+                  gap: '6px',
+                  background: 'rgba(0, 0, 0, 0.4)',
+                  padding: '4px',
+                  borderRadius: '10px',
+                  border: '1px solid var(--border-subtle)',
+                  marginBottom: '14px',
                 }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <span style={{ fontWeight: 900, fontSize: '0.75rem', letterSpacing: '1px', color: '#fff' }}>tangem</span>
-                    <Wifi size={13} color="var(--brand-cyan)" style={{ transform: 'rotate(90deg)' }} />
-                  </div>
-                  <span style={{ fontSize: '0.6rem', color: 'var(--brand-emerald)', fontWeight: 700 }}>EAL6+ SECURITY CHIP</span>
+                  <button
+                    type="button"
+                    onClick={() => setTangemMode('qr')}
+                    style={{
+                      flex: 1,
+                      padding: '6px 8px',
+                      fontSize: '0.74rem',
+                      fontWeight: 600,
+                      borderRadius: '7px',
+                      border: 'none',
+                      cursor: 'pointer',
+                      background: tangemMode === 'qr' ? 'rgba(0, 207, 255, 0.15)' : 'transparent',
+                      color: tangemMode === 'qr' ? 'var(--brand-cyan)' : 'var(--text-muted)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: '5px',
+                    }}
+                  >
+                    <QrCode size={13} /> Escanear QR (Móvil)
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setTangemMode('nfc')}
+                    style={{
+                      flex: 1,
+                      padding: '6px 8px',
+                      fontSize: '0.74rem',
+                      fontWeight: 600,
+                      borderRadius: '7px',
+                      border: 'none',
+                      cursor: 'pointer',
+                      background: tangemMode === 'nfc' ? 'rgba(0, 207, 255, 0.15)' : 'transparent',
+                      color: tangemMode === 'nfc' ? 'var(--brand-cyan)' : 'var(--text-muted)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: '5px',
+                    }}
+                  >
+                    <Wifi size={13} style={{ transform: 'rotate(90deg)' }} /> Simular Tap (Jurado)
+                  </button>
                 </div>
 
-                <p style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', marginBottom: '16px' }}>
-                  Aproxima tu tarjeta física Tangem para validar el factor de posesión por hardware.
-                </p>
+                {/* MODE A: QR WALLETCONNECT (DESKTOP WEB) */}
+                {tangemMode === 'qr' && (
+                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                    <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginBottom: '12px', lineHeight: 1.4 }}>
+                      Abre tu <strong>App Tangem</strong> en el celular, escanea el código QR y aproxima tu tarjeta física NFC.
+                    </p>
 
-                {tangemState === 'idle' && (
-                  <button type="button" onClick={handleSimulateTangem} className="btn btn-tangem-glow btn-block" style={{ padding: '11px' }}>
-                    <Wifi size={14} style={{ transform: 'rotate(90deg)', marginRight: '6px' }} />
-                    Aproximar Tarjeta Tangem (Tap NFC)
-                  </button>
-                )}
+                    <div style={{
+                      padding: '12px',
+                      background: '#ffffff',
+                      borderRadius: '16px',
+                      boxShadow: '0 0 30px rgba(0, 207, 255, 0.25)',
+                      marginBottom: '12px',
+                      display: 'inline-block',
+                    }}>
+                      <img
+                        src={`https://api.qrserver.com/v1/create-qr-code/?size=140x140&margin=2&data=${encodeURIComponent(tangemQrUri)}`}
+                        alt="Código QR Tangem WalletConnect"
+                        width={140}
+                        height={140}
+                        style={{ display: 'block', borderRadius: '6px' }}
+                      />
+                    </div>
 
-                {tangemState === 'approaching' && (
-                  <div style={{ fontSize: '0.84rem', color: 'var(--brand-cyan)', fontWeight: 700 }}>
-                    Detectando chip NFC Tangem...
+                    <div style={{ display: 'flex', gap: '8px', marginBottom: '14px', width: '100%' }}>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          navigator.clipboard.writeText(tangemQrUri);
+                          setCopiedTangemUri(true);
+                          setTimeout(() => setCopiedTangemUri(false), 2000);
+                        }}
+                        className="btn btn-ghost btn-sm"
+                        style={{ flex: 1, fontSize: '0.74rem', gap: '5px' }}
+                      >
+                        <Copy size={12} /> {copiedTangemUri ? '¡URI Copiado!' : 'Copiar URI'}
+                      </button>
+                      <a
+                        href={tangemQrUri}
+                        className="btn btn-ghost btn-sm"
+                        style={{ flex: 1, fontSize: '0.74rem', gap: '5px', textDecoration: 'none', color: 'inherit' }}
+                      >
+                        <Smartphone size={12} /> Abrir Tangem
+                      </a>
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={handleSimulateTangem}
+                      className="btn btn-tangem-glow btn-block"
+                      style={{ padding: '10px', fontSize: '0.85rem' }}
+                    >
+                      {tangemState === 'idle' && '✓ Confirmar Enlace desde App'}
+                      {tangemState === 'approaching' && 'Sincronizando con App Tangem...'}
+                      {tangemState === 'verifying' && 'Validando firma criptográfica EAL6+...'}
+                      {tangemState === 'success' && '✓ ¡Autenticación Tangem Exitosa!'}
+                    </button>
                   </div>
                 )}
 
-                {tangemState === 'verifying' && (
-                  <div style={{ fontSize: '0.84rem', color: 'var(--brand-emerald)', fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}>
-                    <RefreshCw size={14} className="spin" />
-                    Validando firma criptográfica de enclave...
-                  </div>
-                )}
+                {/* MODE B: FAST SIMULATION NFC (JURADO ETH BOLIVIA) */}
+                {tangemMode === 'nfc' && (
+                  <div>
+                    <div style={{
+                      width: 140,
+                      height: 85,
+                      margin: '0 auto 14px',
+                      borderRadius: '10px',
+                      background: 'linear-gradient(135deg, #0e1628, #040813)',
+                      border: '1.5px solid var(--brand-cyan)',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      justifyContent: 'space-between',
+                      padding: '10px',
+                      boxShadow: '0 0 20px rgba(0,207,255,0.2)',
+                    }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <span style={{ fontWeight: 900, fontSize: '0.75rem', letterSpacing: '1px', color: '#fff' }}>tangem</span>
+                        <Wifi size={13} color="var(--brand-cyan)" style={{ transform: 'rotate(90deg)' }} />
+                      </div>
+                      <span style={{ fontSize: '0.6rem', color: 'var(--brand-emerald)', fontWeight: 700 }}>EAL6+ SECURITY CHIP</span>
+                    </div>
 
-                {tangemState === 'success' && (
-                  <div style={{ fontSize: '0.88rem', color: 'var(--brand-emerald)', fontWeight: 800 }}>
-                    ✓ ¡Autenticación Tangem Exitosa!
+                    <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginBottom: '14px' }}>
+                      Modo evaluación: simula la aproximación física de la tarjeta Tangem con chip EAL6+.
+                    </p>
+
+                    {tangemState === 'idle' && (
+                      <button type="button" onClick={handleSimulateTangem} className="btn btn-tangem-glow btn-block" style={{ padding: '11px' }}>
+                        <Wifi size={14} style={{ transform: 'rotate(90deg)', marginRight: '6px' }} />
+                        Aproximar Tarjeta Tangem (Tap NFC)
+                      </button>
+                    )}
+
+                    {tangemState === 'approaching' && (
+                      <div style={{ fontSize: '0.84rem', color: 'var(--brand-cyan)', fontWeight: 700, padding: '8px' }}>
+                        Detectando chip NFC Tangem...
+                      </div>
+                    )}
+
+                    {tangemState === 'verifying' && (
+                      <div style={{ fontSize: '0.84rem', color: 'var(--brand-emerald)', fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', padding: '8px' }}>
+                        <RefreshCw size={14} className="spin" />
+                        Validando firma criptográfica de enclave...
+                      </div>
+                    )}
+
+                    {tangemState === 'success' && (
+                      <div style={{ fontSize: '0.88rem', color: 'var(--brand-emerald)', fontWeight: 800, padding: '8px' }}>
+                        ✓ ¡Autenticación Tangem Exitosa!
+                      </div>
+                    )}
                   </div>
                 )}
               </div>

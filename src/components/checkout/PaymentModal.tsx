@@ -10,7 +10,7 @@ import { executeEscrowDeposit } from '@/lib/web3/contracts';
 import { usePollar } from '@pollar/react';
 
 const POLLAR_USDC_ISSUER = process.env.NEXT_PUBLIC_POLLAR_USDC_ISSUER || 'GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5';
-const POLLAR_TREASURY_ADDRESS = process.env.NEXT_PUBLIC_POLLAR_TREASURY_ADDRESS || '';
+const POLLAR_TREASURY_ADDRESS = process.env.NEXT_PUBLIC_POLLAR_TREASURY_ADDRESS || 'GCEX2DHV6BB5EY7UEAKTVXKSX3FLYEEVYU2XSPUCV6TBYOTZ4UWSSV5O';
 
 interface PaymentModalProps {
   isOpen: boolean;
