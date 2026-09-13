@@ -49,6 +49,52 @@ export default function DashboardPage() {
   const { user, role, switchRole, isDemoAccount } = useAuth();
   const [quickOtpInput, setQuickOtpInput] = useState('');
   const [otpVerifyState, setOtpVerifyState] = useState<'idle' | 'verifying' | 'success' | 'error'>('idle');
+  const [quickOtpMessage, setQuickOtpMessage] = useState<string | null>(null);
+
+  const handleQuickOtpRelease = async () => {
+    const code = quickOtpInput.trim().toUpperCase();
+    if (!code || !user?.id) return;
+    setOtpVerifyState('verifying');
+    setQuickOtpMessage(null);
+    try {
+      const params = new URLSearchParams();
+      if (role === 'client') params.set('client_id', user.id);
+      else if (role === 'traveler') params.set('traveler_id', user.id);
+      else if (role === 'merchant') params.set('store_owner_id', user.id);
+      params.set('status', 'in_transit');
+
+      const res = await fetch(`/api/orders?${params}`);
+      const data = await res.json();
+      const match = (data.orders || []).find((o: any) => (o.otp_plain_simulated || '').toUpperCase() === code);
+
+      if (!match) {
+        setOtpVerifyState('error');
+        setQuickOtpMessage('Código inválido o no corresponde a ningún encargo en tránsito tuyo.');
+        setTimeout(() => setOtpVerifyState('idle'), 3000);
+        return;
+      }
+
+      const putRes = await fetch('/api/orders', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: match.id, status: 'delivered', delivered_at: new Date().toISOString() }),
+      });
+
+      if (putRes.ok) {
+        setOtpVerifyState('success');
+        setQuickOtpMessage(`Pedido ${match.order_code} entregado. Pago liberado del escrow.`);
+        setQuickOtpInput('');
+      } else {
+        setOtpVerifyState('error');
+        setQuickOtpMessage('Error liberando el pago. Intenta desde el detalle del pedido.');
+      }
+      setTimeout(() => setOtpVerifyState('idle'), 4000);
+    } catch (e) {
+      setOtpVerifyState('error');
+      setQuickOtpMessage('Error de conexión. Intenta de nuevo.');
+      setTimeout(() => setOtpVerifyState('idle'), 3000);
+    }
+  };
 
   const getGreeting = () => {
     const hour = new Date().getHours();
@@ -525,20 +571,8 @@ export default function DashboardPage() {
               />
               <button
                 type="button"
-                onClick={() => {
-                  if (!quickOtpInput.trim()) return;
-                  setOtpVerifyState('verifying');
-                  setTimeout(() => {
-                    if (quickOtpInput.trim().toUpperCase() === 'AY7K9M' || quickOtpInput.trim().toUpperCase() === 'MN82K1' || quickOtpInput.trim().length >= 6) {
-                      setOtpVerifyState('success');
-                      setTimeout(() => setOtpVerifyState('idle'), 4000);
-                    } else {
-                      setOtpVerifyState('error');
-                      setTimeout(() => setOtpVerifyState('idle'), 3000);
-                    }
-                  }, 800);
-                }}
-                disabled={otpVerifyState === 'verifying'}
+                onClick={handleQuickOtpRelease}
+                disabled={otpVerifyState === 'verifying' || !quickOtpInput.trim()}
                 className="btn btn-primary btn-sm"
                 style={{ flexShrink: 0 }}
               >
@@ -547,12 +581,12 @@ export default function DashboardPage() {
             </div>
             {otpVerifyState === 'success' && (
               <div style={{ fontSize: '0.75rem', color: 'var(--brand-emerald)', background: 'rgba(0,214,143,0.1)', padding: '8px 10px', borderRadius: '8px', border: '1px solid rgba(0,214,143,0.3)' }}>
-                ✓ ¡Hash Keccak validado! Fondos liberados al viajero en Base L2.
+                ✓ {quickOtpMessage || 'Fondos liberados del escrow.'}
               </div>
             )}
             {otpVerifyState === 'error' && (
               <div style={{ fontSize: '0.75rem', color: 'var(--brand-red)', background: 'rgba(239,68,68,0.1)', padding: '8px 10px', borderRadius: '8px', border: '1px solid rgba(239,68,68,0.3)' }}>
-                ✗ Código inválido. Verifica el código OTP con el comprador.
+                ✗ {quickOtpMessage || 'Código inválido. Verifica el código OTP con el comprador.'}
               </div>
             )}
           </div>
