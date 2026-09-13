@@ -11,6 +11,8 @@ export interface CartItem {
   image_url: string;
   category: string;
   quantity: number;
+  store_id?: string;
+  isDbProduct?: boolean;
 }
 
 interface CartContextType {
@@ -23,6 +25,8 @@ interface CartContextType {
     weight_kg?: number;
     image_url?: string;
     category?: string;
+    store_id?: string;
+    isDbProduct?: boolean;
   }) => void;
   removeItem: (id: string) => void;
   updateQuantity: (id: string, delta: number) => void;
@@ -68,6 +72,8 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     weight_kg?: number;
     image_url?: string;
     category?: string;
+    store_id?: string;
+    isDbProduct?: boolean;
   }) => {
     setItems(prev => {
       const existing = prev.find(item => item.id === product.id);
@@ -87,6 +93,8 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
           image_url: product.image_url || '/images/ayni_condiments_diaspora.jpg',
           category: product.category || 'general',
           quantity: 1,
+          store_id: product.store_id,
+          isDbProduct: product.isDbProduct,
         },
       ];
     });

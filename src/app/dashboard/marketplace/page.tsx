@@ -263,6 +263,8 @@ export interface MarketplaceProduct {
   tags: string[];
   available_routes: number;
   description: string;
+  storeId?: string;
+  isDbProduct?: boolean;
 }
 
 export default function MarketplacePage() {
@@ -303,6 +305,8 @@ export default function MarketplacePage() {
                 tags: Array.isArray(p.tags) && p.tags.length > 0 ? p.tags : [p.category || 'artesanal', 'ayni'],
                 available_routes: p.available_routes_count || p.available_routes || Math.floor(Math.random() * 5) + 3,
                 description: p.description || 'Producto artesanal verificado por la comunidad con custodia de fondos en Smart Contract de Escrow.',
+                storeId: p.store_id || undefined,
+                isDbProduct: true,
               };
             });
 
@@ -339,6 +343,8 @@ export default function MarketplacePage() {
       weight_kg: parseFloat(product.weight) || 0.5,
       image_url: product.image,
       category: product.category,
+      store_id: product.storeId,
+      isDbProduct: product.isDbProduct,
     });
     setAddedItemNotice(product.title);
     setTimeout(() => setAddedItemNotice(null), 2500);

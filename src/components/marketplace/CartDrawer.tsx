@@ -25,16 +25,41 @@ export function CartDrawer() {
 
   const [checkingOut, setCheckingOut] = useState(false);
   const [successTx, setSuccessTx] = useState<string | null>(null);
+  const [checkoutError, setCheckoutError] = useState<string | null>(null);
 
   if (!isCartOpen) return null;
 
   const handleCheckout = async () => {
+    if (!user) {
+      setCheckoutError('Debes iniciar sesión para confirmar tu encargo.');
+      return;
+    }
     setCheckingOut(true);
-    // Simulate smart contract escrow deposit
-    await new Promise(r => setTimeout(r, 1200));
-    const randomTx = '0x' + Array.from({ length: 64 }, () => Math.floor(Math.random() * 16).toString(16)).join('');
-    setSuccessTx(randomTx);
-    setCheckingOut(false);
+    setCheckoutError(null);
+    try {
+      for (const item of items) {
+        const res = await fetch('/api/orders', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            client_id: user.id,
+            store_id: item.store_id || null,
+            product_id: item.isDbProduct ? item.id : null,
+            order_type: 'foot_shopping',
+            description: `${item.title}${item.quantity > 1 ? ` (x${item.quantity})` : ''}`,
+            product_price_usd: item.price * item.quantity,
+          }),
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Error registrando el encargo en el Smart Contract');
+      }
+      const randomTx = '0x' + Array.from({ length: 64 }, () => Math.floor(Math.random() * 16).toString(16)).join('');
+      setSuccessTx(randomTx);
+    } catch (err: any) {
+      setCheckoutError(err.message || 'No se pudo procesar el escrow. Intenta nuevamente.');
+    } finally {
+      setCheckingOut(false);
+    }
   };
 
   const handleFinish = () => {
@@ -224,6 +249,11 @@ export function CartDrawer() {
               </div>
             </div>
 
+            {checkoutError && (
+              <div style={{ fontSize: '0.78rem', color: '#ff6b87', marginBottom: '10px', textAlign: 'center' }}>
+                {checkoutError}
+              </div>
+            )}
             <div style={{ display: 'flex', gap: '10px' }}>
               <button
                 type="button"
