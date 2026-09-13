@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import nodemailer from 'nodemailer';
+import { sendEmail } from '@/lib/email/mailer';
 
 export async function POST(req: NextRequest) {
   try {
@@ -70,33 +70,19 @@ export async function POST(req: NextRequest) {
       </div>
     `;
 
-    // Si existen credenciales reales de Google SMTP, enviar por nodemailer
-    if (smtpUser && smtpPassword) {
-      const transporter = nodemailer.createTransport({
-        service: 'gmail',
-        auth: {
-          user: smtpUser,
-          pass: smtpPassword,
-        },
-      });
+    // Envío seguro a través del motor centralizado Google SMTP
+    const mailResult = await sendEmail({
+      to,
+      subject,
+      html: htmlContent,
+    });
 
-      await transporter.sendMail({
-        from: `"AYNI Protocol" <${smtpUser}>`,
-        to,
-        subject,
-        html: htmlContent,
-      });
-
-      return NextResponse.json({ success: true, delivered: true });
-    }
-
-    // Fallback: modo simulación si no se configuraron credenciales
-    console.log(`[SMTP SIMULATED] Correo preparado para: ${to} | Asunto: ${subject}`);
     return NextResponse.json({
-      success: true,
-      delivered: false,
-      simulated: true,
-      notice: 'Correo simulado con éxito. Para envío real de Gmail, configure SMTP_USER y SMTP_PASSWORD en las variables de entorno.',
+      success: mailResult.success,
+      delivered: !mailResult.simulated,
+      simulated: mailResult.simulated,
+      messageId: mailResult.messageId,
+      error: mailResult.error,
     });
   } catch (error: any) {
     console.error('Error enviando email SMTP:', error);

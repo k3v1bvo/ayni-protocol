@@ -201,6 +201,27 @@ export default function DisputesPage() {
     saveDisputes(updated);
     setResolveSuccess(`¡Disputa resuelta con éxito! Decisión ejecutada en Smart Contract.`);
 
+    // Despacho asíncrono de correo oficial con el veredicto arbitral
+    try {
+      const recipient = user?.email || 'ayniprotocol@gmail.com';
+      fetch('/api/email/send', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          to: recipient,
+          type: 'dispute_verdict',
+          data: {
+            recipientName: selectedDispute.client_name || user?.full_name || 'Usuario AYNI',
+            orderCode: selectedDispute.order_id,
+            verdict: resolutionStatus === 'resolved_refund' ? 'Reembolso Total al Comprador' : resolutionStatus === 'resolved_release' ? 'Liberación al Viajero' : 'División Paritaria 50/50',
+            rationale: resolutionNote.trim() || resolutionText,
+            refundAmountUsd: type === 'refund' ? selectedDispute.amount_usd : type === 'split' ? selectedDispute.amount_usd / 2 : 0,
+            travelerAmountUsd: type === 'release' ? selectedDispute.amount_usd : type === 'split' ? selectedDispute.amount_usd / 2 : 0,
+          },
+        }),
+      }).catch(err => console.warn('Error enviando correo de veredicto:', err));
+    } catch (_) {}
+
     setTimeout(() => {
       setIsResolving(false);
       setResolveSuccess(null);
