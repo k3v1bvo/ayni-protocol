@@ -310,10 +310,15 @@ export default function MarketplacePage() {
               };
             });
 
-            // Prepend new database products to catalog without duplicates
+            // Prepend real database products to catalog, dropping demo/sample
+            // products that share the same id OR the same title (real sellers
+            // reuse the same product names as the built-in sample catalog).
             setAllProducts(prev => {
               const existingIds = new Set(apiMapped.map(m => m.id));
-              const remainingBuiltIn = (PRODUCTS as MarketplaceProduct[]).filter(p => !existingIds.has(p.id));
+              const existingTitles = new Set(apiMapped.map(m => m.title.trim().toLowerCase()));
+              const remainingBuiltIn = (PRODUCTS as MarketplaceProduct[]).filter(
+                p => !existingIds.has(p.id) && !existingTitles.has(p.title.trim().toLowerCase())
+              );
               return [...apiMapped, ...remainingBuiltIn];
             });
           }
