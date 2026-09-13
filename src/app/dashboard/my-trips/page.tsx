@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { useAuth } from '@/context/AuthContext';
-import { getSupabaseBrowserClient, isSupabaseConfigured } from '@/lib/supabase/client';
+import { isSupabaseConfigured } from '@/lib/supabase/client';
 import {
   Plane, Plus, Calendar, Edit2, Trash2, CheckCircle2, Package, MapPin,
   DollarSign, X, Save, Loader2, AlertTriangle, Sparkles
@@ -51,13 +51,11 @@ export default function MyTripsPage() {
 
     if (isSupabaseConfigured) {
       try {
-        const supabase = getSupabaseBrowserClient();
-        const { data } = await supabase
-          .from('trips')
-          .select('*')
-          .eq('traveler_id', user.id)
-          .order('departure_date', { ascending: true });
-        if (data) { setTrips(data); setLoading(false); return; }
+        const res = await fetch(`/api/trips?traveler_id=${user.id}`);
+        if (res.ok) {
+          const { trips: data } = await res.json();
+          if (data) { setTrips(data); setLoading(false); return; }
+        }
       } catch (e) { console.warn(e); }
     }
 
