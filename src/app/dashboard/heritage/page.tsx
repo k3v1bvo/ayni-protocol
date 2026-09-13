@@ -10,6 +10,7 @@ import {
 import { sanitizeText, sanitizeEmail, sanitizeAmount } from '@/lib/utils/sanitizer';
 import { TangemConnector } from '@/components/web3/TangemConnector';
 import { PaymentModal } from '@/components/checkout/PaymentModal';
+import { useAuth } from '@/context/AuthContext';
 
 interface Beneficiary {
   id: string;
@@ -66,6 +67,7 @@ const INITIAL_BENEFICIARIES: Beneficiary[] = [
 ];
 
 export default function HeritagePage() {
+  const { user } = useAuth();
   const [beneficiaries, setBeneficiaries] = useState<Beneficiary[]>(INITIAL_BENEFICIARIES);
   const [vaultBalance, setVaultBalance] = useState(18450.00);
   const [inactivityInterval, setInactivityInterval] = useState<number>(180);
@@ -152,6 +154,26 @@ export default function HeritagePage() {
     try {
       localStorage.setItem('ayni_heartbeats', JSON.stringify(updated));
     } catch {}
+
+    // Despacho asíncrono de confirmación de Heartbeat a Google SMTP
+    try {
+      const recipient = user?.email || 'ayniprotocol@gmail.com';
+      fetch('/api/email/send', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          to: recipient,
+          type: 'notification',
+          data: {
+            recipientName: user?.full_name || 'Titular de Bóveda Heritage',
+            title: '❤️ Pulso de Vida Confirmado — Temporizador Renovado',
+            message: `El Smart Contract de AYNI Heritage ha registrado exitosamente tu confirmación de pulso de vida (${methodName || 'Web3 Ping L2'}). El temporizador del Dead Man's Switch se ha restablecido a ${inactivityInterval} días. Tx: ${txHash}`,
+            actionUrl: 'https://ayni-protocool.vercel.app/dashboard/heritage',
+            actionText: 'Ver Bóveda en Dashboard',
+          },
+        }),
+      }).catch(err => console.warn('Error enviando correo de heartbeat:', err));
+    } catch (_) {}
 
     setTimeout(() => {
       setHeartbeatSuccess(false);

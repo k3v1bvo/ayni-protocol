@@ -203,6 +203,30 @@ export default function TripsPage() {
     setSubmittingOrder(true);
     await new Promise(r => setTimeout(r, 1000));
     const randomTx = '0x' + Array.from({ length: 64 }, () => Math.floor(Math.random() * 16).toString(16)).join('');
+    const simOtp = Math.floor(100000 + Math.random() * 900000).toString();
+    const orderCode = `ORD-${Date.now().toString().slice(-4)}`;
+
+    // Despacho asíncrono de correo con el código OTP confidencial
+    try {
+      const recipient = user?.email || 'ayniprotocol@gmail.com';
+      fetch('/api/email/send', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          to: recipient,
+          type: 'otp',
+          data: {
+            recipientName: user?.full_name || 'Comprador AYNI',
+            orderCode,
+            otpCode: simOtp,
+            productTitle: `Encargo con Viajero ${selectedTrip?.traveler || 'Asignado'} (${selectedTrip?.from} ➔ ${selectedTrip?.to})`,
+            travelerName: selectedTrip?.traveler || 'Viajero Certificado',
+            escrowAmountUsd: fee.totalOrderCostUsdc,
+          },
+        }),
+      }).catch(err => console.warn('Error enviando correo OTP en trips:', err));
+    } catch (_) {}
+
     setSubmittingOrder(false);
     setOrderCreatedNotice(randomTx);
     setTimeout(() => {

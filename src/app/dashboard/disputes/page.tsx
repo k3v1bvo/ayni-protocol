@@ -251,6 +251,27 @@ export default function DisputesPage() {
 
     const updated = [newDisp, ...disputes];
     saveDisputes(updated);
+
+    // Despacho asíncrono de correo notificando la apertura de la disputa y bloqueo de fondos
+    try {
+      const recipient = user?.email || 'ayniprotocol@gmail.com';
+      fetch('/api/email/send', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          to: recipient,
+          type: 'notification',
+          data: {
+            recipientName: user?.full_name || 'Comprador Acreditado',
+            title: `⚠️ Disputa Registrada: Fondos Congelados para Orden #${newDisp.order_id}`,
+            message: `Tu reclamo por "${newDisp.reason}" ha sido registrado en el Smart Contract. Los fondos de $${newDisp.amount_usd.toFixed(2)} USDC se encuentran en custodia inmutable. El Oráculo Pericial IA y el tribunal arbitral están analizando las pruebas fotográficas.`,
+            actionUrl: 'https://ayni-protocool.vercel.app/dashboard/disputes',
+            actionText: 'Ver Expediente de Disputa',
+          },
+        }),
+      }).catch(err => console.warn('Error enviando correo de apertura de disputa:', err));
+    } catch (_) {}
+
     setIsNewDisputeOpen(false);
     setNewReason('');
     setNewEvidence('');

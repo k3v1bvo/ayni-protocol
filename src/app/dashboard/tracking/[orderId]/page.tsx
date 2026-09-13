@@ -96,6 +96,25 @@ export default function TrackingDetailPage() {
       status: 'completed',
     }));
     setIsReleasing(false);
+
+    // Despacho asíncrono de correo de liberación de fondos
+    try {
+      fetch('/api/email/send', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          to: 'ayniprotocol@gmail.com',
+          type: 'payout_released',
+          data: {
+            travelerName: tracking.courierName || 'Viajero AYNI',
+            orderCode: tracking.orderCode,
+            productTitle: tracking.title,
+            payoutAmountUsd: tracking.amountUsdc,
+            txHash: res?.txHash || '0x' + Array.from({ length: 64 }, () => Math.floor(Math.random() * 16).toString(16)).join(''),
+          },
+        }),
+      }).catch(err => console.warn('Error enviando correo de payout en tracking:', err));
+    } catch (_) {}
   };
 
   const copyTrackingNumber = () => {

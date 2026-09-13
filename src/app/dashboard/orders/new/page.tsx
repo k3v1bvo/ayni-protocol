@@ -204,24 +204,25 @@ export default function NewOrderPage() {
     playSuccessSound();
 
     // Disparar notificación por correo
-    if (user?.email) {
-      try {
-        fetch('/api/notifications/email', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            to: user.email,
-            subject: `¡Orden ${code} Asegurada en Escrow!`,
-            type: 'order_funded',
-            data: {
-              orderCode: code,
-              otp: otpCode,
-              amount: totalEscrow,
-            }
-          })
-        }).catch(() => {});
-      } catch {}
-    }
+    try {
+      const recipientEmail = user?.email || 'ayniprotocol@gmail.com';
+      fetch('/api/email/send', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          to: recipientEmail,
+          type: 'otp',
+          data: {
+            recipientName: user?.full_name || 'Comprador AYNI',
+            orderCode: code,
+            otpCode: otpCode,
+            productTitle: cleanDesc || 'Encargo Internacional',
+            travelerName: 'Viajero Asignado AYNI',
+            escrowAmountUsd: totalEscrow,
+          },
+        }),
+      }).catch(err => console.warn('Error enviando correo OTP:', err));
+    } catch (_) {}
   };
 
   if (submitted) {
