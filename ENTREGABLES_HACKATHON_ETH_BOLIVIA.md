@@ -235,6 +235,103 @@ Ten estas respuestas preparadas cuando el jurado te ponga a prueba:
 
 ---
 
+# 🏆 SECCIÓN 7: El Libro Maestro de Venta («Vender el Charque» ante el Jurado)
+
+Usa esta estructura argumental para tu defensa oral ante el jurado o en la ronda de preguntas. Está diseñada bajo el estándar de evaluación de aceleradoras globales (Y Combinator / ETH Global).
+
+---
+
+### 1. ¿Para quién es? (Target Personas / Ideal Customer Profile)
+
+| Perfil | Quién es en Bolivia | Su Motivación Principal |
+|---|---|---|
+| **Perfil A: El Comprador Local (Tech & Makers)** | Estudiantes de ingeniería, freelancers, diseñadores y técnicos en La Paz, Cochabamba y Santa Cruz. | Necesita laptops, repuestos electrónicos, sensores o herramientas que no existen en el mercado local y no tiene tarjeta de crédito internacional con saldo en dólares. |
+| **Perfil B: El Viajero Frecuente («El Chaski»)** | Profesionales, comerciantes de ferias, estudiantes de intercambio o turistas que viajan entre Bolivia y nodos comerciales (Miami, São Paulo, Buenos Aires, Madrid, Santiago). | Tiene entre 10 y 23 kg de espacio vacío en su equipaje y quiere rentabilizarlo para subsidiar el 50% al 100% de su pasaje de avión de forma segura. |
+| **Perfil C: La Familia Migrante / Diáspora** | Los más de 2.5 millones de bolivianos que viven en el extranjero. | Desean enviar medicinas, indumentaria, documentos o encomiendas a sus padres e hijos en Bolivia sin sufrir el 30% de cobros en couriers o el 12% en remesadoras. |
+| **Perfil D: La Micro-Pyme Importadora** | Pequeños comercios de la Uyustus, Eloy Salmón o Los Pozos. | Importan micro-lotes de alta rotación sin quedar atrapados semanas en despachos aduaneros tradicionales. |
+
+---
+
+### 2. ¿Qué problema o necesidad solucionamos? (El Dolor Sangrante)
+
+1. **La Asfixia Cambiaria:** El sistema bancario boliviano restringió drásticamente las compras por internet en moneda extranjera (cupos semanales de \$30 a \$50 USD por tarjeta). Quien quiere comprar tecnología o repuestos está paralizado.
+2. **El Costo Usurero de los Couriers:** Traer un paquete de 1 kg con DHL o FedEx cuesta entre \$80 y \$150 USD, más aranceles e intermediarios que inflan el precio un 30% a 40% adicional, tardando de 15 a 25 días.
+3. **La Epidemia de Estafas en el Mercado Informal:** La gente recurre a grupos de Facebook (*"Viajeros Bolivia - USA"*) y WhatsApp. Les exigen depósitos del 50% por adelantado a cuentas personales y los estafadores desaparecen con el dinero.
+4. **Capacidad Logística Desperdiciada:** Cada día despegan cientos de vuelos comerciales hacia Bolivia con miles de kilogramos de equipaje ocioso en bodega y cabina.
+
+---
+
+### 3. ¿Qué beneficio tangible obtiene cada actor? (WIIFM — What's In It For Me)
+
+* **Para el Comprador:**
+  * 💰 **Ahorro brutal:** Paga hasta un **70% menos** que en un courier tradicional.
+  * ⚡ **Velocidad relámpago:** Recibe el producto el **mismo día** que aterriza el vuelo del viajero.
+  * 🛡️ **Riesgo Cero:** El dinero permanece en el Smart Contract Escrow; si el viajero no entrega, el comprador recupera el 100% de sus USDC.
+* **Para el Viajero (El Chaski):**
+  * 💵 **Ingresos extra inmediatos:** Gana entre **\$150 y \$350 USD limpios** por viaje simplemente transportando encargos verificados en su maleta.
+  * 🔒 **Cobro garantizado:** Los fondos ya están bloqueados en el contrato antes de que el viajero compre o traslade el producto.
+* **Para la Diáspora y Familias:**
+  * ❤️ **Envío humano y económico:** Comisión plana del **2.5%** contra el 8-12% de Western Union.
+  * 🏛️ **Bóveda Sucesoria (Heritage):** Certeza de que si algo le ocurre en el extranjero, sus fondos ahorrados pasan de inmediato a sus hijos en Bolivia mediante el Dead Man's Switch.
+
+---
+
+### 4. ¿Cómo llegamos a esa persona? (Go-To-Market / Canales de Adquisición)
+
+1. **Hacking de Comunidades Existentes (Adquisición Orgánica):**
+   * Alianzas directas con las asociaciones de residentes bolivianos en São Paulo (Plaza Kantuta), Buenos Aires (Liniers) y Miami/Virginia.
+   * Publicaciones estratégicas en los grupos de Facebook de viajeros ofreciendo *"Envía con Escrow Cripto Garantizado — Cero Riesgo de Estafa"*.
+2. **Alianzas con Comunidades Tech y Universidades (Lado Comprador):**
+   * Capítulos estudiantiles de Ingeniería de Sistemas y Makerspaces en La Paz, Cochabamba y Santa Cruz. Son los primeros compradores ávidos de placas Arduino, GPUs y repuestos.
+3. **Geocercado en Aeropuertos (Growth Hacking Digital):**
+   * Anuncios digitales hiper-segmentados para usuarios ubicados en el perímetro del Aeropuerto Viru Viru (VVI) y El Alto (LPB) con destino a Miami, Madrid o Bogotá:  
+     *«¿Viajas con espacio en tu maleta? Gana \$200 USD libres en este vuelo registrándote en AYNI»*.
+4. **Incentivo de Referidos P2P (*Minka Rewards*):**
+   * El viajero que refiera a otro viajero verificado obtiene 0% de comisión en sus próximas 3 órdenes.
+
+---
+
+### 5. ¿Cómo sabemos que realmente lo están usando? (Métricas y Pruebas On-Chain)
+
+Demuestra al jurado que el proyecto tiene telemetría y validación real, no solo una interfaz estática:
+
+```mermaid
+graph TD
+    A["Métricas de Uso Real"] --> B["1. On-Chain Volume & TVL (SnowTrace / HSK Explorer)"]
+    A --> C["2. OTP Completion Rate (Eventos de entrega física)"]
+    A --> D["3. Auditorías IA Ejecutadas (Logs de Gemini 3.6 Flash)"]
+    A --> E["4. Billeteras Activas Pollar (Stellar Google Logins)"]
+    A --> F["5. Liveness Taps (Pulsos de Vida con Tangem NFC)"]
+```
+
+1. **Volumen Bloqueado On-Chain (TVL en Escrow):** Cada orden abierta genera un evento `OrderCreated` en Avalanche Mainnet o HSK Testnet. El contrato registra el balance total en USDC inmutablemente auditable en el explorador.
+2. **Tasa de Cierre por OTP (`OrderCompleted`):** El número de transacciones donde el viajero envió con éxito el OTP de 6 dígitos que el comprador le dictó en persona. Esto certifica la **entrega física en el mundo real**.
+3. **Ratio de Disputas y Peritajes IA:** Monitoreo del endpoint `/api/ai/dispute` con logs reales de Gemini 3.6 Flash. Un ratio de disputa inferior al 3% valida la satisfacción del usuario.
+4. **Adopción de Pagos Simples (Pollar Stellar):** Métricas de sesiones iniciadas con Google OAuth en el SDK de Pollar y órdenes liquidadas en la red Stellar.
+5. **Pulsos de Vida en Heritage:** Frecuencia de atestaciones biométricas y lecturas NFC de tarjetas Tangem registradas en la bóveda sucesoria.
+
+---
+
+### 6. El Efecto de Red y Flywheel (Por Qué Somos Imposibles de Detener)
+
+1. **Más Viajeros** se suman porque ganan \$200 USD por maleta.
+2. **Mayor Oferta de Rutas** reduce el tiempo promedio de entrega de un encargo a menos de 48 horas.
+3. **Menor Tiempo y Costo** atrae masivamente a compradores locales decepcionados de DHL y Facebook.
+4. **Más Compradores** incrementan las comisiones del protocolo y alimentan el Fondo de Reserva Mutua (Ayni Pool 2%).
+5. **Mayor Seguridad y Reputación** consolida a AYNI como el estándar logístico P2P indiscutido de Bolivia.
+
+---
+
+### 7. El Elevator Pitch de 60 Segundos (Para dejar con la boca abierta al Jurado)
+
+> *"Estimado jurado: En Bolivia hoy es prácticamente imposible comprar tecnología o repuestos del exterior porque no hay dólares en los bancos y los couriers tradicionales nos cobran hasta un 30% de sobrecosto abusivo.*
+> 
+> *AYNI revive el principio andino de reciprocidad conectando a quien necesita un producto con el viajero que tiene espacio libre en su maleta. Pero a diferencia de los grupos informales donde te estafan, en AYNI nadie toca un solo dólar hasta que el producto está en tus manos: los fondos quedan blindados en contratos inteligentes en Avalanche y HashKey, el viajero solo cobra cuando tú le revelas un código OTP secreto de 6 dígitos, y si surge un problema, nuestro oráculo con Inteligencia Artificial Gemini audita boletas y perita daños on-chain.*
+> 
+> *Esto no es un concepto en papel: está desplegado en Mainnet, auditado con ciberseguridad Grado A bancaria, integrado con Google Login en Stellar y con un modelo financiero que deja más del 95% de margen operativo. AYNI no es solo una app; es la soberanía comercial de Bolivia sobre la blockchain."*
+
+---
+
 ### ✅ Checklist Operativo Final para Mañana
 - [x] Contrato Avalanche Mainnet verificado (`0x7A9fe51...`)
 - [x] Contrato HSK Testnet verificado (`0x872660...`)
@@ -246,4 +343,5 @@ Ten estas respuestas preparadas cuando el jurado te ponga a prueba:
 - [x] Presentación LaTeX Beamer compilada en PDF (`presentacion_ayni_protocol.pdf`)
 - [x] Guion literal teleprompter para video de 3 minutos
 - [x] Ensayo de 300 palabras para Pollar Track
+- [x] Libro Maestro de Venta y Argumentación Comercial (Sección 7)
 
