@@ -11,7 +11,7 @@ export async function POST(req: NextRequest) {
     }
 
     const smtpUser = process.env.SMTP_USER;
-    const smtpPassword = process.env.SMTP_PASSWORD;
+    const smtpPassword = process.env.SMTP_PASS || process.env.SMTP_PASSWORD;
 
     // Generar plantilla HTML según tipo de notificación
     let htmlContent = `
