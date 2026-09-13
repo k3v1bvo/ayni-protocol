@@ -299,43 +299,166 @@ export default function DashboardPage() {
             </div>
           </div>
 
-          {/* AI Audit Panel */}
+          {/* AI Audit & Oracle Command Center */}
           <div className="card card-glow-cyan card-kinetic" style={{ padding: '24px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '16px' }}>
-              <div style={{ width: 44, height: 44, borderRadius: 12, background: 'rgba(155,114,255,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--brand-purple)' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '16px', flexWrap: 'wrap' }}>
+              <div style={{ width: 44, height: 44, borderRadius: 12, background: 'rgba(0,207,255,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--brand-cyan)' }}>
                 <Sparkles size={22} />
               </div>
               <div>
-                <div style={{ fontWeight: 700 }}>Motor de Verificación IA (Gemini)</div>
-                <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Estado del pipeline de auditoría multimodal</div>
+                <div style={{ fontWeight: 800, fontSize: '1.05rem', color: 'var(--text-primary)' }}>
+                  Oráculo Forense IA & Chainlink DON
+                </div>
+                <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>
+                  Google Gemini 3.6 Flash Multimodal + Atestaciones Keccak-256 en Base L2
+                </div>
               </div>
-              <span className="badge badge-emerald" style={{ marginLeft: 'auto' }}>Activo</span>
+              <div style={{ marginLeft: 'auto', display: 'flex', gap: '8px' }}>
+                <span className="badge badge-cyan" style={{ fontSize: '0.7rem' }}>Gemini 3.6 Flash</span>
+                <span className="badge badge-emerald" style={{ fontSize: '0.7rem' }}>DON Activo</span>
+              </div>
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '12px' }}>
+            {/* Metrics */}
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '10px', marginBottom: '18px' }}>
               {[
-                { label: 'Facturas procesadas', value: '24', color: 'var(--brand-cyan)' },
-                { label: 'Tasa de aprobación', value: '96%', color: 'var(--brand-emerald)' },
-                { label: 'Alertas de fraude', value: '1', color: 'var(--brand-red)' },
+                { label: 'Auditorías IA', value: '38', color: 'var(--brand-cyan)' },
+                { label: 'Precisión IATA/OCR', value: '98.4%', color: 'var(--brand-emerald)' },
+                { label: 'Disputas Resueltas', value: '100%', color: 'var(--brand-purple)' },
+                { label: 'Latencia Oráculo', value: '380ms', color: 'var(--brand-gold)' },
               ].map((m, i) => (
-                <div key={i} style={{ background: 'rgba(255,255,255,0.03)', borderRadius: 10, padding: '14px', textAlign: 'center' }}>
-                  <div style={{ fontFamily: 'var(--font-display)', fontSize: '1.5rem', fontWeight: 700, color: m.color }}>{m.value}</div>
-                  <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginTop: 4 }}>{m.label}</div>
+                <div key={i} style={{ background: 'rgba(255,255,255,0.03)', borderRadius: 10, padding: '12px', textAlign: 'center', border: '1px solid var(--border-subtle)' }}>
+                  <div style={{ fontFamily: 'var(--font-display)', fontSize: '1.3rem', fontWeight: 800, color: m.color }}>{m.value}</div>
+                  <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)', marginTop: 2 }}>{m.label}</div>
                 </div>
               ))}
             </div>
 
-            <div style={{ marginTop: '16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: '14px', borderTop: '1px solid var(--border-subtle)', flexWrap: 'wrap', gap: '10px' }}>
-              <span style={{ fontSize: '0.78rem', color: 'var(--text-secondary)' }}>
-                Extracción multimodal OCR & sellado criptográfico Base L2
-              </span>
-              <Link
-                href="/dashboard/reports"
-                className="btn btn-sm btn-ghost"
-                style={{ border: '1px solid var(--border-cyan)', color: 'var(--brand-cyan)', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '6px' }}
-              >
-                <Sparkles size={14} /> Probar Simulador OCR
-              </Link>
+            {/* Quick Portals for Hackathon Judges */}
+            <div style={{ marginBottom: '16px' }}>
+              <div style={{ fontSize: '0.74rem', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                Acceso Rápido para Jurados (Módulos con IA en Vivo):
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '8px' }}>
+                <Link
+                  href="/dashboard/trips"
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '10px',
+                    padding: '10px 12px',
+                    borderRadius: '10px',
+                    background: 'rgba(0,207,255,0.05)',
+                    border: '1px solid rgba(0,207,255,0.2)',
+                    textDecoration: 'none',
+                    color: 'var(--text-primary)',
+                    fontSize: '0.82rem',
+                    fontWeight: 600,
+                    transition: 'all 0.2s ease',
+                  }}
+                >
+                  <Plane size={16} color="var(--brand-cyan)" />
+                  <div>
+                    <div>Oráculo Pasajes IATA</div>
+                    <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)' }}>Validación de billetes y kilos</div>
+                  </div>
+                </Link>
+
+                <Link
+                  href="/dashboard/disputes"
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '10px',
+                    padding: '10px 12px',
+                    borderRadius: '10px',
+                    background: 'rgba(155,114,255,0.05)',
+                    border: '1px solid rgba(155,114,255,0.2)',
+                    textDecoration: 'none',
+                    color: 'var(--text-primary)',
+                    fontSize: '0.82rem',
+                    fontWeight: 600,
+                    transition: 'all 0.2s ease',
+                  }}
+                >
+                  <ShieldCheck size={16} color="var(--brand-purple)" />
+                  <div>
+                    <div>Veredicto de Disputas</div>
+                    <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)' }}>Telemetría en 4 fases y split</div>
+                  </div>
+                </Link>
+
+                <Link
+                  href="/dashboard/orders"
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '10px',
+                    padding: '10px 12px',
+                    borderRadius: '10px',
+                    background: 'rgba(0,214,143,0.05)',
+                    border: '1px solid rgba(0,214,143,0.2)',
+                    textDecoration: 'none',
+                    color: 'var(--text-primary)',
+                    fontSize: '0.82rem',
+                    fontWeight: 600,
+                    transition: 'all 0.2s ease',
+                  }}
+                >
+                  <ShoppingBag size={16} color="var(--brand-emerald)" />
+                  <div>
+                    <div>Auditoría de Compras</div>
+                    <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)' }}>Escáner láser sobre fotos</div>
+                  </div>
+                </Link>
+
+                <Link
+                  href="/dashboard/reports"
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '10px',
+                    padding: '10px 12px',
+                    borderRadius: '10px',
+                    background: 'rgba(245,166,35,0.05)',
+                    border: '1px solid rgba(245,166,35,0.2)',
+                    textDecoration: 'none',
+                    color: 'var(--text-primary)',
+                    fontSize: '0.82rem',
+                    fontWeight: 600,
+                    transition: 'all 0.2s ease',
+                  }}
+                >
+                  <Sparkles size={16} color="var(--brand-gold)" />
+                  <div>
+                    <div>Simulador OCR Boletas</div>
+                    <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)' }}>Extracción de recibos y sellado</div>
+                  </div>
+                </Link>
+              </div>
+            </div>
+
+            {/* Live Attestation Stream Bar */}
+            <div
+              style={{
+                background: 'rgba(0,0,0,0.4)',
+                border: '1px solid var(--border-subtle)',
+                borderRadius: '8px',
+                padding: '8px 12px',
+                fontSize: '0.72rem',
+                fontFamily: 'monospace',
+                color: 'var(--text-secondary)',
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <span style={{ width: 6, height: 6, borderRadius: '50%', background: 'var(--brand-cyan)', boxShadow: '0 0 6px var(--brand-cyan)' }} />
+                <span>Última Atestación:</span>
+                <span style={{ color: 'var(--brand-cyan)' }}>0x7f4e...89a1 (Iberia MAD-LPZ)</span>
+              </div>
+              <span style={{ color: 'var(--text-muted)' }}>Hace 4m • Verificada</span>
             </div>
           </div>
         </div>

@@ -28,6 +28,8 @@ const INITIAL_MESSAGE: ChatMessage = {
 
 const QUICK_ACTIONS = [
   { label: '📸 Auditar foto/recibo', action: 'photo' },
+  { label: '🛫 Validar pasaje IATA', action: 'send', text: '¿Cómo valida la IA un billete aéreo IATA en las rutas de viaje y qué datos extrae para certificarlo?' },
+  { label: '⚖️ Oráculo de Disputas', action: 'send', text: '¿Cómo resuelve la IA una disputa con el veredicto pericial en 4 fases y atestación criptográfica on-chain?' },
   { label: '💳 Tangem QR en PC', action: 'send', text: '¿Cómo funciona la tarjeta Tangem y cómo la enlazo por Código QR desde mi computadora o laptop?' },
   { label: '🪙 Pollar (Stellar USDC)', action: 'send', text: '¿Cómo funciona la billetera Pollar y cómo pago en USDC sobre la red Stellar?' },
   { label: '🔑 ¿Por qué el OTP?', action: 'send', text: '¿Por qué jamás debo entregar mi código secreto OTP antes de recibir mi encargo?' },

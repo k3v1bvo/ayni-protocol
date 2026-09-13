@@ -411,7 +411,31 @@ export default function DisputesPage() {
                   <span>Registrada el {new Date(disp.created_at).toLocaleDateString('es-ES')}</span>
                 </div>
 
-                <div style={{ display: 'flex', gap: '8px' }}>
+                <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                  {isOpen && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setSelectedDispute(disp);
+                        setTimeout(() => {
+                          const btn = document.getElementById('btn-run-ai-dispute');
+                          if (btn) btn.click();
+                        }, 200);
+                      }}
+                      className="btn btn-secondary btn-sm"
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '6px',
+                        border: '1px solid rgba(0,207,255,0.4)',
+                        background: 'rgba(0,207,255,0.08)',
+                        color: 'var(--brand-cyan)',
+                        fontWeight: 600,
+                      }}
+                    >
+                      <Sparkles size={14} /> Dictamen IA (4 Fases)
+                    </button>
+                  )}
                   <button
                     type="button"
                     onClick={() => setSelectedDispute(disp)}
@@ -564,6 +588,7 @@ export default function DisputesPage() {
                       </div>
                     </div>
                     <button
+                      id="btn-run-ai-dispute"
                       type="button"
                       disabled={isAiAnalyzing}
                       onClick={handleRunAiAudit}

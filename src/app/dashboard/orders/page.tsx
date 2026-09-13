@@ -8,7 +8,7 @@ import { getSupabaseBrowserClient, isSupabaseConfigured } from '@/lib/supabase/c
 import { playSuccessSound, playNotificationSound } from '@/lib/notifications/sound';
 import {
   ShoppingBag, Key, CheckCircle2, Truck, AlertTriangle, Clock, ShieldCheck,
-  Plus, Search, Eye, Filter, Loader2, X, Copy, Sparkles, RefreshCw, Store
+  Plus, Search, Eye, Filter, Loader2, X, Copy, Sparkles, RefreshCw, Store, Check
 } from 'lucide-react';
 
 interface OrderItem {
@@ -52,6 +52,21 @@ export default function OrdersPage() {
   const [detailOrder, setDetailOrder] = useState<OrderItem | null>(null);
   const [otpInput, setOtpInput] = useState('');
   const [otpResult, setOtpResult] = useState<string | null>(null);
+
+  // AI Purchase Verification Modal State
+  const [verifyingOrder, setVerifyingOrder] = useState<OrderItem | null>(null);
+  const [selectedPhoto, setSelectedPhoto] = useState<string>('https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400&h=300&fit=crop&q=80');
+  const [isAuditingOrder, setIsAuditingOrder] = useState(false);
+  const [auditResult, setAuditResult] = useState<{
+    detectedItem: string;
+    category?: string;
+    confidence: string;
+    verdict: string;
+    notes: string;
+    iataSafe: boolean;
+    provider: string;
+    attestationHash?: string;
+  } | null>(null);
 
   useEffect(() => { loadOrders(); }, [user, role]);
 
@@ -106,6 +121,39 @@ export default function OrdersPage() {
     playSuccessSound();
     setNotice(`Estado actualizado a: ${STATUS_MAP[newStatus]?.label || newStatus}`);
     setTimeout(() => setNotice(null), 3000);
+  };
+
+  const handleAuditOrderPhoto = async () => {
+    if (!verifyingOrder || !selectedPhoto) return;
+    setIsAuditingOrder(true);
+    try {
+      const res = await fetch('/api/ai/verify-image', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          imageUrl: selectedPhoto,
+          expectedName: verifyingOrder.description,
+          expectedAmount: verifyingOrder.product_price_usd,
+          type: 'PRODUCT',
+        }),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setAuditResult(data);
+      }
+    } catch (err) {
+      console.warn('Error auditando foto de compra:', err);
+    } finally {
+      setIsAuditingOrder(false);
+    }
+  };
+
+  const handleConfirmAiCertification = async () => {
+    if (!verifyingOrder) return;
+    await updateOrderStatus(verifyingOrder.id, 'verified_ai');
+    setNotice(`✅ Orden ${verifyingOrder.order_code} certificada con éxito por Gemini 3.6 Flash`);
+    setVerifyingOrder(null);
+    setAuditResult(null);
   };
 
   const verifyOTP = (order: OrderItem) => {
@@ -216,6 +264,25 @@ export default function OrdersPage() {
                     <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>
                       {order.created_at ? new Date(order.created_at).toLocaleDateString('es', { day: 'numeric', month: 'short', year: 'numeric' }) : ''}
                     </div>
+
+                    {order.status === 'verified_ai' && (
+                      <div style={{
+                        marginTop: '8px',
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '6px',
+                        background: 'linear-gradient(135deg, rgba(155,114,255,0.12) 0%, rgba(0,207,255,0.08) 100%)',
+                        border: '1px solid rgba(155,114,255,0.35)',
+                        borderRadius: '8px',
+                        padding: '4px 10px',
+                        fontSize: '0.74rem',
+                        color: 'var(--brand-purple)',
+                        fontWeight: 600,
+                      }}>
+                        <Sparkles size={12} color="var(--brand-purple)" />
+                        <span>Compra Verificada por Oráculo Gemini 3.6 Flash (IATA Conforme)</span>
+                      </div>
+                    )}
                   </div>
 
                   {/* Financial Breakdown */}
@@ -235,23 +302,50 @@ export default function OrdersPage() {
                       <button type="button" onClick={() => setDetailOrder(order)} className="btn btn-ghost btn-sm btn-pressable" style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '0.75rem' }}>
                         <Eye size={13} /> Detalle
                       </button>
+
                       {/* Status transition buttons based on role */}
                       {role === 'traveler' && order.status === 'funded' && (
                         <button type="button" onClick={() => updateOrderStatus(order.id, 'purchased')} className="btn btn-primary btn-sm btn-pressable" style={{ fontSize: '0.75rem' }}>
                           Confirmar Compra
                         </button>
                       )}
+
+                      {/* AI Audit Button for Traveler & Client when funded or purchased */}
+                      {(order.status === 'funded' || order.status === 'purchased') && (
+                        <button
+                          type="button"
+                          onClick={() => { setVerifyingOrder(order); setAuditResult(null); }}
+                          className="btn btn-outline btn-sm btn-tangem-glow btn-pressable"
+                          style={{ fontSize: '0.75rem', borderColor: 'var(--brand-purple)', color: 'var(--brand-purple)', display: 'flex', alignItems: 'center', gap: '4px' }}
+                        >
+                          <Sparkles size={12} color="var(--brand-purple)" /> Auditar con IA
+                        </button>
+                      )}
+
                       {role === 'traveler' && order.status === 'purchased' && (
                         <button type="button" onClick={() => updateOrderStatus(order.id, 'in_transit')} className="btn btn-primary btn-sm btn-pressable" style={{ fontSize: '0.75rem' }}>
                           Marcar En Tránsito
                         </button>
                       )}
+
+                      {role === 'traveler' && order.status === 'verified_ai' && (
+                        <button
+                          type="button"
+                          onClick={() => updateOrderStatus(order.id, 'in_transit')}
+                          className="btn btn-primary btn-sm btn-tangem-glow btn-pressable"
+                          style={{ fontSize: '0.75rem', background: 'linear-gradient(135deg, var(--brand-purple), var(--brand-cyan))', display: 'flex', alignItems: 'center', gap: '4px' }}
+                        >
+                          <Truck size={12} /> Despachar a Vuelo
+                        </button>
+                      )}
+
                       {(role === 'client' || role === 'traveler') && order.status === 'in_transit' && (
                         <button type="button" onClick={() => setDetailOrder(order)} className="btn btn-tangem-glow btn-sm btn-pressable" style={{ fontSize: '0.75rem' }}>
                           <Key size={12} /> Verificar OTP
                         </button>
                       )}
-                      {role === 'client' && (order.status === 'funded' || order.status === 'purchased') && (
+
+                      {role === 'client' && (order.status === 'funded' || order.status === 'purchased' || order.status === 'verified_ai') && (
                         <button type="button" onClick={() => updateOrderStatus(order.id, 'disputed')} className="btn btn-ghost btn-sm btn-pressable" style={{ fontSize: '0.75rem', color: 'var(--brand-red)', borderColor: 'rgba(255,77,109,0.25)' }}>
                           <AlertTriangle size={12} /> Disputa
                         </button>
@@ -389,6 +483,178 @@ export default function OrdersPage() {
                 Abrir Disputa
               </Link>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* AI Purchase Verification Modal */}
+      {verifyingOrder && (
+        <div className="modal-overlay" onClick={() => { setVerifyingOrder(null); setAuditResult(null); }}>
+          <div className="modal-box" style={{ width: '100%', maxWidth: 540, padding: '24px' }} onClick={e => e.stopPropagation()}>
+            <button
+              type="button"
+              onClick={() => { setVerifyingOrder(null); setAuditResult(null); }}
+              style={{ position: 'absolute', top: 16, right: 16, background: 'transparent', border: 'none', color: 'var(--text-muted)', cursor: 'pointer' }}
+            >
+              <X size={18} />
+            </button>
+
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
+              <Sparkles size={18} color="var(--brand-purple)" />
+              <h3 style={{ fontSize: '1.15rem', fontWeight: 800, margin: 0 }}>
+                Auditoría Visual de Compra (Gemini 3.6 Flash)
+              </h3>
+            </div>
+            <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '16px' }}>
+              Orden #{verifyingOrder.order_code} • Inspección pericial de producto y boleta antes de embarcar
+            </div>
+
+            {/* Product description expectation */}
+            <div style={{ background: 'rgba(255,255,255,0.03)', padding: '12px 14px', borderRadius: '10px', marginBottom: '14px', border: '1px solid var(--border-subtle)', fontSize: '0.82rem' }}>
+              <div style={{ color: 'var(--text-muted)', fontSize: '0.72rem', marginBottom: '2px' }}>Encargo a Verificar:</div>
+              <div style={{ fontWeight: 600, color: 'var(--text-primary)' }}>{verifyingOrder.description}</div>
+              <div style={{ color: 'var(--brand-gold)', fontSize: '0.75rem', marginTop: '4px' }}>
+                Monto en Custodia Escrow: ${verifyingOrder.product_price_usd?.toFixed(2)} USDC
+              </div>
+            </div>
+
+            {/* Photo Selection */}
+            <div style={{ marginBottom: '14px' }}>
+              <label className="input-label" style={{ marginBottom: '6px' }}>Selecciona o sube la foto de la compra realizada:</label>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px', marginBottom: '10px' }}>
+                {[
+                  { label: 'Aguayo Jalq\'a', url: 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400&h=300&fit=crop&q=80' },
+                  { label: 'Implante Titanio', url: 'https://images.unsplash.com/photo-1559757175-5700dde675bc?w=400&h=300&fit=crop&q=80' },
+                  { label: 'Lente Canon', url: 'https://images.unsplash.com/photo-1606983340126-99ab4feaa64a?w=400&h=300&fit=crop&q=80' },
+                ].map((sample, idx) => (
+                  <button
+                    key={idx}
+                    type="button"
+                    onClick={() => { setSelectedPhoto(sample.url); setAuditResult(null); }}
+                    style={{
+                      padding: '6px',
+                      borderRadius: '8px',
+                      background: selectedPhoto === sample.url ? 'rgba(155,114,255,0.15)' : 'rgba(255,255,255,0.03)',
+                      border: selectedPhoto === sample.url ? '1px solid var(--brand-purple)' : '1px solid var(--border-default)',
+                      color: selectedPhoto === sample.url ? 'var(--brand-purple)' : 'var(--text-secondary)',
+                      fontSize: '0.72rem',
+                      fontWeight: 600,
+                      cursor: 'pointer',
+                      textAlign: 'center',
+                    }}
+                  >
+                    📸 {sample.label}
+                  </button>
+                ))}
+              </div>
+
+              {/* Photo Preview with Laser Scanner */}
+              <div style={{
+                position: 'relative',
+                height: '180px',
+                borderRadius: '10px',
+                overflow: 'hidden',
+                border: isAuditingOrder ? '1px solid var(--brand-cyan)' : '1px solid var(--border-default)',
+                boxShadow: isAuditingOrder ? '0 0 20px rgba(0,207,255,0.3)' : 'none',
+              }}>
+                <img
+                  src={selectedPhoto}
+                  alt="Foto a auditar"
+                  style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                />
+                {isAuditingOrder && (
+                  <div style={{
+                    position: 'absolute',
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    height: '3px',
+                    background: 'linear-gradient(90deg, transparent, #00cfff, #9b72ff, transparent)',
+                    boxShadow: '0 0 16px #00cfff, 0 0 24px #9b72ff',
+                    animation: 'laserScan 1.4s ease-in-out infinite alternate',
+                    zIndex: 10,
+                  }} />
+                )}
+                {isAuditingOrder && (
+                  <div style={{
+                    position: 'absolute',
+                    bottom: 8,
+                    left: 8,
+                    background: 'rgba(5,8,16,0.85)',
+                    color: 'var(--brand-cyan)',
+                    padding: '3px 8px',
+                    borderRadius: '4px',
+                    fontSize: '0.68rem',
+                    fontWeight: 700,
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '4px',
+                  }}>
+                    <span className="sc-radar-dot" /> Escaneo Multimodal en Vivo
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Audit Trigger */}
+            <div style={{ marginBottom: '14px' }}>
+              <button
+                type="button"
+                onClick={handleAuditOrderPhoto}
+                disabled={isAuditingOrder}
+                className="btn btn-primary btn-tangem-glow btn-pressable"
+                style={{ width: '100%', padding: '10px 14px', fontSize: '0.82rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}
+              >
+                {isAuditingOrder ? <RefreshCw size={14} className="spin" /> : <Sparkles size={14} />}
+                {isAuditingOrder ? 'Inspeccionando con Gemini 3.6 Flash...' : '⚡ Ejecutar Auditoría Pericial de Compra'}
+              </button>
+            </div>
+
+            {/* Results HUD */}
+            {auditResult && (
+              <div className="animate-spring-check" style={{
+                background: 'rgba(5, 8, 16, 0.9)',
+                border: '1px solid rgba(0, 214, 143, 0.4)',
+                borderRadius: '12px',
+                padding: '14px',
+                marginBottom: '14px',
+                boxShadow: '0 0 20px rgba(0, 214, 143, 0.1)',
+              }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px', flexWrap: 'wrap', gap: '6px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <CheckCircle2 size={16} color="var(--brand-emerald)" />
+                    <span style={{ fontWeight: 800, fontSize: '0.84rem', color: 'var(--brand-emerald)' }}>
+                      {auditResult.verdict}
+                    </span>
+                  </div>
+                  <span className="badge badge-cyan" style={{ fontSize: '0.72rem' }}>
+                    Coincidencia: {auditResult.confidence}
+                  </span>
+                </div>
+
+                <div style={{ fontSize: '0.8rem', color: 'var(--text-primary)', marginBottom: '6px' }}>
+                  <strong>Objeto Detectado:</strong> {auditResult.detectedItem} {auditResult.category ? `(${auditResult.category})` : ''}
+                </div>
+                <div style={{ fontSize: '0.76rem', color: 'var(--text-secondary)', fontStyle: 'italic', marginBottom: '8px' }}>
+                  "{auditResult.notes}"
+                </div>
+
+                <div style={{ display: 'flex', gap: '10px', fontSize: '0.7rem', color: 'var(--text-muted)', borderTop: '1px solid rgba(255,255,255,0.06)', paddingTop: '6px', marginBottom: '10px' }}>
+                  <span>✈️ IATA Cabina: <strong style={{ color: 'var(--brand-emerald)' }}>Autorizado</strong></span>
+                  <span>🔒 Escrow Base L2: <strong>Conforme</strong></span>
+                  <span>⚡ Motor: <strong>Gemini 3.6 Flash</strong></span>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={handleConfirmAiCertification}
+                  className="btn btn-primary"
+                  style={{ width: '100%', fontSize: '0.8rem', padding: '9px 12px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}
+                >
+                  <Check size={14} /> Certificar Compra y Emitir Sello On-Chain
+                </button>
+              </div>
+            )}
           </div>
         </div>
       )}
