@@ -255,7 +255,7 @@ export default function NewProductPage() {
             label="Imágenes del producto (máx 5)"
           />
           <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)', marginTop: '12px', lineHeight: 1.5 }}>
-            🛡️ Alojamiento en <strong style={{ color: 'var(--brand-cyan)' }}>ImgBB CDN</strong> sin consumir tu cuota de Supabase. Cada foto es pre-auditada con <strong style={{ color: 'var(--brand-purple)' }}>Gemini 1.5 Flash Vision</strong> para verificar autenticidad y normas IATA.
+            🛡️ Alojamiento en <strong style={{ color: 'var(--brand-cyan)' }}>ImgBB CDN</strong> sin consumir tu cuota de Supabase. Cada foto es pre-auditada con <strong style={{ color: 'var(--brand-purple)' }}>Google Gemini Vision</strong> para verificar autenticidad y normas IATA.
           </p>
         </div>
       </div>

@@ -154,7 +154,7 @@ export default function ReportsPage() {
             orderId: `ORD-${Date.now().toString().slice(-4)}`,
             items: ['Extrayendo ítems vía Gemini Vision OCR...'],
             date: 'Hoy',
-            previewText: 'Procesando imagen con Gemini 1.5 Flash Vision OCR...',
+            previewText: 'Procesando imagen con Google Gemini Vision OCR...',
           });
           // Iniciar escaneo automático de la foto subida
           setTimeout(() => {
