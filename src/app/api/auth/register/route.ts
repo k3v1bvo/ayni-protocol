@@ -107,7 +107,7 @@ export async function POST(req: NextRequest) {
         recipientName: cleanName,
         email: cleanEmail,
         role: validRole,
-        loginUrl: `${appUrl}/login`,
+        loginUrl: `${appUrl}/auth?mode=signin`,
       });
 
       await sendEmail({

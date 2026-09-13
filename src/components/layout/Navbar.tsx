@@ -91,7 +91,24 @@ export function Navbar() {
           {/* User Status / Login Actions */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
             {user ? (
-              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <Link
+                  href="/dashboard"
+                  className="btn btn-sm btn-primary btn-shimmer"
+                  style={{
+                    padding: '7px 14px',
+                    fontSize: '0.82rem',
+                    fontWeight: 700,
+                    textDecoration: 'none',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                  }}
+                >
+                  <Sparkles size={14} />
+                  <span>Dashboard</span>
+                </Link>
+
                 {/* Role Switcher Pill */}
                 <div style={{ position: 'relative' }}>
                   <button
@@ -120,7 +137,7 @@ export function Navbar() {
                       position: 'absolute',
                       right: 0,
                       top: 'calc(100% + 8px)',
-                      width: '220px',
+                      width: '230px',
                       background: '#0d121f',
                       border: '1px solid var(--border-highlight)',
                       borderRadius: '12px',
@@ -140,8 +157,43 @@ export function Navbar() {
                         )}
                       </div>
 
+                      <div style={{ padding: '4px 0', borderBottom: '1px solid var(--border-subtle)', marginBottom: '4px' }}>
+                        <Link
+                          href="/dashboard"
+                          onClick={() => setRoleDropdownOpen(false)}
+                          style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '8px',
+                            padding: '6px 8px',
+                            color: 'var(--text-primary)',
+                            fontSize: '0.8rem',
+                            textDecoration: 'none',
+                            borderRadius: '6px',
+                          }}
+                        >
+                          <Sparkles size={14} color="var(--brand-gold)" /> Panel de Control
+                        </Link>
+                        <Link
+                          href="/dashboard/settings"
+                          onClick={() => setRoleDropdownOpen(false)}
+                          style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '8px',
+                            padding: '6px 8px',
+                            color: 'var(--text-secondary)',
+                            fontSize: '0.8rem',
+                            textDecoration: 'none',
+                            borderRadius: '6px',
+                          }}
+                        >
+                          <Shield size={14} color="var(--brand-cyan)" /> Seguridad & 2FA
+                        </Link>
+                      </div>
+
                       <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', padding: '6px 8px' }}>
-                        Cambiar perfil activo:
+                        Cambiar perfil activo (Demo):
                       </div>
 
                       {(['traveler', 'client', 'merchant', 'admin'] as UserRole[]).map(r => (
@@ -154,12 +206,12 @@ export function Navbar() {
                             alignItems: 'center',
                             justifyContent: 'space-between',
                             width: '100%',
-                            padding: '8px',
+                            padding: '7px 8px',
                             background: role === r ? 'rgba(0, 240, 255, 0.1)' : 'transparent',
                             border: 'none',
                             borderRadius: '6px',
                             color: role === r ? 'var(--ayni-cyan)' : 'var(--text-secondary)',
-                            fontSize: '0.8rem',
+                            fontSize: '0.78rem',
                             cursor: 'pointer',
                             textAlign: 'left',
                           }}

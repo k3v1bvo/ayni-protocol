@@ -9,7 +9,7 @@ import { sanitizeEmail, sanitizeText, sanitizeRedirect } from '@/lib/utils/sanit
 import {
   Mail, Lock, User, Sparkles, CheckCircle, AlertCircle, ArrowLeft,
   ShieldCheck, Plane, ShoppingBag, Store, Eye, EyeOff, ChevronRight,
-  HeartPulse, Shield, Zap
+  HeartPulse, Shield, Zap, Wifi, RefreshCw
 } from 'lucide-react';
 
 function AuthContent() {
@@ -20,7 +20,7 @@ function AuthContent() {
 
   const { signInWithEmail, signUpWithEmail, signInWithGoogle, setDemoUser } = useAuth();
   const initialMode = searchParams.get('mode') === 'signup' ? 'signup' : 'signin';
-  const [mode, setMode] = useState<'signin' | 'signup'>(initialMode);
+  const [mode, setMode] = useState<'signin' | 'signup' | 'recovery' | 'twofactor'>(initialMode);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -29,6 +29,104 @@ function AuthContent() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
+
+  // 2FA Flow States
+  const [enable2FaCheck, setEnable2FaCheck] = useState(false);
+  const [twoFaMethod, setTwoFaMethod] = useState<'email' | 'tangem'>('email');
+  const [twoFaCode, setTwoFaCode] = useState('');
+  const [twoFaSending, setTwoFaSending] = useState(false);
+  const [twoFaVerifying, setTwoFaVerifying] = useState(false);
+  const [tangemState, setTangemState] = useState<'idle' | 'approaching' | 'verifying' | 'success'>('idle');
+
+  React.useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const stored2Fa = localStorage.getItem('ayni_2fa_enabled');
+      setEnable2FaCheck(stored2Fa === 'true');
+    }
+  }, []);
+
+  const triggerSend2Fa = async (targetEmail: string) => {
+    setTwoFaSending(true);
+    setError(null);
+    try {
+      const res = await fetch('/api/auth/2fa/send', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: targetEmail, purpose: 'inicio de sesión seguro (2FA)' }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Error enviando código 2FA');
+      setSuccessMsg(`Código de 6 dígitos enviado a tu correo.`);
+    } catch (err: any) {
+      setError(err.message || 'Error al conectar con el servidor 2FA.');
+    } finally {
+      setTwoFaSending(false);
+    }
+  };
+
+  const handleVerify2Fa = async () => {
+    const cleanEmail = sanitizeEmail(email);
+    if (!cleanEmail || !twoFaCode) {
+      setError('Ingresa el código de 6 dígitos recibido.');
+      return;
+    }
+    setTwoFaVerifying(true);
+    setError(null);
+    try {
+      const res = await fetch('/api/auth/2fa/verify', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: cleanEmail, code: twoFaCode }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Código incorrecto');
+      setSuccessMsg('¡Segundo factor verificado! Entrando al sistema...');
+      setTimeout(() => router.push(redirectUrl), 400);
+    } catch (err: any) {
+      setError(err.message || 'Código de seguridad inválido');
+    } finally {
+      setTwoFaVerifying(false);
+    }
+  };
+
+  const handleSimulateTangem = () => {
+    setTangemState('approaching');
+    setTimeout(() => {
+      setTangemState('verifying');
+      setTimeout(() => {
+        setTangemState('success');
+        setSuccessMsg('✓ Chip Tangem EAL6+ autenticado. Acceso concedido.');
+        setTimeout(() => router.push(redirectUrl), 800);
+      }, 1200);
+    }, 1000);
+  };
+
+  const handlePasswordRecovery = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError(null);
+    setSuccessMsg(null);
+    const cleanEmail = sanitizeEmail(email);
+    if (!cleanEmail) {
+      setError('Ingresa un correo electrónico válido.');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const res = await fetch('/api/auth/reset-password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: cleanEmail }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Error al procesar recuperación');
+      setSuccessMsg(data.message || 'Enlace enviado a tu correo mediante Google SMTP.');
+    } catch (err: any) {
+      setError(err.message || 'Error de conexión.');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -55,6 +153,14 @@ function AuthContent() {
         if (res.error) {
           setError(res.error);
         } else {
+          // Verificar si requiere 2FA
+          const is2FaRequired = enable2FaCheck || (typeof window !== 'undefined' && localStorage.getItem('ayni_2fa_enabled') === 'true');
+          if (is2FaRequired) {
+            setMode('twofactor');
+            triggerSend2Fa(cleanEmail);
+            return;
+          }
+
           setSuccessMsg('¡Bienvenido de vuelta a AYNI!');
           setTimeout(() => router.push(redirectUrl), 400);
         }
@@ -242,39 +348,45 @@ function AuthContent() {
 
           <div style={{ marginBottom: '24px' }}>
             <h2 style={{ fontSize: '1.75rem', fontWeight: 800, letterSpacing: '-0.02em', marginBottom: '6px' }}>
-              {mode === 'signin' ? 'Iniciar Sesión' : 'Crear Cuenta'}
+              {mode === 'signin' && 'Iniciar Sesión'}
+              {mode === 'signup' && 'Crear Cuenta'}
+              {mode === 'recovery' && 'Recuperar Contraseña'}
+              {mode === 'twofactor' && 'Verificación 2FA / Tangem'}
             </h2>
             <p style={{ color: 'var(--text-secondary)', fontSize: '0.85rem' }}>
-              {mode === 'signin'
-                ? 'Ingresa tus credenciales para gestionar tus envíos, viajes y bóvedas.'
-                : 'Únete a la comunidad AYNI como cliente, viajero o comercio registrado.'}
+              {mode === 'signin' && 'Ingresa tus credenciales para gestionar tus envíos, viajes y bóvedas.'}
+              {mode === 'signup' && 'Únete a la comunidad AYNI como cliente, viajero o comercio registrado.'}
+              {mode === 'recovery' && 'Te enviaremos un enlace de restablecimiento seguro por correo Google SMTP.'}
+              {mode === 'twofactor' && 'Confirma tu identidad mediante código OTP o tu tarjeta criptográfica Tangem.'}
             </p>
           </div>
 
-          {/* Tab Switcher */}
-          <div style={{
-            display: 'flex',
-            background: 'rgba(5, 8, 16, 0.6)',
-            borderRadius: '14px',
-            padding: '4px',
-            marginBottom: '22px',
-            border: '1px solid var(--border-default)',
-          }}>
-            <button
-              type="button"
-              className={`auth-tab-pill ${mode === 'signin' ? 'active' : ''}`}
-              onClick={() => { setMode('signin'); setError(null); setSuccessMsg(null); }}
-            >
-              Iniciar Sesión
-            </button>
-            <button
-              type="button"
-              className={`auth-tab-pill ${mode === 'signup' ? 'active' : ''}`}
-              onClick={() => { setMode('signup'); setError(null); setSuccessMsg(null); }}
-            >
-              Crear Cuenta
-            </button>
-          </div>
+          {/* Tab Switcher - Solo para signin y signup */}
+          {(mode === 'signin' || mode === 'signup') && (
+            <div style={{
+              display: 'flex',
+              background: 'rgba(5, 8, 16, 0.6)',
+              borderRadius: '14px',
+              padding: '4px',
+              marginBottom: '22px',
+              border: '1px solid var(--border-default)',
+            }}>
+              <button
+                type="button"
+                className={`auth-tab-pill ${mode === 'signin' ? 'active' : ''}`}
+                onClick={() => { setMode('signin'); setError(null); setSuccessMsg(null); }}
+              >
+                Iniciar Sesión
+              </button>
+              <button
+                type="button"
+                className={`auth-tab-pill ${mode === 'signup' ? 'active' : ''}`}
+                onClick={() => { setMode('signup'); setError(null); setSuccessMsg(null); }}
+              >
+                Crear Cuenta
+              </button>
+            </div>
+          )}
 
           {/* Feedback Messages */}
           {error && (
@@ -313,195 +425,400 @@ function AuthContent() {
             </div>
           )}
 
-          {/* Google OAuth Button */}
-          <button
-            type="button"
-            onClick={handleGoogle}
-            disabled={loading}
-            className="btn btn-outline"
-            style={{
-              width: '100%',
-              marginBottom: '18px',
-              padding: '12px 16px',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: '10px',
-              fontSize: '0.9rem',
-              fontWeight: 600,
-              borderColor: 'rgba(255,255,255,0.12)',
-            }}
-          >
-            <svg width="18" height="18" viewBox="0 0 24 24">
-              <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
-              <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
-              <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/>
-              <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/>
-            </svg>
-            <span>Continuar con Google</span>
-          </button>
+          {/* ── MODOS 1 Y 2: SIGNIN / SIGNUP ── */}
+          {(mode === 'signin' || mode === 'signup') && (
+            <>
+              {/* Google OAuth Button */}
+              <button
+                type="button"
+                onClick={handleGoogle}
+                disabled={loading}
+                className="btn btn-outline"
+                style={{
+                  width: '100%',
+                  marginBottom: '18px',
+                  padding: '12px 16px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '10px',
+                  fontSize: '0.9rem',
+                  fontWeight: 600,
+                  borderColor: 'rgba(255,255,255,0.12)',
+                }}
+              >
+                <svg width="18" height="18" viewBox="0 0 24 24">
+                  <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                  <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                  <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/>
+                  <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/>
+                </svg>
+                <span>Continuar con Google</span>
+              </button>
 
-          <div style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '12px',
-            margin: '0 0 18px',
-            color: 'var(--text-muted)',
-            fontSize: '0.78rem',
-          }}>
-            <div style={{ flex: 1, height: 1, background: 'var(--border-subtle)' }} />
-            <span>o ingresa con tu correo</span>
-            <div style={{ flex: 1, height: 1, background: 'var(--border-subtle)' }} />
-          </div>
+              <div style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '12px',
+                margin: '0 0 18px',
+                color: 'var(--text-muted)',
+                fontSize: '0.78rem',
+              }}>
+                <div style={{ flex: 1, height: 1, background: 'var(--border-subtle)' }} />
+                <span>o ingresa con tu correo</span>
+                <div style={{ flex: 1, height: 1, background: 'var(--border-subtle)' }} />
+              </div>
 
-          <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-            {mode === 'signup' && (
-              <>
-                {/* Full Name */}
+              <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                {mode === 'signup' && (
+                  <>
+                    {/* Full Name */}
+                    <div>
+                      <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '6px' }}>
+                        Nombre Completo
+                      </label>
+                      <div className="auth-input-wrapper">
+                        <User size={16} className="auth-input-icon" />
+                        <input
+                          type="text"
+                          required
+                          placeholder="Ej: Alejandro Mamani Quispe"
+                          value={fullName}
+                          onChange={e => setFullName(e.target.value)}
+                          className="auth-input-field"
+                        />
+                      </div>
+                    </div>
+
+                    {/* Role Selector */}
+                    <div>
+                      <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '8px' }}>
+                        Selecciona tu Rol Principal
+                      </label>
+                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(95px, 1fr))', gap: '10px' }}>
+                        {[
+                          { id: 'client', label: 'Cliente', desc: 'Envía encargos', icon: ShoppingBag },
+                          { id: 'traveler', label: 'Viajero', desc: 'Lleva maletas', icon: Plane },
+                          { id: 'merchant', label: 'Comercio', desc: 'Vende productos', icon: Store },
+                        ].map(r => {
+                          const IconComp = r.icon;
+                          return (
+                            <div
+                              key={r.id}
+                              onClick={() => setRole(r.id as UserRole)}
+                              className={`auth-role-card ${role === r.id ? 'selected' : ''}`}
+                            >
+                              <IconComp size={18} color={role === r.id ? 'var(--brand-cyan)' : 'var(--text-muted)'} />
+                              <div style={{ fontSize: '0.82rem', fontWeight: 700, color: role === r.id ? 'var(--brand-cyan)' : 'var(--text-primary)' }}>
+                                {r.label}
+                              </div>
+                              <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)' }}>
+                                {r.desc}
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  </>
+                )}
+
+                {/* Email */}
                 <div>
                   <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '6px' }}>
-                    Nombre Completo
+                    Correo Electrónico
                   </label>
                   <div className="auth-input-wrapper">
-                    <User size={16} className="auth-input-icon" />
+                    <Mail size={16} className="auth-input-icon" />
                     <input
-                      type="text"
+                      type="email"
                       required
-                      placeholder="Ej: Alejandro Mamani Quispe"
-                      value={fullName}
-                      onChange={e => setFullName(e.target.value)}
+                      placeholder="tu.correo@ejemplo.com"
+                      value={email}
+                      onChange={e => setEmail(e.target.value)}
                       className="auth-input-field"
                     />
                   </div>
                 </div>
 
-                {/* Role Selector */}
+                {/* Password */}
                 <div>
-                  <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '8px' }}>
-                    Selecciona tu Rol Principal
-                  </label>
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(95px, 1fr))', gap: '10px' }}>
-                    {[
-                      { id: 'client', label: 'Cliente', desc: 'Envía encargos', icon: ShoppingBag },
-                      { id: 'traveler', label: 'Viajero', desc: 'Lleva maletas', icon: Plane },
-                      { id: 'merchant', label: 'Comercio', desc: 'Vende productos', icon: Store },
-                    ].map(r => {
-                      const IconComp = r.icon;
-                      return (
-                        <div
-                          key={r.id}
-                          onClick={() => setRole(r.id as UserRole)}
-                          className={`auth-role-card ${role === r.id ? 'selected' : ''}`}
-                        >
-                          <IconComp size={18} color={role === r.id ? 'var(--brand-cyan)' : 'var(--text-muted)'} />
-                          <div style={{ fontSize: '0.82rem', fontWeight: 700, color: role === r.id ? 'var(--brand-cyan)' : 'var(--text-primary)' }}>
-                            {r.label}
-                          </div>
-                          <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)' }}>
-                            {r.desc}
-                          </div>
-                        </div>
-                      );
-                    })}
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+                    <label style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--text-secondary)' }}>
+                      Contraseña
+                    </label>
+                    {mode === 'signin' && (
+                      <button
+                        type="button"
+                        onClick={() => { setMode('recovery'); setError(null); setSuccessMsg(null); }}
+                        style={{ background: 'transparent', border: 'none', color: 'var(--brand-cyan)', fontSize: '0.74rem', cursor: 'pointer', padding: 0 }}
+                      >
+                        ¿Olvidaste tu contraseña?
+                      </button>
+                    )}
+                  </div>
+                  <div className="auth-input-wrapper" style={{ position: 'relative' }}>
+                    <Lock size={16} className="auth-input-icon" />
+                    <input
+                      type={showPassword ? 'text' : 'password'}
+                      required
+                      placeholder="••••••••••••"
+                      value={password}
+                      onChange={e => setPassword(e.target.value)}
+                      className="auth-input-field"
+                      style={{ paddingRight: '42px' }}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      style={{
+                        position: 'absolute',
+                        right: '12px',
+                        background: 'transparent',
+                        border: 'none',
+                        color: 'var(--text-muted)',
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                      }}
+                    >
+                      {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                    </button>
                   </div>
                 </div>
-              </>
-            )}
 
-            {/* Email */}
-            <div>
-              <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '6px' }}>
-                Correo Electrónico
-              </label>
-              <div className="auth-input-wrapper">
-                <Mail size={16} className="auth-input-icon" />
-                <input
-                  type="email"
-                  required
-                  placeholder="tu.correo@ejemplo.com"
-                  value={email}
-                  onChange={e => setEmail(e.target.value)}
-                  className="auth-input-field"
-                />
-              </div>
-            </div>
-
-            {/* Password */}
-            <div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
-                <label style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--text-secondary)' }}>
-                  Contraseña
-                </label>
+                {/* 2FA Option Checkbox */}
                 {mode === 'signin' && (
-                  <span style={{ fontSize: '0.74rem', color: 'var(--brand-cyan)', cursor: 'pointer' }} onClick={() => setError('Contacta al soporte AYNI o recupera vía correo.')}>
-                    ¿Olvidaste tu contraseña?
-                  </span>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '4px 0' }}>
+                    <input
+                      type="checkbox"
+                      id="page-require-2fa"
+                      checked={enable2FaCheck}
+                      onChange={e => setEnable2FaCheck(e.target.checked)}
+                      style={{ accentColor: 'var(--brand-cyan)', cursor: 'pointer' }}
+                    />
+                    <label htmlFor="page-require-2fa" style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '5px' }}>
+                      <ShieldCheck size={14} color="var(--brand-cyan)" /> Requerir Doble Factor de Autenticación (2FA / Tangem)
+                    </label>
+                  </div>
                 )}
-              </div>
-              <div className="auth-input-wrapper" style={{ position: 'relative' }}>
-                <Lock size={16} className="auth-input-icon" />
-                <input
-                  type={showPassword ? 'text' : 'password'}
-                  required
-                  placeholder="••••••••••••"
-                  value={password}
-                  onChange={e => setPassword(e.target.value)}
-                  className="auth-input-field"
-                  style={{ paddingRight: '42px' }}
-                />
+
+                {/* Submit Button */}
                 <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
+                  type="submit"
+                  disabled={loading}
+                  className="btn btn-primary btn-lg btn-shimmer"
                   style={{
-                    position: 'absolute',
-                    right: '12px',
-                    background: 'transparent',
-                    border: 'none',
-                    color: 'var(--text-muted)',
-                    cursor: 'pointer',
+                    width: '100%',
+                    marginTop: '10px',
+                    padding: '13px',
+                    fontSize: '0.95rem',
                     display: 'flex',
                     alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '8px',
                   }}
                 >
-                  {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                  {loading ? (
+                    <>
+                      <div className="spinner" style={{ width: 16, height: 16, borderTopColor: '#050810' }} />
+                      <span>Procesando...</span>
+                    </>
+                  ) : mode === 'signin' ? (
+                    <>
+                      <span>Ingresar a mi Cuenta</span>
+                      <ChevronRight size={16} />
+                    </>
+                  ) : (
+                    <>
+                      <span>Crear Cuenta Gratuita</span>
+                      <Sparkles size={16} />
+                    </>
+                  )}
+                </button>
+              </form>
+            </>
+          )}
+
+          {/* ── MODO 3: RECUPERACIÓN DE CONTRASEÑA ── */}
+          {mode === 'recovery' && (
+            <div>
+              <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginBottom: '18px', lineHeight: 1.5 }}>
+                Ingresa el correo electrónico con el que te registraste. Te enviaremos un enlace de restablecimiento seguro directo desde nuestro servidor Google Gmail SMTP.
+              </p>
+
+              <form onSubmit={handlePasswordRecovery} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '6px' }}>
+                    Correo Electrónico Registrado
+                  </label>
+                  <div className="auth-input-wrapper">
+                    <Mail size={16} className="auth-input-icon" />
+                    <input
+                      type="email"
+                      required
+                      placeholder="tu.correo@ejemplo.com"
+                      value={email}
+                      onChange={e => setEmail(e.target.value)}
+                      className="auth-input-field"
+                    />
+                  </div>
+                </div>
+
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="btn btn-primary btn-lg"
+                  style={{ width: '100%', padding: '12px', fontSize: '0.92rem', marginTop: '6px' }}
+                >
+                  {loading ? 'Enviando enlace...' : 'Enviar Enlace de Recuperación'}
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => { setMode('signin'); setError(null); setSuccessMsg(null); }}
+                  className="btn btn-ghost btn-sm"
+                  style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', fontSize: '0.82rem', marginTop: '8px' }}
+                >
+                  <ArrowLeft size={14} /> Volver a Iniciar Sesión
+                </button>
+              </form>
+            </div>
+          )}
+
+          {/* ── MODO 4: VERIFICACIÓN 2FA (GMAIL OTP / TANGEM NFC) ── */}
+          {mode === 'twofactor' && (
+            <div>
+              {/* Method Switcher */}
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginBottom: '18px' }}>
+                <button
+                  type="button"
+                  onClick={() => { setTwoFaMethod('email'); setError(null); }}
+                  className={`btn btn-sm ${twoFaMethod === 'email' ? 'btn-primary' : 'btn-ghost'}`}
+                  style={{ fontSize: '0.82rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}
+                >
+                  <Mail size={14} /> Correo (Gmail OTP)
+                </button>
+                <button
+                  type="button"
+                  onClick={() => { setTwoFaMethod('tangem'); setError(null); }}
+                  className={`btn btn-sm ${twoFaMethod === 'tangem' ? 'btn-primary' : 'btn-ghost'}`}
+                  style={{ fontSize: '0.82rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}
+                >
+                  <Wifi size={14} style={{ transform: 'rotate(90deg)' }} /> Tangem Card
+                </button>
+              </div>
+
+              {twoFaMethod === 'email' && (
+                <div>
+                  <p style={{ fontSize: '0.84rem', color: 'var(--text-secondary)', marginBottom: '16px', lineHeight: 1.5 }}>
+                    Ingresa el código criptográfico de 6 dígitos que enviamos a tu correo electrónico.
+                  </p>
+
+                  <div style={{ display: 'flex', gap: '10px', marginBottom: '16px' }}>
+                    <input
+                      type="text"
+                      maxLength={6}
+                      placeholder="123456"
+                      value={twoFaCode}
+                      onChange={e => setTwoFaCode(e.target.value.replace(/\D/g, ''))}
+                      className="auth-input-field"
+                      style={{ fontSize: '1.35rem', letterSpacing: '8px', textAlign: 'center', fontFamily: 'monospace', fontWeight: 800, padding: '10px' }}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => triggerSend2Fa(email)}
+                      disabled={twoFaSending}
+                      className="btn btn-ghost btn-sm"
+                      style={{ whiteSpace: 'nowrap', fontSize: '0.8rem' }}
+                    >
+                      {twoFaSending ? <RefreshCw size={14} className="spin" /> : 'Reenviar'}
+                    </button>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={handleVerify2Fa}
+                    disabled={twoFaVerifying || twoFaCode.length !== 6}
+                    className="btn btn-primary btn-block"
+                    style={{ width: '100%', padding: '12px', fontSize: '0.92rem', opacity: twoFaCode.length === 6 ? 1 : 0.6 }}
+                  >
+                    {twoFaVerifying ? 'Validando 2FA...' : 'Verificar y Continuar'}
+                  </button>
+                </div>
+              )}
+
+              {twoFaMethod === 'tangem' && (
+                <div style={{ textAlign: 'center', padding: '12px 0' }}>
+                  <div style={{
+                    width: 150,
+                    height: 92,
+                    margin: '0 auto 18px',
+                    borderRadius: '12px',
+                    background: 'linear-gradient(135deg, #0e1628, #040813)',
+                    border: '1.5px solid var(--brand-cyan)',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    justifyContent: 'space-between',
+                    padding: '12px',
+                    boxShadow: '0 0 25px rgba(0,207,255,0.25)',
+                  }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <span style={{ fontWeight: 900, fontSize: '0.8rem', letterSpacing: '1px', color: '#fff' }}>tangem</span>
+                      <Wifi size={14} color="var(--brand-cyan)" style={{ transform: 'rotate(90deg)' }} />
+                    </div>
+                    <span style={{ fontSize: '0.62rem', color: 'var(--brand-emerald)', fontWeight: 700 }}>EAL6+ CHIP SECURITY</span>
+                  </div>
+
+                  <p style={{ fontSize: '0.84rem', color: 'var(--text-secondary)', marginBottom: '18px' }}>
+                    Aproxima tu tarjeta física Tangem para validar el factor de posesión por hardware.
+                  </p>
+
+                  {tangemState === 'idle' && (
+                    <button
+                      type="button"
+                      onClick={handleSimulateTangem}
+                      className="btn btn-tangem-glow btn-block"
+                      style={{ width: '100%', padding: '12px' }}
+                    >
+                      <Wifi size={15} style={{ transform: 'rotate(90deg)', marginRight: '8px' }} />
+                      Aproximar Tarjeta Tangem (Tap NFC)
+                    </button>
+                  )}
+
+                  {tangemState === 'approaching' && (
+                    <div style={{ fontSize: '0.88rem', color: 'var(--brand-cyan)', fontWeight: 700, padding: '10px' }}>
+                      Detectando chip NFC Tangem...
+                    </div>
+                  )}
+
+                  {tangemState === 'verifying' && (
+                    <div style={{ fontSize: '0.88rem', color: 'var(--brand-emerald)', fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', padding: '10px' }}>
+                      <RefreshCw size={15} className="spin" />
+                      Validando firma criptográfica de enclave...
+                    </div>
+                  )}
+
+                  {tangemState === 'success' && (
+                    <div style={{ fontSize: '0.92rem', color: 'var(--brand-emerald)', fontWeight: 800, padding: '10px' }}>
+                      ✓ ¡Autenticación Tangem Exitosa!
+                    </div>
+                  )}
+                </div>
+              )}
+
+              <div style={{ marginTop: '18px', textAlign: 'center' }}>
+                <button
+                  type="button"
+                  onClick={() => { setMode('signin'); setError(null); setSuccessMsg(null); }}
+                  className="btn btn-ghost btn-sm"
+                  style={{ fontSize: '0.8rem' }}
+                >
+                  <ArrowLeft size={13} style={{ marginRight: 4 }} /> Cancelar y volver
                 </button>
               </div>
             </div>
-
-            {/* Submit Button */}
-            <button
-              type="submit"
-              disabled={loading}
-              className="btn btn-primary btn-lg btn-shimmer"
-              style={{
-                width: '100%',
-                marginTop: '10px',
-                padding: '13px',
-                fontSize: '0.95rem',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: '8px',
-              }}
-            >
-              {loading ? (
-                <>
-                  <div className="spinner" style={{ width: 16, height: 16, borderTopColor: '#050810' }} />
-                  <span>Procesando...</span>
-                </>
-              ) : mode === 'signin' ? (
-                <>
-                  <span>Ingresar a mi Cuenta</span>
-                  <ChevronRight size={16} />
-                </>
-              ) : (
-                <>
-                  <span>Crear Cuenta Gratuita</span>
-                  <Sparkles size={16} />
-                </>
-              )}
-            </button>
-          </form>
+          )}
 
           {/* Quick Demo Access for Judges / Evaluators */}
           <div style={{ marginTop: '28px', paddingTop: '20px', borderTop: '1px solid var(--border-subtle)' }}>

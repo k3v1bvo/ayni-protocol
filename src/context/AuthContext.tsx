@@ -143,19 +143,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             }
           }
         } else {
-          // Usuario no autenticado -> Asignar perfil Demo viajero para acceso inmediato
+          // Usuario no autenticado en Supabase ni perfil guardado
           if (isMounted) {
-            const defaultDemo = TEST_PROFILES.traveler;
-            setUser(defaultDemo);
-            if (typeof window !== 'undefined') {
-              localStorage.setItem('ayni_active_profile', JSON.stringify(defaultDemo));
-            }
+            setUser(null);
           }
         }
       } catch (err) {
         console.error('Error inicializando sesión con Supabase:', err);
         if (isMounted) {
-          setUser(TEST_PROFILES.traveler);
+          setUser(null);
         }
       } finally {
         if (isMounted) {
