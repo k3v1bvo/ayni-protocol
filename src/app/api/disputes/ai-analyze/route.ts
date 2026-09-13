@@ -144,7 +144,7 @@ Responde estrictamente en formato JSON con la siguiente estructura:
                 }],
                 generationConfig: { 
                   temperature: 0.2,
-                  maxOutputTokens: 900,
+                  maxOutputTokens: 2048,
                   responseMimeType: 'application/json' 
                 }
               })

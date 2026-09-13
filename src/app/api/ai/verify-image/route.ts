@@ -113,7 +113,7 @@ Responde estrictamente en JSON con esta estructura exacta:
             generationConfig: {
               responseMimeType: 'application/json',
               temperature: 0.1,
-              maxOutputTokens: 800,
+              maxOutputTokens: 2048,
             }
           })
         });

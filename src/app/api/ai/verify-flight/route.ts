@@ -85,7 +85,7 @@ Responde estrictamente en formato JSON válido con esta estructura exacta:
                 }],
                 generationConfig: {
                   temperature: 0.1,
-                  maxOutputTokens: 800,
+                  maxOutputTokens: 2048,
                   responseMimeType: 'application/json',
                 }
               })
