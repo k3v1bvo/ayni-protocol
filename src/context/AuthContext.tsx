@@ -288,6 +288,39 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const cleanEmail = email.toLowerCase().trim();
 
     if (isSupabaseConfigured) {
+      try {
+        // 1. Registro server-side con auto-confirmación (evita límite de 3 correos/hora de Supabase)
+        const regRes = await fetch('/api/auth/register', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            email: cleanEmail,
+            password,
+            fullName,
+            role,
+          }),
+        });
+
+        const regData = await regRes.json();
+
+        if (regRes.ok && regData.success) {
+          // 2. Con la cuenta auto-confirmada, iniciar sesión directamente en Supabase client
+          return await signInWithEmail(cleanEmail, password);
+        }
+
+        // Si el usuario ya estaba registrado, intentar login directo
+        if (regData.code === 'USER_EXISTS' || regData.error?.toLowerCase().includes('already')) {
+          return await signInWithEmail(cleanEmail, password);
+        }
+
+        if (!regRes.ok && regData.error) {
+          return { error: regData.error };
+        }
+      } catch (err: unknown) {
+        console.warn('Registro vía API falló, reintentando flujo directo:', err);
+      }
+
+      // Fallback directo a Supabase SDK si el endpoint fallara
       const supabase = getSupabaseBrowserClient();
       try {
         const { data, error } = await supabase.auth.signUp({
@@ -302,15 +335,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         });
 
         if (error) {
-          console.warn('SignUp Supabase error:', error.message);
-          // Si el usuario ya existe, intentar iniciar sesión automáticamente sin fricciones
           if (error.message?.toLowerCase().includes('already') || error.status === 422) {
             return await signInWithEmail(cleanEmail, password);
           }
         }
 
         if (data?.user) {
-          // Inserción directa en profiles
           try {
             await supabase.from('profiles').upsert({
               id: data.user.id,
@@ -321,18 +351,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
               guarantee_balance: role === 'traveler' ? 50.0 : 0.0,
               country: 'Bolivia',
               verified_id: true,
-            });
-          } catch (_) {}
-
-          // Sincronización espejo en tabla users
-          try {
-            await supabase.from('users').upsert({
-              id: data.user.id,
-              email: cleanEmail,
-              full_name: fullName,
-              role,
-              reputation_score: 5.0,
-              guarantee_balance: role === 'traveler' ? 50.0 : 0.0,
             });
           } catch (_) {}
 
@@ -351,7 +369,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           return { error: null };
         }
       } catch (err: unknown) {
-        console.warn('SignUp error:', err);
+        console.warn('SignUp fallback error:', err);
       }
     }
 

@@ -239,3 +239,102 @@ export function getSystemNotificationEmail(props: {
 
   return { subject, html, text };
 }
+
+/**
+ * 5. Plantilla: Bienvenida a AYNI Protocol (Registro confirmado sin rate limit)
+ */
+export function getWelcomeEmail(props: {
+  recipientName: string;
+  email: string;
+  role: string;
+  loginUrl?: string;
+}): { subject: string; html: string; text: string } {
+  const roleLabel = props.role === 'traveler' ? 'Viajero / Crowdshipper' : props.role === 'merchant' ? 'Comercio Aliado' : 'Comprador / Cliente';
+  const subject = `🎉 ¡Bienvenido a AYNI Protocol, ${props.recipientName}! Tu cuenta está activa`;
+  const url = props.loginUrl || 'https://ayni-protocol.vercel.app/login';
+
+  const html = `
+    ${getEmailHeader('BIENVENIDA A LA COMUNIDAD')}
+    <h2 style="color: #0f172a; margin-top: 0; font-size: 20px;">¡Tu cuenta ha sido activada con éxito!</h2>
+    <p>Hola <strong>${props.recipientName}</strong>,</p>
+    <p>Te damos la bienvenida a <strong>AYNI Protocol</strong>, el ecosistema descentralizado de comercio P2P, crowdshipping y custodia protegida por hardware criptográfico.</p>
+
+    <div class="card" style="border-left: 4px solid #00d68f; background: #f0fdf4;">
+      <div style="font-size: 11px; color: #166534; font-weight: 700; text-transform: uppercase; margin-bottom: 8px;">DETALLES DE TU MEMBRESÍA</div>
+      <table style="width: 100%; font-size: 13px;">
+        <tr>
+          <td style="color: #64748b; padding: 4px 0;">Usuario:</td>
+          <td style="text-align: right; font-weight: 700; color: #0f172a;">${props.recipientName}</td>
+        </tr>
+        <tr>
+          <td style="color: #64748b; padding: 4px 0;">Correo de Acceso:</td>
+          <td style="text-align: right; font-weight: 600; color: #0f172a;">${props.email}</td>
+        </tr>
+        <tr>
+          <td style="color: #64748b; padding: 4px 0;">Rol Inicial:</td>
+          <td style="text-align: right; font-weight: 700; color: #00875a;">${roleLabel}</td>
+        </tr>
+        <tr>
+          <td style="color: #64748b; padding: 4px 0;">Red Principal:</td>
+          <td style="text-align: right; font-weight: 600; color: #0284c7;">Avalanche C-Chain & Stellar</td>
+        </tr>
+      </table>
+    </div>
+
+    <div style="margin: 20px 0; padding: 16px; background: #f8fafc; border-radius: 10px; border: 1px solid #e2e8f0;">
+      <div style="font-weight: 700; font-size: 13px; color: #0f172a; margin-bottom: 6px;">🛡️ Pilares de Protección en tu Cuenta:</div>
+      <ul style="margin: 0; padding-left: 20px; font-size: 12.5px; color: #475569; line-height: 1.6;">
+        <li><strong>Custodia Escrow:</strong> Ningún pago se libera hasta que entregues tu código OTP en mano.</li>
+        <li><strong>Hardware Cold Wallet:</strong> Soporte nativo para tarjetas Tangem (Sponsor Oficial ETH Bolivia).</li>
+        <li><strong>IA Guardian Gemini:</strong> Auditoría visual de boletas y mediación pericial 24/7.</li>
+      </ul>
+    </div>
+
+    <div style="text-align: center; margin-top: 26px;">
+      <a href="${url}" class="button" style="background: linear-gradient(135deg, #0284c7, #00d68f);">Ingresar al Dashboard</a>
+    </div>
+    ${getEmailFooter()}
+  `;
+
+  const text = `¡Bienvenido a AYNI Protocol, ${props.recipientName}!
+Tu cuenta está activa con el rol de ${roleLabel}.
+Correo: ${props.email}
+Accede a tu cuenta en: ${url}`;
+
+  return { subject, html, text };
+}
+
+/**
+ * 6. Plantilla: Restablecimiento de Contraseña
+ */
+export function getPasswordResetEmail(props: {
+  recipientName: string;
+  resetUrl: string;
+}): { subject: string; html: string; text: string } {
+  const subject = `🔐 [SEGURIDAD] Restablece tu contraseña de AYNI Protocol`;
+
+  const html = `
+    ${getEmailHeader('RECUPERACIÓN DE CUENTA')}
+    <h2 style="color: #0f172a; margin-top: 0; font-size: 18px;">Solicitud de Restablecimiento de Contraseña</h2>
+    <p>Hola <strong>${props.recipientName}</strong>,</p>
+    <p>Hemos recibido una solicitud para cambiar la contraseña asociada a tu cuenta de <strong>AYNI Protocol</strong>.</p>
+    
+    <div class="card" style="border-left: 4px solid #f59e0b; background: #fffbeb;">
+      <p style="margin: 0; font-size: 13px; color: #92400e;">
+        Por tu seguridad, este enlace es de uso único y expirará en <strong>60 minutos</strong>. Si no solicitaste este cambio, puedes ignorar este correo de forma segura.
+      </p>
+    </div>
+
+    <div style="text-align: center; margin-top: 24px;">
+      <a href="${props.resetUrl}" class="button" style="background: #0284c7;">Restablecer mi Contraseña</a>
+    </div>
+    ${getEmailFooter()}
+  `;
+
+  const text = `AYNI PROTOCOL - RECUPERACIÓN DE CONTRASEÑA
+Hola ${props.recipientName}, usa el siguiente enlace para restablecer tu contraseña:
+${props.resetUrl}
+Este enlace expira en 60 minutos.`;
+
+  return { subject, html, text };
+}
