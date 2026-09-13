@@ -1,7 +1,6 @@
 import type { Metadata } from 'next';
 import './globals.css';
-import '@pollar/react/styles.css';
-import { PollarProvider } from '@pollar/react';
+import { PollarClientProvider } from '@/providers/PollarClientProvider';
 import { AuthProvider } from '@/context/AuthContext';
 import { CartProvider } from '@/context/CartContext';
 
@@ -15,18 +14,13 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="es">
       <body>
-        <PollarProvider
-          client={{
-            apiKey: process.env.NEXT_PUBLIC_POLLAR_API_KEY!,
-            stellarNetwork: (process.env.NEXT_PUBLIC_POLLAR_NETWORK as 'mainnet' | 'testnet') || 'testnet',
-          }}
-        >
+        <PollarClientProvider>
           <AuthProvider>
             <CartProvider>
               {children}
             </CartProvider>
           </AuthProvider>
-        </PollarProvider>
+        </PollarClientProvider>
       </body>
     </html>
   );
