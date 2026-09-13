@@ -4,13 +4,14 @@ import React, { useState } from 'react';
 import {
   ShieldCheck, Smartphone, Wifi, ArrowRight, CheckCircle2,
   ExternalLink, Copy, Check, X, Sparkles, RefreshCw, Lock,
-  Key, Cpu, CreditCard, Coins, LogIn, AlertTriangle
+  Key, Cpu, CreditCard, Coins, LogIn, AlertTriangle, Gift
 } from 'lucide-react';
 import { executeEscrowDeposit } from '@/lib/web3/contracts';
 import { usePollar } from '@pollar/react';
 
 const POLLAR_USDC_ISSUER = process.env.NEXT_PUBLIC_POLLAR_USDC_ISSUER || 'GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5';
 const POLLAR_TREASURY_ADDRESS = process.env.NEXT_PUBLIC_POLLAR_TREASURY_ADDRESS || 'GCEX2DHV6BB5EY7UEAKTVXKSX3FLYEEVYU2XSPUCV6TBYOTZ4UWSSV5O';
+const IS_POLLAR_TESTNET = (process.env.NEXT_PUBLIC_POLLAR_NETWORK || 'testnet') !== 'mainnet';
 
 interface PaymentModalProps {
   isOpen: boolean;
@@ -39,7 +40,7 @@ export function PaymentModal({
   const [paidSuccessData, setPaidSuccessData] = useState<{ txHash: string; otp: string } | null>(null);
   const [pollarPaying, setPollarPaying] = useState(false);
   const [pollarError, setPollarError] = useState<string | null>(null);
-  const { isAuthenticated, wallet, openLoginModal, runTx } = usePollar();
+  const { isAuthenticated, wallet, openLoginModal, runTx, openDistributionRulesModal } = usePollar();
 
   if (!isOpen) return null;
 
@@ -572,6 +573,18 @@ export function PaymentModal({
                     <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginBottom: '10px', fontFamily: 'monospace' }}>
                       Wallet conectada: {wallet?.address ? `${wallet.address.slice(0, 8)}...${wallet.address.slice(-6)}` : '—'}
                     </div>
+
+                    {IS_POLLAR_TESTNET && (
+                      <button
+                        type="button"
+                        onClick={openDistributionRulesModal}
+                        className="btn btn-outline btn-pressable btn-block"
+                        style={{ padding: '10px', fontSize: '0.82rem', marginBottom: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', borderColor: 'rgba(0,214,143,0.4)', color: 'var(--brand-emerald)' }}
+                      >
+                        <Gift size={14} /> Reclamar USDC de prueba (testnet)
+                      </button>
+                    )}
+
                     <button
                       type="button"
                       onClick={handlePollarPayment}

@@ -7,6 +7,7 @@ import { AppSidebar } from '@/components/layout/Sidebar';
 import { BottomNav } from '@/components/layout/BottomNav';
 import { CartDrawer } from '@/components/marketplace/CartDrawer';
 import { NotificationCenter } from '@/components/layout/NotificationCenter';
+import { PollarWalletButton } from '@/components/pollar/PollarWalletButton';
 import { AiSupportChat } from '@/components/chat/AiSupportChat';
 import { Search, Menu } from 'lucide-react';
 import Link from 'next/link';
@@ -120,6 +121,9 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
           </form>
 
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginLeft: 'auto' }}>
+            {/* Pollar wallet: saldo, reclamar fondos de prueba, enviar/recibir */}
+            <PollarWalletButton />
+
             {/* Interactive Notifications Center */}
             <NotificationCenter />
 
