@@ -210,3 +210,18 @@ CREATE TABLE IF NOT EXISTS public.remittances_and_gifts (
   claimed_at timestamp with time zone,
   CONSTRAINT remittances_and_gifts_pkey PRIMARY KEY (id)
 );
+
+-- 12. TABLA: NOTIFICATIONS (Alertas y avisos transaccionales en tiempo real)
+CREATE TABLE IF NOT EXISTS public.notifications (
+  id uuid NOT NULL DEFAULT gen_random_uuid(),
+  user_id uuid,
+  trade_id uuid,
+  type text NOT NULL DEFAULT 'system'::text,
+  title text NOT NULL,
+  body text,
+  is_read boolean DEFAULT false,
+  created_at timestamp with time zone DEFAULT now(),
+  CONSTRAINT notifications_pkey PRIMARY KEY (id),
+  CONSTRAINT notifications_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.profiles(id)
+);
+

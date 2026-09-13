@@ -285,23 +285,23 @@ export default function MarketplacePage() {
             const apiMapped: MarketplaceProduct[] = data.products.map((p: any) => {
               const imgs: string[] = Array.isArray(p.images) && p.images.length > 0 
                 ? p.images 
-                : (p.image ? [p.image] : ['https://images.unsplash.com/photo-1579541814924-49fef17c5be5?w=400&h=300&fit=crop&q=80']);
+                : (p.image_url ? [p.image_url] : (p.image ? [p.image] : ['https://images.unsplash.com/photo-1579541814924-49fef17c5be5?w=400&h=300&fit=crop&q=80']));
               return {
                 id: p.id,
                 title: p.title,
                 store: p.stores?.name || p.store || 'Tienda AYNI Verificada',
                 storeLocation: p.stores?.location_city ? `${p.stores.location_city}, ${p.stores.location_country || 'Bolivia'}` : (p.origin_city ? `${p.origin_city}, ${p.origin_country || 'Bolivia'}` : 'Cochabamba, Bolivia'),
                 storeRating: Number(p.stores?.rating || p.rating || 4.9),
-                price: Number(p.price) || 0,
+                price: Number(p.price_usd ?? p.price) || 0,
                 currency: p.currency || 'USDC',
                 category: p.category || 'art',
                 origin: p.origin_country ? `🇧🇴 ${p.origin_country}` : (p.origin || '🇧🇴 Bolivia'),
                 weight: p.weight_kg ? `${p.weight_kg} kg` : (p.weight || '0.5 kg'),
-                inStock: p.stock === undefined ? true : p.stock > 0,
+                inStock: p.in_stock !== undefined ? p.in_stock : (p.stock === undefined ? true : p.stock > 0),
                 image: imgs[0],
                 images: imgs,
                 tags: Array.isArray(p.tags) && p.tags.length > 0 ? p.tags : [p.category || 'artesanal', 'ayni'],
-                available_routes: p.available_routes || Math.floor(Math.random() * 5) + 3,
+                available_routes: p.available_routes_count || p.available_routes || Math.floor(Math.random() * 5) + 3,
                 description: p.description || 'Producto artesanal verificado por la comunidad con custodia de fondos en Smart Contract de Escrow.',
               };
             });

@@ -7,7 +7,19 @@
 export const BASE_SEPOLIA_CHAIN_ID = 84532;
 export const BASE_MAINNET_CHAIN_ID = 8453;
 
-// Dirección oficial del contrato AyniEscrow desplegado en Base Sepolia (Testnet)
+// Contrato AyniEscrow desplegado en Avalanche C-Chain (Mainnet) — Snowtrace
+export const AVALANCHE_MAINNET_CHAIN_ID = 43114;
+export const AVALANCHE_FUJI_CHAIN_ID = 43113;
+export const AVALANCHE_ESCROW_ADDRESS = process.env.NEXT_PUBLIC_AVALANCHE_ESCROW_ADDRESS || '0x7A9fe51c8688281Ed66e0A98401B46a277c86D80';
+export const AVALANCHE_USDC_ADDRESS = '0xB97EF9Ef8734C71904D8002F8b6Bc66Dd9c48a6E';
+export const AVALANCHE_EXPLORER_URL = 'https://snowtrace.io';
+
+// Contrato AyniEscrow desplegado en HSK Chain (Testnet)
+export const HSK_TESTNET_CHAIN_ID = 133;
+export const HSK_ESCROW_ADDRESS = process.env.NEXT_PUBLIC_HSK_ESCROW_ADDRESS || '0x872660b3324236c306b539f90a02f8b8D019E9Ea';
+export const HSK_EXPLORER_URL = 'https://testnet-explorer.hskchain.net';
+
+// Dirección oficial del contrato AyniEscrow en Base Sepolia (Testnet)
 export const AYNI_ESCROW_ADDRESS = process.env.NEXT_PUBLIC_ESCROW_CONTRACT_ADDRESS || '0x71C93475A6E46949Cbc4928Eb811b7d566bEB49a';
 export const USDC_TOKEN_ADDRESS = process.env.NEXT_PUBLIC_USDC_CONTRACT_ADDRESS || '0x036CbD53842c5426634e7929541eC2318f3dCF7e'; // Base Sepolia USDC
 
@@ -177,7 +189,17 @@ export interface Web3TransactionResult {
   explorerUrl: string;
   isSimulated?: boolean;
   methodCalled?: string;
-  clausesApplied?: CustomClauses;
+  network?: 'avalanche' | 'base' | 'hsk';
+}
+
+function getExplorerUrl(txHash: string, network: 'avalanche' | 'base' | 'hsk' = 'avalanche'): string {
+  if (network === 'avalanche') {
+    return `https://snowtrace.io/tx/${txHash}`;
+  }
+  if (network === 'hsk') {
+    return `https://testnet-explorer.hskchain.net/tx/${txHash}`;
+  }
+  return `https://sepolia.basescan.org/tx/${txHash}`;
 }
 
 /**
@@ -191,6 +213,7 @@ export async function executeEscrowDeposit({
   travelerFeeUsdc = 0,
   systemFeeUsdc = 0,
   clauses = DEFAULT_CLAUSES,
+  network = 'avalanche',
 }: {
   buyerAddress: string;
   travelerAddress?: string;
@@ -199,6 +222,7 @@ export async function executeEscrowDeposit({
   travelerFeeUsdc?: number;
   systemFeeUsdc?: number;
   clauses?: CustomClauses;
+  network?: 'avalanche' | 'base' | 'hsk';
 }): Promise<Web3TransactionResult> {
   const simulatedHash = '0x' + Array.from({ length: 64 }, () => Math.floor(Math.random() * 16).toString(16)).join('');
   const tradeId = Math.floor(1000 + Math.random() * 9000);
@@ -208,7 +232,7 @@ export async function executeEscrowDeposit({
     try {
       const accounts = await (window as any).ethereum.request({ method: 'eth_accounts' });
       if (accounts && accounts.length > 0) {
-        console.log('[AYNI Web3] Wallet conectada en Base L2:', accounts[0]);
+        console.log(`[AYNI Web3] Wallet conectada en ${network}:`, accounts[0]);
       }
     } catch (e) {
       console.warn('[AYNI Web3] Fallback a transacción firmada off-chain:', e);
@@ -218,12 +242,13 @@ export async function executeEscrowDeposit({
   return {
     success: true,
     txHash: simulatedHash,
-    blockNumber: 18492040,
+    blockNumber: network === 'avalanche' ? 49204120 : 18492040,
     tradeId,
-    explorerUrl: `https://sepolia.basescan.org/tx/${simulatedHash}`,
+    explorerUrl: getExplorerUrl(simulatedHash, network),
     isSimulated: true,
     methodCalled: 'createTradeWithClauses',
     clausesApplied: clauses,
+    network,
   };
 }
 
@@ -233,37 +258,41 @@ export async function executeEscrowDeposit({
 export async function executeEscrowRelease(
   tradeId: string | number, 
   otpCode: string,
-  tangemSignature?: string
+  tangemSignature?: string,
+  network: 'avalanche' | 'base' | 'hsk' = 'avalanche'
 ): Promise<Web3TransactionResult> {
   const simulatedHash = '0x' + Array.from({ length: 64 }, () => Math.floor(Math.random() * 16).toString(16)).join('');
 
   return {
     success: true,
     txHash: simulatedHash,
-    blockNumber: 18492045,
-    explorerUrl: `https://sepolia.basescan.org/tx/${simulatedHash}`,
+    blockNumber: network === 'avalanche' ? 49204125 : 18492045,
+    explorerUrl: getExplorerUrl(simulatedHash, network),
     isSimulated: true,
     methodCalled: 'completeTradeWithOtp',
+    network,
   };
 }
 
 /**
- * Resuelve una disputa on-chain ejecutando el veredicto del oráculo IA en Base L2
+ * Resuelve una disputa on-chain ejecutando el veredicto del oráculo IA
  */
 export async function executeDisputeResolution(
   tradeId: string | number,
   buyerRefundUsdc: number,
   travelerPayoutUsdc: number,
-  verdictRationale: string
+  verdictRationale: string,
+  network: 'avalanche' | 'base' | 'hsk' = 'avalanche'
 ): Promise<Web3TransactionResult> {
   const simulatedHash = '0x' + Array.from({ length: 64 }, () => Math.floor(Math.random() * 16).toString(16)).join('');
 
   return {
     success: true,
     txHash: simulatedHash,
-    blockNumber: 18492050,
-    explorerUrl: `https://sepolia.basescan.org/tx/${simulatedHash}`,
+    blockNumber: network === 'avalanche' ? 49204130 : 18492050,
+    explorerUrl: getExplorerUrl(simulatedHash, network),
     isSimulated: true,
     methodCalled: 'resolveDispute',
+    network,
   };
 }

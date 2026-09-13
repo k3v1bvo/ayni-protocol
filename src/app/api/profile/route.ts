@@ -56,12 +56,32 @@ export async function PUT(req: NextRequest) {
     allowed['updated_at'] = new Date().toISOString();
 
     const supabase = getSupabaseServerClient();
-    const { data, error } = await supabase
+    let { data, error } = await supabase
       .from('profiles')
       .update(allowed)
       .eq('id', id)
       .select()
       .single();
+
+    // Fallback defensivo si columnas opcionales (whatsapp, city, bio, linkedin) no existen aún en la BD
+    if (error && error.message?.includes('does not exist')) {
+      const coreOnly: Record<string, unknown> = {};
+      const coreFields = ['full_name', 'phone', 'country', 'wallet_address', 'avatar_url'];
+      for (const k of coreFields) {
+        if (allowed[k] !== undefined) coreOnly[k] = allowed[k];
+      }
+      coreOnly['updated_at'] = new Date().toISOString();
+
+      const retryRes = await supabase
+        .from('profiles')
+        .update(coreOnly)
+        .eq('id', id)
+        .select()
+        .single();
+
+      data = retryRes.data;
+      error = retryRes.error;
+    }
 
     if (error) {
       return NextResponse.json({ error: error.message }, { status: 400 });

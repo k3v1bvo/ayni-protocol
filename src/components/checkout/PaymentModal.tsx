@@ -47,7 +47,7 @@ export function PaymentModal({
   const systemFeeUsdc = parseFloat((productPriceUsdc * 0.05).toFixed(2));
   const totalEscrowUsdc = (productPriceUsdc + travelerFeeUsdc + systemFeeUsdc).toFixed(2);
   const mockTangemAddress = '0x9a8F23B15a7B9c1D3f5A7b9C1d3F5a7B9c1D3F5A';
-  const wcUri = `tangem://wc?uri=wc:ayni-base-escrow-${Date.now()}`;
+  const wcUri = `tangem://wc?uri=wc:ayni-avax-escrow-${Date.now()}`;
 
   const copyWcUri = () => {
     navigator.clipboard.writeText(wcUri);
@@ -64,6 +64,7 @@ export function PaymentModal({
       otpPlain: otp,
       travelerFeeUsdc,
       systemFeeUsdc,
+      network: 'avalanche',
     });
 
     setPaidSuccessData({ txHash: res.txHash, otp });
@@ -192,7 +193,7 @@ export function PaymentModal({
             </span>
           </div>
           <span style={{ fontSize: '0.72rem', color: 'var(--brand-emerald)', fontWeight: 700 }}>
-            Red Base L2 • Gas &lt; $0.001
+            Avalanche C-Chain • Snowtrace
           </span>
         </div>
 
@@ -252,7 +253,7 @@ export function PaymentModal({
             </div>
 
             <h4 style={{ fontSize: '1.15rem', fontWeight: 800, color: 'var(--brand-emerald)', marginBottom: '4px' }}>
-              ¡Custodia Tangem Bloqueada en Base L2!
+              ¡Custodia Tangem Bloqueada en Avalanche C-Chain!
             </h4>
             <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginBottom: '14px' }}>
               Tu código secreto de entrega OTP ha sido generado criptográficamente:
@@ -278,8 +279,19 @@ export function PaymentModal({
             <div style={{ fontSize: '0.74rem', color: 'var(--brand-gold)', marginBottom: '8px' }}>
               ⚠️ Guárdalo seguro. Solo entrégalo al recibir físicamente el producto en mano.
             </div>
-            <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', fontFamily: 'monospace' }}>
+            <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', fontFamily: 'monospace', marginBottom: '10px' }}>
               Tx: {paidSuccessData.txHash.slice(0, 14)}...{paidSuccessData.txHash.slice(-8)}
+            </div>
+            <div>
+              <a
+                href={`https://snowtrace.io/tx/${paidSuccessData.txHash}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="badge badge-cyan"
+                style={{ fontSize: '0.75rem', padding: '5px 12px', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '5px' }}
+              >
+                <ExternalLink size={12} /> Ver en Snowtrace (Avalanche)
+              </a>
             </div>
           </div>
         ) : (
@@ -388,7 +400,7 @@ export function PaymentModal({
                         SMART CONTRACT ESCROW
                       </div>
                       <div style={{ fontSize: '0.78rem', color: 'var(--brand-emerald)', fontWeight: 700 }}>
-                        Base L2 • AyniEscrow.sol
+                        Avalanche C-Chain • 0x7A9f...6D80
                       </div>
                     </div>
                     <div style={{ textAlign: 'right' }}>
@@ -439,7 +451,7 @@ export function PaymentModal({
                   <div style={{ textAlign: 'center', padding: '12px 0', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
                     <RefreshCw size={16} className="spin" color="var(--brand-cyan)" />
                     <span style={{ fontSize: '0.88rem', fontWeight: 700, color: 'var(--text-primary)' }}>
-                      Bloqueando fondos en Smart Contract Base L2...
+                      Bloqueando fondos en Smart Contract Avalanche C-Chain...
                     </span>
                   </div>
                 )}
@@ -511,7 +523,7 @@ export function PaymentModal({
                   <div style={{ fontWeight: 700, color: 'var(--brand-cyan)', marginBottom: '4px', display: 'flex', alignItems: 'center', gap: '6px' }}>
                     <Key size={15} /> Firma Criptográfica Directa (Chip EAL6+)
                   </div>
-                  Certifica la custodia en Base L2, vinculación de firma Tangem Cold Wallet y generación de clave secreta OTP para retiro seguro.
+                  Certifica la custodia en Avalanche C-Chain (Snowtrace), vinculación de firma Tangem Cold Wallet y generación de clave secreta OTP para retiro seguro.
                 </div>
 
                 <button

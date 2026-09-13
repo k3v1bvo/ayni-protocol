@@ -164,14 +164,14 @@ export default function MyStorePage() {
             setProducts(myProducts.map((p: any) => ({
               id: p.id,
               title: p.title,
-              price: Number(p.price) || 0,
-              stock: p.stock ?? 10,
+              price: Number(p.price_usd ?? p.price) || 0,
+              stock: p.in_stock !== false ? (p.stock ?? 10) : 0,
               category: p.category || 'artesanias',
               orders_count: p.orders_count || Math.floor(Math.random() * 20),
               rating: p.rating || 4.9,
-              is_active: p.is_active !== false,
-              images: p.images || (p.image ? [p.image] : []),
-              image: p.image || (p.images && p.images[0]) || DEFAULT_PRODUCTS[0].image,
+              is_active: p.in_stock !== false && p.is_active !== false,
+              images: Array.isArray(p.images) ? p.images : (p.image_url ? [p.image_url] : (p.image ? [p.image] : [])),
+              image: p.image_url || (p.images && p.images[0]) || p.image || DEFAULT_PRODUCTS[0].image,
             })));
           }
         }
