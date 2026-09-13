@@ -50,10 +50,8 @@ export async function POST(req: NextRequest) {
     }
 
     // Fallback: Si no hay API key o falló ImgBB, devolver como base64 data url para no romper el flujo
-    const bytes = await file.arrayBuffer();
-    const buffer = Buffer.from(bytes);
     const mimeType = file.type || 'image/jpeg';
-    const dataUrl = `data:${mimeType};base64,${buffer.toString('base64')}`;
+    const dataUrl = `data:${mimeType};base64,${base64}`;
 
     return NextResponse.json({
       success: true,
