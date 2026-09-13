@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { safeFetchImage } from '@/lib/security/ssrf';
 
 export async function POST(req: NextRequest) {
   try {
@@ -22,24 +23,14 @@ export async function POST(req: NextRequest) {
       });
     }
 
-    // 1. Descargar la imagen desde ImgBB para convertirla a buffer base64
-    let imageBase64 = '';
-    let mimeType = 'image/jpeg';
-
-    try {
-      const imgRes = await fetch(imageUrl);
-      if (imgRes.ok) {
-        const arrayBuffer = await imgRes.arrayBuffer();
-        mimeType = (imgRes.headers.get('content-type') || 'image/jpeg').split(';')[0];
-        imageBase64 = Buffer.from(arrayBuffer).toString('base64');
-      }
-    } catch (fetchErr) {
-      console.warn('[Verify Image] Error descargando imagen de ImgBB:', fetchErr);
+    // 1. Descargar la imagen de forma segura con protección Anti-SSRF
+    const safeImg = await safeFetchImage(imageUrl);
+    if (!safeImg) {
+      return NextResponse.json({ error: 'URL de imagen no permitida o no se pudo descargar de forma segura' }, { status: 422 });
     }
 
-    if (!imageBase64) {
-      return NextResponse.json({ error: 'No se pudo descargar la imagen desde ImgBB' }, { status: 422 });
-    }
+    const imageBase64 = safeImg.buffer.toString('base64');
+    const mimeType = safeImg.mimeType;
 
     // 2. Prompt pericial para Gemini 1.5 Flash Vision
     const prompt = type === 'RECEIPT'

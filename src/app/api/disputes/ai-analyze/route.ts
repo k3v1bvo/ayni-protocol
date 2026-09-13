@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { safeFetchImage } from '@/lib/security/ssrf';
 
 export async function POST(req: NextRequest) {
   try {
@@ -77,26 +78,19 @@ export async function POST(req: NextRequest) {
     const geminiApiKey = process.env.GEMINI_API_KEY;
     if (geminiApiKey) {
       try {
-        // Descarga la primera foto de evidencia (si existe) para que la IA la vea de verdad,
-        // en vez de razonar solo con el texto que escribió el usuario.
+        // Descarga la primera foto de evidencia (si existe) de forma segura con Anti-SSRF
         const evidenceImageUrl: string | undefined = evidence_images?.[0];
         let imagePart: { inlineData: { mimeType: string; data: string } } | null = null;
 
         if (evidenceImageUrl) {
-          try {
-            const imgRes = await fetch(evidenceImageUrl);
-            if (imgRes.ok) {
-              const arrayBuffer = await imgRes.arrayBuffer();
-              const mimeType = (imgRes.headers.get('content-type') || 'image/jpeg').split(';')[0];
-              imagePart = {
-                inlineData: {
-                  mimeType,
-                  data: Buffer.from(arrayBuffer).toString('base64'),
-                },
-              };
-            }
-          } catch (imgErr) {
-            console.warn('[Disputes AI] No se pudo descargar la foto de evidencia:', imgErr);
+          const safeImg = await safeFetchImage(evidenceImageUrl);
+          if (safeImg) {
+            imagePart = {
+              inlineData: {
+                mimeType: safeImg.mimeType,
+                data: safeImg.buffer.toString('base64'),
+              },
+            };
           }
         }
 

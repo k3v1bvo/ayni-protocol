@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { safeFetchImage } from '@/lib/security/ssrf';
 
 export async function POST(req: NextRequest) {
   try {
@@ -23,20 +24,14 @@ export async function POST(req: NextRequest) {
         const parts: any[] = [];
 
         if (imageUrl) {
-          try {
-            const imgRes = await fetch(imageUrl);
-            if (imgRes.ok) {
-              const arrayBuffer = await imgRes.arrayBuffer();
-              const mimeType = (imgRes.headers.get('content-type') || 'image/jpeg').split(';')[0];
-              parts.push({
-                inlineData: {
-                  mimeType,
-                  data: Buffer.from(arrayBuffer).toString('base64'),
-                },
-              });
-            }
-          } catch (imgErr) {
-            console.warn('[Verify Flight] Error descargando imagen de pasaje:', imgErr);
+          const safeImg = await safeFetchImage(imageUrl);
+          if (safeImg) {
+            parts.push({
+              inlineData: {
+                mimeType: safeImg.mimeType,
+                data: safeImg.buffer.toString('base64'),
+              },
+            });
           }
         }
 
