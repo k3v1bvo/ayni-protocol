@@ -1,7 +1,7 @@
 # 🚀 AYNI / MINKA Protocol
 
 > **Ecosistema P2P Descentralizado de Crowdshipping, Comercio y Remesas**
-> *Buildathon ETH Bolivia 2026 — Cochabamba*
+> *Desarrollado por el equipo **Energy.Cs** para el Buildathon ETH Bolivia 2026 — Cochabamba*
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Network: Base L2](https://img.shields.io/badge/Network-Base%20L2-blue.svg)](https://base.org)
@@ -163,3 +163,14 @@ Requiere `DEPLOYER_PRIVATE_KEY` en `.env.local` (una wallet con gas en la red de
 ## 🌐 7. Demo en Vivo
 
 **URL pública**: https://ayni-protocool.vercel.app/
+
+---
+
+## 👥 8. Equipo Desarrollador — Energy.Cs
+
+Proyecto desarrollado con orgullo para el **Buildathon ETH Bolivia 2026** (Cochabamba) por el equipo **Energy.Cs**:
+
+* 👨‍💻 **Kevin Davor Vergara Orellana**
+* 👨‍💻 **Luis Fernando Guzman Oporto**
+* 👩‍💻 **Nicole Patino Guzman**
+* 👨‍💻 **Dante Vargas Garcia**

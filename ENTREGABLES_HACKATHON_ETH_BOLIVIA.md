@@ -9,6 +9,12 @@
 Copia y pega estos campos directamente en el formulario de entrega del hackathon:
 
 ### 1. Información General
+* **Team Name (Nombre del Equipo):** `Energy.Cs`
+* **Team Members (Integrantes del Equipo):**
+  1. **Kevin Davor Vergara Orellana**
+  2. **Luis Fernando Guzman Oporto**
+  3. **Nicole Patino Guzman**
+  4. **Dante Vargas Garcia**
 * **Project Name (Nombre del Proyecto):** `AYNI Protocol` (también conocido como *MINKA*)
 * **Tagline (Lema en 1 línea):**  
   > *Ecosistema P2P Descentralizado de Crowdshipping, Comercio Transfronterizo y Herencias Cripto con Escrow Inteligente y Oráculo IA.*
