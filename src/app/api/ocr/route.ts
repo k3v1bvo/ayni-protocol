@@ -60,29 +60,42 @@ Responde estrictamente en JSON con este formato:
 
         parts.push({ text: prompt });
 
-        const geminiModel = process.env.GEMINI_MODEL || 'gemini-1.5-flash';
-        const geminiRes = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${geminiModel}:generateContent?key=${geminiApiKey}`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'x-goog-api-key': geminiApiKey,
-          },
-          body: JSON.stringify({
-            contents: [{ parts }],
-            generationConfig: { responseMimeType: 'application/json' }
-          })
-        });
+        const candidateModels = Array.from(new Set([
+          process.env.GEMINI_MODEL,
+          'gemini-3.6-flash',
+          'gemini-1.5-flash',
+          'gemini-2.0-flash',
+        ].filter(Boolean))) as string[];
 
-        if (geminiRes.ok) {
-          const geminiData = await geminiRes.json();
-          const rawText = geminiData.candidates?.[0]?.content?.parts?.[0]?.text;
-          if (rawText) {
-            const parsed = JSON.parse(rawText);
-            aiVerdict = parsed.verdict || aiVerdict;
-            confidence = parsed.confidence || confidence;
-            notes = parsed.notes || notes;
-            if (parsed.detectedMerchant) detectedMerchant = parsed.detectedMerchant;
-            if (parsed.detectedAmount) detectedAmount = Number(parsed.detectedAmount) || detectedAmount;
+        for (const geminiModel of candidateModels) {
+          try {
+            const geminiRes = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${geminiModel}:generateContent?key=${geminiApiKey}`, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'x-goog-api-key': geminiApiKey,
+              },
+              body: JSON.stringify({
+                contents: [{ parts }],
+                generationConfig: { responseMimeType: 'application/json' }
+              })
+            });
+
+            if (geminiRes.ok) {
+              const geminiData = await geminiRes.json();
+              const rawText = geminiData.candidates?.[0]?.content?.parts?.[0]?.text;
+              if (rawText) {
+                const parsed = JSON.parse(rawText);
+                aiVerdict = parsed.verdict || aiVerdict;
+                confidence = parsed.confidence || confidence;
+                notes = parsed.notes || notes;
+                if (parsed.detectedMerchant) detectedMerchant = parsed.detectedMerchant;
+                if (parsed.detectedAmount) detectedAmount = Number(parsed.detectedAmount) || detectedAmount;
+                break;
+              }
+            }
+          } catch (mErr) {
+            console.warn(`[Gemini OCR] Model ${geminiModel} failed:`, mErr);
           }
         }
       } catch (e) {

@@ -86,37 +86,57 @@ Responde estrictamente en JSON con esta estructura exacta:
 }`;
 
     // 3. Llamar a la API de Gemini 1.5 Flash Multimodal
-    const geminiModel = process.env.GEMINI_MODEL || 'gemini-1.5-flash';
-    const geminiRes = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${geminiModel}:generateContent?key=${geminiApiKey}`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-goog-api-key': geminiApiKey,
-      },
-      body: JSON.stringify({
-        contents: [
-          {
-            parts: [
-              { text: prompt },
-              {
-                inlineData: {
-                  mimeType,
-                  data: imageBase64,
-                }
-              }
-            ]
-          }
-        ],
-        generationConfig: {
-          responseMimeType: 'application/json',
-          temperature: 0.1,
-        }
-      })
-    });
+    const candidateModels = Array.from(new Set([
+      process.env.GEMINI_MODEL,
+      'gemini-3.6-flash',
+      'gemini-1.5-flash',
+      'gemini-2.0-flash',
+    ].filter(Boolean))) as string[];
 
-    if (geminiRes.ok) {
-      const data = await geminiRes.json();
-      const rawText = data.candidates?.[0]?.content?.parts?.[0]?.text;
+    let geminiData: any = null;
+
+    for (const geminiModel of candidateModels) {
+      try {
+        const geminiRes = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${geminiModel}:generateContent?key=${geminiApiKey}`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'x-goog-api-key': geminiApiKey,
+          },
+          body: JSON.stringify({
+            contents: [
+              {
+                parts: [
+                  { text: prompt },
+                  {
+                    inlineData: {
+                      mimeType,
+                      data: imageBase64,
+                    }
+                  }
+                ]
+              }
+            ],
+            generationConfig: {
+              responseMimeType: 'application/json',
+              temperature: 0.1,
+            }
+          })
+        });
+
+        if (geminiRes.ok) {
+          geminiData = await geminiRes.json();
+          if (geminiData.candidates?.[0]?.content?.parts?.[0]?.text) {
+            break;
+          }
+        }
+      } catch (mErr) {
+        console.warn(`[Gemini Verify] Model ${geminiModel} failed:`, mErr);
+      }
+    }
+
+    if (geminiData) {
+      const rawText = geminiData.candidates?.[0]?.content?.parts?.[0]?.text;
       if (rawText) {
         const parsed = JSON.parse(rawText);
         return NextResponse.json({

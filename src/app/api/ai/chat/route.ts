@@ -144,62 +144,62 @@ export async function POST(req: NextRequest) {
 
         const contents = buildGeminiContents(messages, userRole, currentOrderCode, imageUrl, imageBase64, imageMime);
 
-        const geminiModel = process.env.GEMINI_MODEL || 'gemini-1.5-flash';
-        const geminiRes = await fetchWithRetry(
-          `https://generativelanguage.googleapis.com/v1beta/models/${geminiModel}:generateContent?key=${geminiApiKey}`,
-          {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              systemInstruction: {
-                parts: [{ text: SYSTEM_INSTRUCTION }]
-              },
-              contents,
-              generationConfig: {
-                temperature: 0.3,
-                maxOutputTokens: 600,
-                topP: 0.85,
-              },
-              safetySettings: [
-                { category: 'HARM_CATEGORY_HARASSMENT', threshold: 'BLOCK_NONE' },
-                { category: 'HARM_CATEGORY_HATE_SPEECH', threshold: 'BLOCK_NONE' },
-                { category: 'HARM_CATEGORY_SEXUALLY_EXPLICIT', threshold: 'BLOCK_NONE' },
-                { category: 'HARM_CATEGORY_DANGEROUS_CONTENT', threshold: 'BLOCK_NONE' },
-              ]
-            })
-          },
-          3
-        );
+        const candidateModels = Array.from(new Set([
+          process.env.GEMINI_MODEL,
+          'gemini-3.6-flash',
+          'gemini-1.5-flash',
+          'gemini-2.0-flash',
+        ].filter(Boolean))) as string[];
 
-        if (geminiRes.ok) {
-          const data = await geminiRes.json();
-          const responseText = data.candidates?.[0]?.content?.parts?.[0]?.text;
-          if (responseText) {
-            return NextResponse.json({
-              reply: responseText,
-              provider: 'gemini',
-            });
-          }
+        for (const model of candidateModels) {
+          try {
+            const geminiRes = await fetch(
+              `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${geminiApiKey}`,
+              {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  systemInstruction: {
+                    parts: [{ text: SYSTEM_INSTRUCTION }]
+                  },
+                  contents,
+                  generationConfig: {
+                    temperature: 0.3,
+                    maxOutputTokens: 600,
+                    topP: 0.85,
+                  },
+                  safetySettings: [
+                    { category: 'HARM_CATEGORY_HARASSMENT', threshold: 'BLOCK_NONE' },
+                    { category: 'HARM_CATEGORY_HATE_SPEECH', threshold: 'BLOCK_NONE' },
+                    { category: 'HARM_CATEGORY_SEXUALLY_EXPLICIT', threshold: 'BLOCK_NONE' },
+                    { category: 'HARM_CATEGORY_DANGEROUS_CONTENT', threshold: 'BLOCK_NONE' },
+                  ]
+                })
+              }
+            );
 
-          // Si Gemini respondió pero sin texto (blocked por safety?)
-          const blockReason = data.candidates?.[0]?.finishReason;
-          if (blockReason === 'SAFETY') {
-            return NextResponse.json({
-              reply: '🛡️ Tu consulta fue procesada pero no pude generar una respuesta por filtros de seguridad. Reformula tu pregunta o contacta soporte en /dashboard/disputes.',
-              provider: 'gemini-safety',
-            });
-          }
-        } else {
-          const errBody = await geminiRes.text();
-          console.warn(`[Gemini Chat] Error ${geminiRes.status}:`, errBody);
+            if (geminiRes.ok) {
+              const data = await geminiRes.json();
+              const responseText = data.candidates?.[0]?.content?.parts?.[0]?.text;
+              if (responseText) {
+                return NextResponse.json({
+                  reply: responseText,
+                  provider: `gemini (${model})`,
+                });
+              }
 
-          // Si es quota exceeded, dar un mensaje específico
-          if (geminiRes.status === 429) {
-            return NextResponse.json({
-              reply: '⏳ El servicio de IA está procesando muchas solicitudes en este momento. Tus fondos siguen 100% seguros en el Smart Contract. Intenta de nuevo en unos segundos.',
-              provider: 'rate-limited',
-              retryAfter: 5,
-            });
+              const blockReason = data.candidates?.[0]?.finishReason;
+              if (blockReason === 'SAFETY') {
+                return NextResponse.json({
+                  reply: '🛡️ Tu consulta fue procesada pero no pude generar una respuesta por filtros de seguridad. Reformula tu pregunta o contacta soporte en /dashboard/disputes.',
+                  provider: 'gemini-safety',
+                });
+              }
+            } else {
+              console.warn(`[Gemini Chat] Modelo ${model} devolvió ${geminiRes.status}, probando siguiente modelo...`);
+            }
+          } catch (modelErr: any) {
+            console.warn(`[Gemini Chat] Fallo con ${model}:`, modelErr.message);
           }
         }
       } catch (geminiErr: any) {
