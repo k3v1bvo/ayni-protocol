@@ -338,3 +338,150 @@ Este enlace expira en 60 minutos.`;
 
   return { subject, html, text };
 }
+
+/**
+ * 7. Plantilla: Veredicto de Disputa / Mediación Arbitral (Oráculo IA)
+ */
+export function getDisputeVerdictEmail(props: {
+  recipientName: string;
+  orderCode: string;
+  verdict: string;
+  rationale: string;
+  refundAmountUsd: number;
+  travelerAmountUsd: number;
+  disputeUrl?: string;
+}): { subject: string; html: string; text: string } {
+  const subject = `⚖️ [VEREDICTO ARBITRAL] Resolución de Disputa para Orden #${props.orderCode}`;
+  const url = props.disputeUrl || 'https://ayni-protocol.vercel.app/dashboard/disputes';
+
+  const html = `
+    ${getEmailHeader('ARBITRAJE Y MEDIACIÓN · ORÁCULO IA')}
+    <h2 style="color: #0f172a; margin-top: 0; font-size: 18px;">Dictamen Oficial de Disputa</h2>
+    <p>Hola <strong>${props.recipientName}</strong>,</p>
+    <p>El comité arbitral de <strong>AYNI Protocol</strong> y el modelo pericial de IA han evaluado las evidencias presentadas (imágenes, recibos y trazabilidad on-chain) para la Orden <strong>#${props.orderCode}</strong>.</p>
+    
+    <div class="card" style="border-left: 4px solid #0284c7; background: #f0f9ff;">
+      <div style="font-size: 11px; color: #0369a1; font-weight: 700; text-transform: uppercase; margin-bottom: 6px;">VEREDICTO FINAL: ${props.verdict}</div>
+      <p style="margin: 0 0 10px 0; font-size: 13.5px; color: #0c4a6e; line-height: 1.5;">${props.rationale}</p>
+      <table style="width: 100%; font-size: 13px; border-top: 1px solid #bae6fd; padding-top: 8px;">
+        <tr>
+          <td style="color: #64748b; padding: 4px 0;">Reembolso al Comprador:</td>
+          <td style="text-align: right; font-weight: 700; color: #059669;">$${props.refundAmountUsd.toFixed(2)} USDC</td>
+        </tr>
+        <tr>
+          <td style="color: #64748b; padding: 4px 0;">Compensación al Viajero:</td>
+          <td style="text-align: right; font-weight: 700; color: #0284c7;">$${props.travelerAmountUsd.toFixed(2)} USDC</td>
+        </tr>
+      </table>
+    </div>
+
+    <div style="text-align: center; margin-top: 24px;">
+      <a href="${url}" class="button">Ver Expediente en el Dashboard</a>
+    </div>
+    ${getEmailFooter()}
+  `;
+
+  const text = `AYNI PROTOCOL - RESOLUCIÓN DE DISPUTA #${props.orderCode}
+Veredicto: ${props.verdict}
+Fundamento: ${props.rationale}
+Reembolso Comprador: $${props.refundAmountUsd} USDC
+Compensación Viajero: $${props.travelerAmountUsd} USDC
+Ver detalles en: ${url}`;
+
+  return { subject, html, text };
+}
+
+/**
+ * 8. Plantilla: Liberación de Fondos Exitosa (Pago al Viajero)
+ */
+export function getPayoutReleasedEmail(props: {
+  travelerName: string;
+  orderCode: string;
+  productTitle: string;
+  payoutAmountUsd: number;
+  txHash: string;
+}): { subject: string; html: string; text: string } {
+  const subject = `💰 ¡Fondos Liberados! Has recibido $${props.payoutAmountUsd.toFixed(2)} USDC por Orden #${props.orderCode}`;
+
+  const html = `
+    ${getEmailHeader('PAGO EXITOSO · CUSTODIA LIBERADA')}
+    <h2 style="color: #059669; margin-top: 0; font-size: 18px;">¡Entrega certificada conforme!</h2>
+    <p>Hola <strong>${props.travelerName}</strong>,</p>
+    <p>El comprador ha validado tu entrega exitosa del encargo <strong>"${props.productTitle}"</strong> mediante su código secreto OTP.</p>
+    
+    <div class="card" style="border-left: 4px solid #00d68f; background: #f0fdf4;">
+      <div style="font-size: 11px; color: #166534; font-weight: 700; text-transform: uppercase; margin-bottom: 6px;">DETALLES DEL PAGO ON-CHAIN</div>
+      <table style="width: 100%; font-size: 13px;">
+        <tr>
+          <td style="color: #64748b; padding: 4px 0;">Monto Recibido:</td>
+          <td style="text-align: right; font-weight: 900; color: #059669; font-size: 16px;">+$${props.payoutAmountUsd.toFixed(2)} USDC</td>
+        </tr>
+        <tr>
+          <td style="color: #64748b; padding: 4px 0;">Red de Liquidación:</td>
+          <td style="text-align: right; font-weight: 600; color: #0284c7;">Avalanche C-Chain</td>
+        </tr>
+        <tr>
+          <td style="color: #64748b; padding: 4px 0;">Tx Hash:</td>
+          <td style="text-align: right; font-family: monospace; font-size: 11px; color: #475569;">${props.txHash.slice(0, 10)}...${props.txHash.slice(-8)}</td>
+        </tr>
+      </table>
+    </div>
+
+    <p style="font-size: 13px; color: #475569;">Los fondos ya están en tu wallet o tarjeta Tangem listos para uso inmediato. Tu puntuación de reputación ha aumentado.</p>
+    ${getEmailFooter()}
+  `;
+
+  const text = `AYNI PROTOCOL - PAGO EXITOSO
+¡Felicitaciones ${props.travelerName}! Has recibido $${props.payoutAmountUsd} USDC por la entrega de "${props.productTitle}".
+Tx: ${props.txHash}`;
+
+  return { subject, html, text };
+}
+
+/**
+ * 9. Plantilla: Remesa / Regalo Familiar con TimeLock
+ */
+export function getRemittanceLockedEmail(props: {
+  recipientName: string;
+  senderName: string;
+  amountUsd: number;
+  occasion: string;
+  releaseDateText: string;
+  claimUrl?: string;
+}): { subject: string; html: string; text: string } {
+  const subject = `🎁 ${props.senderName} te ha enviado un regalo en cripto de $${props.amountUsd.toFixed(2)} USDC`;
+  const url = props.claimUrl || 'https://ayni-protocol.vercel.app/dashboard/remesas';
+
+  const html = `
+    ${getEmailHeader('REMESAS Y REGALOS CRIPTO · TIMELOCK')}
+    <h2 style="color: #0f172a; margin-top: 0; font-size: 18px;">¡Tienes un regalo especial reservado para ti!</h2>
+    <p>Hola <strong>${props.recipientName}</strong>,</p>
+    <p><strong>${props.senderName}</strong> ha programado una entrega de fondos en custodia segura a través de <strong>AYNI Protocol</strong> con motivo de: <em>"${props.occasion}"</em>.</p>
+    
+    <div class="card" style="border-left: 4px solid #f59e0b; background: #fffdf5;">
+      <div style="font-size: 11px; color: #b45309; font-weight: 700; text-transform: uppercase; margin-bottom: 6px;">RESERVA EN CUSTODIA BLOCKCHAIN</div>
+      <table style="width: 100%; font-size: 13px;">
+        <tr>
+          <td style="color: #64748b; padding: 4px 0;">Monto Asegurado:</td>
+          <td style="text-align: right; font-weight: 900; color: #f59e0b; font-size: 16px;">$${props.amountUsd.toFixed(2)} USDC</td>
+        </tr>
+        <tr>
+          <td style="color: #64748b; padding: 4px 0;">Fecha Programada de Liberación:</td>
+          <td style="text-align: right; font-weight: 700; color: #0f172a;">${props.releaseDateText}</td>
+        </tr>
+      </table>
+    </div>
+
+    <div style="text-align: center; margin-top: 24px;">
+      <a href="${url}" class="button" style="background: #f59e0b;">Reclamar o Consultar Estado</a>
+    </div>
+    ${getEmailFooter()}
+  `;
+
+  const text = `AYNI PROTOCOL - REGALO CRIPTO PROGRAMADO
+Hola ${props.recipientName}, ${props.senderName} te ha enviado $${props.amountUsd} USDC (${props.occasion}).
+Fecha de liberación: ${props.releaseDateText}
+Consulta tu regalo en: ${url}`;
+
+  return { subject, html, text };
+}

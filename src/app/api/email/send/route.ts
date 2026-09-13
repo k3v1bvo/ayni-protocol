@@ -5,6 +5,11 @@ import {
   getNewOrderEmail,
   getHeritageHeartbeatEmail,
   getSystemNotificationEmail,
+  getWelcomeEmail,
+  getPasswordResetEmail,
+  getDisputeVerdictEmail,
+  getPayoutReleasedEmail,
+  getRemittanceLockedEmail,
 } from '@/lib/email/templates';
 
 /**
@@ -116,6 +121,99 @@ export async function POST(req: NextRequest) {
           daysRemaining: Number(daysRemaining),
           totalStakedUsd: Number(totalStakedUsd),
           checkInUrl,
+        });
+        break;
+      }
+
+      case 'welcome': {
+        const {
+          recipientName = 'Usuario AYNI',
+          email = to,
+          role = 'client',
+          loginUrl = `${process.env.NEXT_PUBLIC_APP_URL || 'https://ayni-protocol.vercel.app'}/login`,
+        } = data;
+
+        emailContent = getWelcomeEmail({
+          recipientName,
+          email,
+          role,
+          loginUrl,
+        });
+        break;
+      }
+
+      case 'reset_password': {
+        const {
+          recipientName = 'Usuario AYNI',
+          resetUrl = `${process.env.NEXT_PUBLIC_APP_URL || 'https://ayni-protocol.vercel.app'}/reset-password`,
+        } = data;
+
+        emailContent = getPasswordResetEmail({
+          recipientName,
+          resetUrl,
+        });
+        break;
+      }
+
+      case 'dispute': {
+        const {
+          recipientName = 'Usuario AYNI',
+          orderCode = 'AY-8492',
+          verdict = 'REEMBOLSO_COMPLETO',
+          rationale = 'Dictamen arbitral emitido conforme.',
+          refundAmountUsd = 0,
+          travelerAmountUsd = 0,
+          disputeUrl = `${process.env.NEXT_PUBLIC_APP_URL || 'https://ayni-protocol.vercel.app'}/dashboard/disputes`,
+        } = data;
+
+        emailContent = getDisputeVerdictEmail({
+          recipientName,
+          orderCode,
+          verdict,
+          rationale,
+          refundAmountUsd: Number(refundAmountUsd),
+          travelerAmountUsd: Number(travelerAmountUsd),
+          disputeUrl,
+        });
+        break;
+      }
+
+      case 'payout': {
+        const {
+          travelerName = 'Viajero Certificado',
+          orderCode = 'AY-8492',
+          productTitle = 'Encargo',
+          payoutAmountUsd = 0,
+          txHash = '0x0000000000000000000000000000000000000000',
+        } = data;
+
+        emailContent = getPayoutReleasedEmail({
+          travelerName,
+          orderCode,
+          productTitle,
+          payoutAmountUsd: Number(payoutAmountUsd),
+          txHash,
+        });
+        break;
+      }
+
+      case 'remittance': {
+        const {
+          recipientName = 'Beneficiario',
+          senderName = 'Familiar AYNI',
+          amountUsd = 100,
+          occasion = 'Apoyo familiar',
+          releaseDateText = 'Inmediato',
+          claimUrl = `${process.env.NEXT_PUBLIC_APP_URL || 'https://ayni-protocol.vercel.app'}/dashboard/remesas`,
+        } = data;
+
+        emailContent = getRemittanceLockedEmail({
+          recipientName,
+          senderName,
+          amountUsd: Number(amountUsd),
+          occasion,
+          releaseDateText,
+          claimUrl,
         });
         break;
       }
