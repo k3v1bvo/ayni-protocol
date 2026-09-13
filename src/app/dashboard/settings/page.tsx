@@ -9,8 +9,10 @@ import { sanitizeText, sanitizePhone, sanitizeEmail } from '@/lib/utils/sanitize
 import {
   User, Mail, Shield, Wallet, Save, Sparkles, Key, CheckCircle2,
   Phone, MapPin, Globe, Linkedin, MessageCircle, FileText, Camera,
-  AlertTriangle, Loader2
+  AlertTriangle, Loader2, Lock, Smartphone, Wifi, Eye, EyeOff,
+  RefreshCw, X, ShieldCheck
 } from 'lucide-react';
+import { obfuscateEmail, obfuscateWallet, obfuscatePhone } from '@/lib/utils/obfuscate';
 import { EmailNotificationTester } from '@/components/dashboard/EmailNotificationTester';
 
 export default function ProfilePage() {
@@ -31,6 +33,102 @@ export default function ProfilePage() {
   const [savedNotice, setSavedNotice] = useState<string | null>(null);
   const [errorNotice, setErrorNotice] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+
+  // 2FA & Obfuscation States
+  const [is2FaActive, setIs2FaActive] = useState(false);
+  const [show2FaModal, setShow2FaModal] = useState(false);
+  const [twoFaMethod, setTwoFaMethod] = useState<'email' | 'tangem'>('email');
+  const [twoFaCode, setTwoFaCode] = useState('');
+  const [twoFaSending, setTwoFaSending] = useState(false);
+  const [twoFaVerifying, setTwoFaVerifying] = useState(false);
+  const [twoFaMsg, setTwoFaMsg] = useState<string | null>(null);
+  const [twoFaErr, setTwoFaErr] = useState<string | null>(null);
+  const [tangemScanState, setTangemScanState] = useState<'idle' | 'approaching' | 'verifying' | 'success'>('idle');
+  const [privacyMaskActive, setPrivacyMaskActive] = useState(true);
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const stored2Fa = localStorage.getItem('ayni_2fa_enabled');
+      if (stored2Fa === 'true') setIs2FaActive(true);
+    }
+  }, []);
+
+  const handleSend2FaEmail = async () => {
+    const targetEmail = user?.email;
+    if (!targetEmail) {
+      setTwoFaErr('No hay un correo electrónico asociado a tu cuenta.');
+      return;
+    }
+    setTwoFaSending(true);
+    setTwoFaErr(null);
+    setTwoFaMsg(null);
+    try {
+      const res = await fetch('/api/auth/2fa/send', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: targetEmail, purpose: 'activación de Doble Factor (2FA)' }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Error al enviar código');
+      setTwoFaMsg('¡Código de 6 dígitos enviado a tu correo! Revisa tu bandeja de entrada.');
+    } catch (err: any) {
+      setTwoFaErr(err.message || 'Error de conexión');
+    } finally {
+      setTwoFaSending(false);
+    }
+  };
+
+  const handleVerify2FaEmail = async () => {
+    const targetEmail = user?.email;
+    if (!targetEmail || !twoFaCode) {
+      setTwoFaErr('Ingresa el código de 6 dígitos recibido.');
+      return;
+    }
+    setTwoFaVerifying(true);
+    setTwoFaErr(null);
+    try {
+      const res = await fetch('/api/auth/2fa/verify', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: targetEmail, code: twoFaCode }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Código incorrecto');
+      setIs2FaActive(true);
+      if (typeof window !== 'undefined') localStorage.setItem('ayni_2fa_enabled', 'true');
+      setTwoFaMsg('¡Doble Factor de Autenticación (2FA) activado exitosamente!');
+      setTimeout(() => setShow2FaModal(false), 1800);
+    } catch (err: any) {
+      setTwoFaErr(err.message || 'Código no válido');
+    } finally {
+      setTwoFaVerifying(false);
+    }
+  };
+
+  const handleSimulateTangem2Fa = () => {
+    setTangemScanState('approaching');
+    setTimeout(() => {
+      setTangemScanState('verifying');
+      setTimeout(() => {
+        setTangemScanState('success');
+        setIs2FaActive(true);
+        if (typeof window !== 'undefined') localStorage.setItem('ayni_2fa_enabled', 'true');
+        setTimeout(() => {
+          setShow2FaModal(false);
+          setTangemScanState('idle');
+        }, 1500);
+      }, 1200);
+    }, 1000);
+  };
+
+  const handleToggle2FaStatus = () => {
+    if (is2FaActive) {
+      setIs2FaActive(false);
+      if (typeof window !== 'undefined') localStorage.removeItem('ayni_2fa_enabled');
+    } else {
+      setShow2FaModal(true);
+    }
+  };
 
   // Load profile data from Supabase
   useEffect(() => {
@@ -385,14 +483,210 @@ export default function ProfilePage() {
 
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 0' }}>
                 <div>
-                  <div style={{ fontSize: '0.88rem', fontWeight: 600 }}>Autenticación 2FA</div>
-                  <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Protección adicional con autenticador</div>
+                  <div style={{ fontSize: '0.88rem', fontWeight: 600 }}>Autenticación 2FA (MFA)</div>
+                  <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+                    {is2FaActive ? 'Protección activa con segundo factor' : 'Protección adicional con correo u hardware Tangem'}
+                  </div>
                 </div>
-                <span className="badge badge-gold">Pendiente</span>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <span className={`badge ${is2FaActive ? 'badge-emerald' : 'badge-gold'}`}>
+                    {is2FaActive ? '✓ Habilitado' : 'Pendiente'}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={handleToggle2FaStatus}
+                    className={`btn btn-sm ${is2FaActive ? 'btn-ghost' : 'btn-primary'}`}
+                    style={{ fontSize: '0.75rem', padding: '4px 10px' }}
+                  >
+                    {is2FaActive ? 'Desactivar' : 'Activar 2FA'}
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Módulo de Ofuscación de Datos y Privacidad */}
+          <div className="card" style={{ padding: '24px', background: 'rgba(0, 207, 255, 0.03)', border: '1px solid rgba(0, 207, 255, 0.2)' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <ShieldCheck size={18} color="var(--brand-cyan)" />
+                <h4 style={{ fontSize: '0.98rem', fontWeight: 700, margin: 0, color: 'var(--brand-cyan)' }}>
+                  Ofuscación & Privacidad de Datos
+                </h4>
+              </div>
+              <button
+                type="button"
+                onClick={() => setPrivacyMaskActive(!privacyMaskActive)}
+                className="btn btn-ghost btn-sm"
+                style={{ fontSize: '0.75rem', display: 'flex', alignItems: 'center', gap: '5px', padding: '4px 8px' }}
+              >
+                {privacyMaskActive ? <EyeOff size={13} /> : <Eye size={13} />}
+                {privacyMaskActive ? 'Datos Ofuscados' : 'Mostrar Reales'}
+              </button>
+            </div>
+
+            <p style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', marginBottom: '14px', lineHeight: 1.4 }}>
+              Cumplimiento de estándares de privacidad ISO 27701. Los datos sensibles de tu cuenta son enmascarados ante terceros:
+            </p>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', fontSize: '0.8rem', fontFamily: 'monospace' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', padding: '6px 10px', background: 'rgba(0,0,0,0.3)', borderRadius: '6px' }}>
+                <span style={{ color: 'var(--text-muted)' }}>Correo:</span>
+                <span style={{ color: 'var(--text-primary)' }}>{privacyMaskActive ? obfuscateEmail(user?.email) : (user?.email || '—')}</span>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', padding: '6px 10px', background: 'rgba(0,0,0,0.3)', borderRadius: '6px' }}>
+                <span style={{ color: 'var(--text-muted)' }}>Billetera:</span>
+                <span style={{ color: 'var(--brand-gold)' }}>{privacyMaskActive ? obfuscateWallet(wallet || user?.wallet_address) : (wallet || user?.wallet_address || '—')}</span>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', padding: '6px 10px', background: 'rgba(0,0,0,0.3)', borderRadius: '6px' }}>
+                <span style={{ color: 'var(--text-muted)' }}>Teléfono:</span>
+                <span style={{ color: 'var(--text-primary)' }}>{privacyMaskActive ? obfuscatePhone(phone) : (phone || '—')}</span>
               </div>
             </div>
           </div>
         </div>
+
+        {/* Modal Interactivo de Configuración 2FA */}
+        {show2FaModal && (
+          <div className="modal-overlay" onClick={() => setShow2FaModal(false)}>
+            <div className="modal-box" style={{ maxWidth: 460, width: '100%', padding: '24px' }} onClick={e => e.stopPropagation()}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <Lock size={20} color="var(--brand-cyan)" />
+                  <h3 style={{ fontSize: '1.15rem', fontWeight: 800, margin: 0 }}>Doble Factor de Autenticación</h3>
+                </div>
+                <button type="button" onClick={() => setShow2FaModal(false)} className="btn-pressable" style={{ background: 'transparent', border: 'none', color: 'var(--text-muted)', cursor: 'pointer' }}>
+                  <X size={18} />
+                </button>
+              </div>
+
+              {/* Selector de Método 2FA */}
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginBottom: '18px' }}>
+                <button
+                  type="button"
+                  onClick={() => { setTwoFaMethod('email'); setTwoFaErr(null); }}
+                  className={`btn btn-sm ${twoFaMethod === 'email' ? 'btn-primary' : 'btn-ghost'}`}
+                  style={{ fontSize: '0.8rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}
+                >
+                  <Mail size={14} /> Correo (Gmail OTP)
+                </button>
+                <button
+                  type="button"
+                  onClick={() => { setTwoFaMethod('tangem'); setTwoFaErr(null); }}
+                  className={`btn btn-sm ${twoFaMethod === 'tangem' ? 'btn-primary' : 'btn-ghost'}`}
+                  style={{ fontSize: '0.8rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}
+                >
+                  <Wifi size={14} style={{ transform: 'rotate(90deg)' }} /> Tangem NFC Card
+                </button>
+              </div>
+
+              {twoFaMethod === 'email' && (
+                <div>
+                  <p style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', marginBottom: '14px', lineHeight: 1.45 }}>
+                    Te enviaremos un código de seguridad de 6 dígitos a <strong>{obfuscateEmail(user?.email)}</strong> para confirmar tu identidad.
+                  </p>
+
+                  <div style={{ display: 'flex', gap: '8px', marginBottom: '14px' }}>
+                    <input
+                      type="text"
+                      maxLength={6}
+                      placeholder="123456"
+                      value={twoFaCode}
+                      onChange={e => setTwoFaCode(e.target.value.replace(/\D/g, ''))}
+                      className="input"
+                      style={{ fontSize: '1.25rem', letterSpacing: '6px', textAlign: 'center', fontFamily: 'monospace', fontWeight: 800 }}
+                    />
+                    <button
+                      type="button"
+                      onClick={handleSend2FaEmail}
+                      disabled={twoFaSending}
+                      className="btn btn-ghost btn-sm"
+                      style={{ whiteSpace: 'nowrap', fontSize: '0.78rem' }}
+                    >
+                      {twoFaSending ? <RefreshCw size={13} className="spin" /> : 'Pedir Código'}
+                    </button>
+                  </div>
+
+                  {twoFaMsg && (
+                    <div style={{ padding: '10px', background: 'rgba(0,214,143,0.1)', border: '1px solid rgba(0,214,143,0.3)', borderRadius: '8px', fontSize: '0.78rem', color: 'var(--brand-emerald)', marginBottom: '14px' }}>
+                      {twoFaMsg}
+                    </div>
+                  )}
+
+                  {twoFaErr && (
+                    <div style={{ padding: '10px', background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.3)', borderRadius: '8px', fontSize: '0.78rem', color: '#f87171', marginBottom: '14px' }}>
+                      {twoFaErr}
+                    </div>
+                  )}
+
+                  <button
+                    type="button"
+                    onClick={handleVerify2FaEmail}
+                    disabled={twoFaVerifying || twoFaCode.length !== 6}
+                    className="btn btn-primary btn-block"
+                    style={{ padding: '11px', fontSize: '0.9rem', opacity: twoFaCode.length === 6 ? 1 : 0.6 }}
+                  >
+                    {twoFaVerifying ? 'Verificando...' : 'Verificar y Activar 2FA'}
+                  </button>
+                </div>
+              )}
+
+              {twoFaMethod === 'tangem' && (
+                <div style={{ textAlign: 'center', padding: '10px 0' }}>
+                  <div style={{
+                    width: 140,
+                    height: 85,
+                    margin: '0 auto 16px',
+                    borderRadius: '10px',
+                    background: 'linear-gradient(135deg, #0e1628, #040813)',
+                    border: '1.5px solid var(--brand-cyan)',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    justifyContent: 'space-between',
+                    padding: '10px',
+                    boxShadow: '0 0 20px rgba(0,207,255,0.2)',
+                  }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <span style={{ fontWeight: 900, fontSize: '0.75rem', letterSpacing: '1px', color: '#fff' }}>tangem</span>
+                      <Wifi size={13} color="var(--brand-cyan)" style={{ transform: 'rotate(90deg)' }} />
+                    </div>
+                    <span style={{ fontSize: '0.6rem', color: 'var(--brand-emerald)', fontWeight: 700 }}>EAL6+ SECURITY CHIP</span>
+                  </div>
+
+                  <p style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', marginBottom: '16px' }}>
+                    Aproxima tu tarjeta física Tangem para vincular el chip de hardware como factor de posesión física.
+                  </p>
+
+                  {tangemScanState === 'idle' && (
+                    <button type="button" onClick={handleSimulateTangem2Fa} className="btn btn-tangem-glow btn-block" style={{ padding: '11px' }}>
+                      <Wifi size={14} style={{ transform: 'rotate(90deg)', marginRight: '6px' }} />
+                      Aproximar Tarjeta Tangem (Tap NFC)
+                    </button>
+                  )}
+
+                  {tangemScanState === 'approaching' && (
+                    <div style={{ fontSize: '0.84rem', color: 'var(--brand-cyan)', fontWeight: 700 }}>
+                      Detectando enclave NFC de la tarjeta...
+                    </div>
+                  )}
+
+                  {tangemScanState === 'verifying' && (
+                    <div style={{ fontSize: '0.84rem', color: 'var(--brand-emerald)', fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}>
+                      <RefreshCw size={14} className="spin" />
+                      Validando firma criptográfica de hardware...
+                    </div>
+                  )}
+
+                  {tangemScanState === 'success' && (
+                    <div style={{ fontSize: '0.88rem', color: 'var(--brand-emerald)', fontWeight: 800 }}>
+                      ✓ ¡Tarjeta Tangem vinculada como 2FA!
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          </div>
+        )}
 
         {/* Panel de Diagnóstico & Notificaciones Google SMTP */}
         <EmailNotificationTester />

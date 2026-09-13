@@ -6,8 +6,10 @@ import { useAuth } from '@/context/AuthContext';
 import { isSupabaseConfigured } from '@/lib/supabase/client';
 import {
   Users, Search, Shield, Loader2, CheckCircle2, AlertTriangle,
-  Sparkles, ChevronDown, Mail, Phone, Wallet, Star, UserCheck, UserX
+  Sparkles, ChevronDown, Mail, Phone, Wallet, Star, UserCheck, UserX,
+  Eye, EyeOff, ShieldCheck
 } from 'lucide-react';
+import { obfuscateEmail, obfuscateName } from '@/lib/utils/obfuscate';
 
 interface UserItem {
   id: string;
@@ -30,6 +32,7 @@ export default function AdminUsersPage() {
   const [filterRole, setFilterRole] = useState('all');
   const [notice, setNotice] = useState<string | null>(null);
   const [total, setTotal] = useState(0);
+  const [privacyMaskActive, setPrivacyMaskActive] = useState(true);
 
   useEffect(() => { loadUsers(); }, [searchQ, filterRole]);
 
@@ -147,18 +150,32 @@ export default function AdminUsersPage() {
       )}
 
       {/* Filters */}
-      <div style={{ display: 'flex', gap: '12px', marginBottom: '20px', flexWrap: 'wrap' }}>
-        <div style={{ position: 'relative', flex: '1 1 200px', maxWidth: '300px' }}>
-          <Search size={16} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
-          <input type="text" placeholder="Buscar por nombre o email..." value={searchQ} onChange={e => setSearchQ(e.target.value)} className="input" style={{ paddingLeft: '36px' }} />
+      <div style={{ display: 'flex', gap: '12px', marginBottom: '20px', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between' }}>
+        <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', flex: 1 }}>
+          <div style={{ position: 'relative', flex: '1 1 200px', maxWidth: '300px' }}>
+            <Search size={16} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
+            <input type="text" placeholder="Buscar por nombre o email..." value={searchQ} onChange={e => setSearchQ(e.target.value)} className="input" style={{ paddingLeft: '36px' }} />
+          </div>
+          <select value={filterRole} onChange={e => setFilterRole(e.target.value)} className="input" style={{ maxWidth: '200px' }}>
+            <option value="all">Todos los roles</option>
+            <option value="client">Clientes</option>
+            <option value="traveler">Viajeros</option>
+            <option value="merchant">Comerciantes</option>
+            <option value="admin">Admins</option>
+          </select>
         </div>
-        <select value={filterRole} onChange={e => setFilterRole(e.target.value)} className="input" style={{ maxWidth: '200px' }}>
-          <option value="all">Todos los roles</option>
-          <option value="client">Clientes</option>
-          <option value="traveler">Viajeros</option>
-          <option value="merchant">Comerciantes</option>
-          <option value="admin">Admins</option>
-        </select>
+
+        {/* Privacy Obfuscation Toggle */}
+        <button
+          type="button"
+          onClick={() => setPrivacyMaskActive(!privacyMaskActive)}
+          className="btn btn-ghost btn-sm"
+          style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.8rem', border: '1px solid var(--border-default)' }}
+          title="Alternar enmascaramiento de datos personales ISO 27701"
+        >
+          {privacyMaskActive ? <EyeOff size={14} color="var(--brand-cyan)" /> : <Eye size={14} color="var(--brand-gold)" />}
+          <span>{privacyMaskActive ? '🛡️ Privacidad Activa (Ofuscado)' : '👁️ Modo Completo'}</span>
+        </button>
       </div>
 
       {loading ? (
@@ -185,10 +202,12 @@ export default function AdminUsersPage() {
                     </div>
                     <div>
                       <div style={{ fontWeight: 700, fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                        {u.full_name}
+                        {privacyMaskActive ? obfuscateName(u.full_name) : u.full_name}
                         {!isActive && <span style={{ fontSize: '0.65rem', color: 'var(--brand-red)' }}>⊘ Suspendido</span>}
                       </div>
-                      <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>{u.email}</div>
+                      <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)', fontFamily: 'monospace' }}>
+                        {privacyMaskActive ? obfuscateEmail(u.email) : u.email}
+                      </div>
                     </div>
                   </div>
 

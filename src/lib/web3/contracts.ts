@@ -189,6 +189,7 @@ export interface Web3TransactionResult {
   explorerUrl: string;
   isSimulated?: boolean;
   methodCalled?: string;
+  clausesApplied?: CustomClauses;
   network?: 'avalanche' | 'base' | 'hsk';
 }
 

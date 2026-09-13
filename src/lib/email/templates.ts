@@ -485,3 +485,43 @@ Consulta tu regalo en: ${url}`;
 
   return { subject, html, text };
 }
+
+/**
+ * 10. Plantilla: Código de Doble Factor de Autenticación (2FA / MFA)
+ */
+export function getTwoFactorCodeEmail(props: {
+  recipientName: string;
+  code: string;
+  purpose?: string;
+  expiresInMinutes?: number;
+}): { subject: string; html: string; text: string } {
+  const purposeText = props.purpose || 'inicio de sesión o confirmación de seguridad';
+  const expires = props.expiresInMinutes || 10;
+  const subject = `🔐 Tu código de verificación 2FA de AYNI Protocol es: ${props.code}`;
+
+  const html = `
+    ${getEmailHeader('DOBLE FACTOR DE AUTENTICACIÓN · 2FA')}
+    <h2 style="color: #0f172a; margin-top: 0; font-size: 18px;">Código de Verificación de Seguridad</h2>
+    <p>Hola <strong>${props.recipientName}</strong>,</p>
+    <p>Hemos recibido una solicitud para <strong>${purposeText}</strong> en tu cuenta de <strong>AYNI Protocol</strong>.</p>
+    
+    <div class="card" style="border-left: 4px solid #00cfff; background: #f0fdfa;">
+      <p style="text-align: center; margin: 0 0 6px 0; font-size: 12px; color: #0f766e; font-weight: 700; text-transform: uppercase;">
+        CÓDIGO DE DOBLE FACTOR (VÁLIDO POR ${expires} MINUTOS)
+      </p>
+      <div class="code-box" style="letter-spacing: 8px; font-size: 32px; background: #042f2e; color: #2dd4bf;">${props.code}</div>
+      <p style="margin: 6px 0 0 0; font-size: 12px; text-align: center; color: #64748b;">
+        ⚠️ No compartas este código con nadie. El equipo de AYNI nunca te pedirá este código por llamada o mensaje.
+      </p>
+    </div>
+
+    <p style="font-size: 12.5px; color: #475569;">Si no has intentado realizar esta acción, cambia inmediatamente tu contraseña y asegura tu wallet.</p>
+    ${getEmailFooter()}
+  `;
+
+  const text = `AYNI PROTOCOL - CÓDIGO 2FA
+Tu código de verificación de 2 factores es: ${props.code}
+Válido por ${expires} minutos. No lo compartas con nadie.`;
+
+  return { subject, html, text };
+}
