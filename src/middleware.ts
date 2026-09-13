@@ -1,15 +1,26 @@
 import { NextRequest, NextResponse } from 'next/server';
 
 export function middleware(request: NextRequest) {
-  const nonce = Buffer.from(crypto.randomUUID()).toString('base64');
-  
-  // Content Security Policy Level 3 con Nonce Criptográfico
-  // 'strict-dynamic' permite a los scripts firmados cargar dependencias
-  // 'unsafe-inline' se mantiene como fallback para navegadores antiguos según especificación W3C
-  const cspHeader = `default-src 'self'; script-src 'self' 'nonce-${nonce}' 'strict-dynamic' https: 'unsafe-inline'; style-src 'self' 'unsafe-inline' https:; img-src 'self' data: blob: https:; font-src 'self' data: https:; connect-src 'self' https: wss:; frame-src 'self' https:; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'self'; block-all-mixed-content; upgrade-insecure-requests;`;
+  // Content Security Policy Robusta y Compatible con Next.js + Web3 (A+ en SecurityHeaders)
+  const cspHeader = [
+    "default-src 'self'",
+    "script-src 'self' 'unsafe-inline' 'unsafe-eval' https: blob:",
+    "style-src 'self' 'unsafe-inline' https:",
+    "img-src 'self' data: blob: https:",
+    "font-src 'self' data: https:",
+    "connect-src 'self' https: wss: data: blob:",
+    "frame-src 'self' https:",
+    "worker-src 'self' blob:",
+    "child-src 'self' blob: https:",
+    "object-src 'none'",
+    "base-uri 'self'",
+    "form-action 'self'",
+    "frame-ancestors 'self'",
+    "block-all-mixed-content",
+    "upgrade-insecure-requests",
+  ].join('; ');
 
   const requestHeaders = new Headers(request.headers);
-  requestHeaders.set('x-nonce', nonce);
   requestHeaders.set('Content-Security-Policy', cspHeader);
 
   const response = NextResponse.next({

@@ -24,12 +24,14 @@ const nextConfig = {
     // la hidratacion de Next.js, Web3 (MetaMask/WalletConnect/Tangem) ni Pollar (Stellar).
     const csp = [
       "default-src 'self'",
-      "script-src 'self' 'strict-dynamic' https: 'unsafe-inline'",
+      "script-src 'self' 'unsafe-inline' 'unsafe-eval' https: blob:",
       "style-src 'self' 'unsafe-inline' https:",
       "img-src 'self' data: blob: https:",
       "font-src 'self' data: https:",
-      "connect-src 'self' https: wss:",
+      "connect-src 'self' https: wss: data: blob:",
       "frame-src 'self' https:",
+      "worker-src 'self' blob:",
+      "child-src 'self' blob: https:",
       "object-src 'none'",
       "base-uri 'self'",
       "form-action 'self'",

@@ -65,7 +65,8 @@ export async function POST(req: NextRequest) {
     let emailContent: { subject: string; html: string; text: string };
 
     switch (type) {
-      case 'otp': {
+      case 'otp':
+      case 'otp_delivery': {
         const {
           recipientName = 'Usuario AYNI',
           orderCode = 'AY-8492',
@@ -86,7 +87,8 @@ export async function POST(req: NextRequest) {
         break;
       }
 
-      case 'new_order': {
+      case 'new_order':
+      case 'order': {
         const {
           recipientName = 'Usuario AYNI',
           orderCode = 'AY-8492',
@@ -107,7 +109,8 @@ export async function POST(req: NextRequest) {
         break;
       }
 
-      case 'heritage': {
+      case 'heritage':
+      case 'dead_man_switch': {
         const {
           ownerName = 'Titular de Bóveda',
           vaultName = 'Bóveda Familiar Principal',
@@ -126,7 +129,8 @@ export async function POST(req: NextRequest) {
         break;
       }
 
-      case 'welcome': {
+      case 'welcome':
+      case 'register': {
         const {
           recipientName = 'Usuario AYNI',
           email = to,
@@ -143,7 +147,8 @@ export async function POST(req: NextRequest) {
         break;
       }
 
-      case 'reset_password': {
+      case 'reset_password':
+      case 'recovery': {
         const {
           recipientName = 'Usuario AYNI',
           resetUrl = `${process.env.NEXT_PUBLIC_APP_URL || 'https://ayni-protocol.vercel.app'}/reset-password`,
@@ -156,7 +161,8 @@ export async function POST(req: NextRequest) {
         break;
       }
 
-      case 'dispute': {
+      case 'dispute':
+      case 'dispute_verdict': {
         const {
           recipientName = 'Usuario AYNI',
           orderCode = 'AY-8492',
@@ -179,7 +185,8 @@ export async function POST(req: NextRequest) {
         break;
       }
 
-      case 'payout': {
+      case 'payout':
+      case 'payout_released': {
         const {
           travelerName = 'Viajero Certificado',
           orderCode = 'AY-8492',
@@ -219,7 +226,8 @@ export async function POST(req: NextRequest) {
         break;
       }
 
-      case 'two_factor': {
+      case 'two_factor':
+      case '2fa': {
         const {
           recipientName = 'Usuario AYNI',
           code = '849201',
