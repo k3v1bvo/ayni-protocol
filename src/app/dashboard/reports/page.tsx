@@ -113,6 +113,8 @@ export default function ReportsPage() {
     confidence: string;
     block: number;
     match: boolean;
+    notes?: string;
+    modelUsed?: string;
   } | null>(null);
   const receiptFileRef = useRef<HTMLInputElement>(null);
 
@@ -197,6 +199,8 @@ export default function ReportsPage() {
           confidence: data.confidence,
           block: data.blockNumber,
           match: data.verdict === 'VERIFICADO_CONFORME',
+          notes: data.notes,
+          modelUsed: data.modelUsed || 'Google Gemini 3.6 Flash',
         };
 
         if (data.detectedMerchant) {
@@ -599,6 +603,14 @@ export default function ReportsPage() {
                       </div>
                       <div style={{ fontSize: '0.82rem', color: 'var(--text-primary)' }}>
                         <strong>Confianza de Visión IA:</strong> <span style={{ color: 'var(--brand-emerald)', fontWeight: 700 }}>{verifiedResult.confidence}</span>
+                      </div>
+                      {verifiedResult.notes && (
+                        <div style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', fontStyle: 'italic', marginTop: '8px', borderTop: '1px solid rgba(0, 214, 143, 0.2)', paddingTop: '6px' }}>
+                          💡 <strong>Peritaje Forense:</strong> {verifiedResult.notes}
+                        </div>
+                      )}
+                      <div style={{ fontSize: '0.7rem', color: 'var(--brand-cyan)', marginTop: '6px' }}>
+                        ⚡ <strong>Motor de Extracción:</strong> {verifiedResult.modelUsed || 'Google Gemini 3.6 Flash Vision'}
                       </div>
                     </div>
 

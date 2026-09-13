@@ -20,30 +20,57 @@ interface ChatMessage {
 const INITIAL_MESSAGE: ChatMessage = {
   id: 'm-init',
   sender: 'assistant',
-  text: '¡Hola! Soy **AYNI Guardian**, tu asistente de soporte con IA. Puedo ayudarte con:\n\n• 📦 Verificar fotos de productos y recibos\n• 🔑 Dudas sobre el código OTP\n• 💳 Billetera Tangem y custodia\n• 🏛️ Herencias cripto (Heritage)\n• ⚖️ Disputas y protección\n\n¿En qué puedo ayudarte?',
+  text: '¡Hola! Soy **AYNI Guardian**, tu asistente de seguridad y soporte con IA.\n\nPuedo orientarte sobre:\n• 💳 **Billetera Tangem:** Enlace NFC en celular o Código QR en computadoras\n• 🪙 **Pollar:** Pagos en USDC sobre Stellar con Google Login\n• 🔑 **Código OTP:** Por qué jamás debes darlo antes de recibir tu producto\n• 📦 **Foot Shopping:** Compras a pie en mercadillos y auditoría de boletas con IA\n• ⚖️ **Disputas & Límites:** Qué puedo hacer como IA y qué está protegido en el contrato\n\n¿En qué te gustaría que te oriente hoy?',
   time: 'Ahora',
   status: 'sent',
   provider: 'system',
 };
 
 const QUICK_ACTIONS = [
-  { label: '📸 Verificar foto', action: 'photo' },
-  { label: '🔑 ¿Cómo funciona el OTP?', action: 'send', text: '¿Cómo funciona el código OTP y cuándo debo entregarlo?' },
-  { label: '💳 Tangem', action: 'send', text: '¿Cómo funciona la billetera Tangem y cómo protege mis fondos?' },
-  { label: '📦 Estado pedido', action: 'send', text: '¿Cómo puedo ver el estado de mi pedido?' },
-  { label: '🏛️ Heritage', action: 'send', text: 'Explícame cómo funcionan las bóvedas de herencia cripto AYNI Heritage.' },
+  { label: '📸 Auditar foto/recibo', action: 'photo' },
+  { label: '💳 Tangem QR en PC', action: 'send', text: '¿Cómo funciona la tarjeta Tangem y cómo la enlazo por Código QR desde mi computadora o laptop?' },
+  { label: '🪙 Pollar (Stellar USDC)', action: 'send', text: '¿Cómo funciona la billetera Pollar y cómo pago en USDC sobre la red Stellar?' },
+  { label: '🔑 ¿Por qué el OTP?', action: 'send', text: '¿Por qué jamás debo entregar mi código secreto OTP antes de recibir mi encargo?' },
+  { label: '🛍️ Compras a pie', action: 'send', text: '¿Cómo encargo compras en mercadillos o tiendas físicas específicas (Foot Shopping)?' },
+  { label: '🛡️ Límites de la IA', action: 'send', text: '¿Cuáles son tus límites como IA y por qué no puedes transferir mis fondos?' },
+  { label: '🏛️ Heritage', action: 'send', text: 'Explícame cómo funcionan las bóvedas de herencia cripto AYNI Heritage para migrantes.' },
 ];
 
-// Formatear texto con negritas, viñetas y líneas
+// Formatear texto con negritas, enlaces cliqueables, viñetas y saltos
 function renderFormattedText(text: string) {
   const lines = text.split('\n');
 
   return lines.map((line, i) => {
-    // Convertir **texto** en negritas
-    const parts = line.split(/(\*\*[^*]+\*\*)/g);
+    // Parser de partes: enlaces [texto](url) y negritas **texto**
+    const tokenRegex = /(\[[^\]]+\]\([^)]+\)|\*\*[^*]+\*\*)/g;
+    const parts = line.split(tokenRegex);
+
     const formattedParts = parts.map((part, j) => {
+      // Negrita **texto**
       if (part.startsWith('**') && part.endsWith('**')) {
         return <strong key={j} style={{ color: 'var(--brand-cyan)', fontWeight: 700 }}>{part.slice(2, -2)}</strong>;
+      }
+      // Enlace [texto](url)
+      const linkMatch = part.match(/^\[([^\]]+)\]\(([^)]+)\)$/);
+      if (linkMatch) {
+        const [, linkText, href] = linkMatch;
+        const isExternal = href.startsWith('http');
+        return (
+          <a
+            key={j}
+            href={href}
+            target={isExternal ? '_blank' : '_self'}
+            rel={isExternal ? 'noopener noreferrer' : undefined}
+            style={{
+              color: 'var(--brand-cyan)',
+              textDecoration: 'underline',
+              fontWeight: 600,
+              display: 'inline',
+            }}
+          >
+            {linkText}
+          </a>
+        );
       }
       return <span key={j}>{part}</span>;
     });
@@ -199,6 +226,7 @@ export function AiSupportChat() {
             imageUrl: m.imageUrl,
           })),
           userRole: role,
+          userName: user?.full_name || undefined,
           imageUrl: currentImg,
         }),
         signal: controller.signal,

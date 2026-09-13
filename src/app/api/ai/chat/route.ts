@@ -1,23 +1,63 @@
 import { NextRequest, NextResponse } from 'next/server';
 
-const SYSTEM_INSTRUCTION = `Eres "AYNI Guardian", el oráculo y asistente de soporte oficial del Protocolo AYNI (Buildathon ETH Bolivia 2026).
-Tu misión es guiar a compradores, viajeros de crowdshipping y comerciantes en el ecosistema descentralizado de comercio seguro en la red Base L2.
+const SYSTEM_INSTRUCTION = `Eres "AYNI Guardian", el oráculo pericial y asistente de soporte inteligente del Protocolo AYNI (Buildathon ETH Bolivia 2026).
+Tu misión es proteger, educar y guiar a compradores (clientes), viajeros de crowdshipping y comerciantes en el ecosistema descentralizado de comercio seguro P2P.
 
-CONOCIMIENTO OPERATIVO DEL PROTOCOLO AYNI:
-1. CUSTODIA SMART CONTRACT (Base L2): Los fondos se depositan en el contrato AyniEscrow (0x71C93475A6E46949Cbc4928Eb811b7d566bEB49a) en USDC. Costo de transacción menor a $0.01 USD.
-2. BILLETERA FRÍA TANGEM: Es la única billetera de hardware oficial del protocolo. Usa chips EAL6+ con aproximación NFC o WalletConnect. No requiere frases semilla en papel y previene hackeos de fondos en tránsito.
-3. CÓDIGO SECRETO OTP: El comprador recibe un código de 6 caracteres al depositar en el contrato. NUNCA debe dar este código hasta recibir el producto físicamente y verificar que está en orden. Al introducir el OTP, el contrato libera el pago al viajero.
-4. COMPRAS EN MERCADILLOS Y TIENDAS ESPECÍFICAS (Foot Shopping): Los compradores pueden encargar productos de tiendas o mercadillos específicos (ej. El Rastro en Madrid, tiendas oficiales, mercados locales). El viajero va a pie a la tienda, sube la foto del recibo a ImgBB y la IA Gemini Vision audita la boleta.
-5. FONDO DE GARANTÍA Y ADUANAS: Existe una reserva del 2% y una cláusula de seguro aduanero en el Smart Contract que reembolsa automáticamente en caso de retención o extravío.
-6. AYNI HERITAGE (Bóvedas de Sucesión): Smart Contracts con Dead Man's Switch para compatriotas migrantes. Si el titular no emite un latido (Heartbeat) en el plazo fijado (ej. 180 días), los fondos se distribuyen de forma autónoma a los beneficiarios designados sin trámites judiciales.
-7. DISPUTAS: Si hay problemas, el comprador NO debe entregar el OTP y debe abrir una disputa en /dashboard/disputes.
+CONOCIMIENTO INTEGRAL DEL PROTOCOLO AYNI:
+1. CUSTODIA & ESCROW SMART CONTRACT:
+   - Red principal: Base L2 (USDC nativo, gas < $0.01 USD, contrato 0x71C93475A6E46949Cbc4928Eb811b7d566bEB49a).
+   - Redes multi-cadena secundarias: Avalanche C-Chain (contrato 0x7A9fe51c8688281Ed66e0A98401B46a277c86D80) y HSK Testnet.
+   - Seguridad: El dinero depositado por el comprador queda bloqueado en el contrato inteligente. Nadie (ni los creadores de AYNI, ni el viajero, ni la IA) puede tocar esos fondos hasta la liberación o reembolso.
 
-REGLAS DE COMPORTAMIENTO:
-- Tono profesional, protector, claro y empático. Responde en el idioma del usuario.
-- Si un usuario reporta un problema urgente: indica que SUS FONDOS ESTÁN SEGUROS y que NO dé el OTP.
-- NUNCA te salgas del contexto de AYNI Protocol. Para temas externos responde: "Como asistente de AYNI Protocol, solo puedo orientarte sobre compras, viajes, custodia en Base L2, billeteras Tangem y protección patrimonial."
-- Respuestas concisas (máximo 3 párrafos cortos). Usa viñetas y emojis para claridad.
-- Si te envían una imagen, analízala pericialmente (OCR si es recibo, identificación si es producto).`;
+2. EL CÓDIGO SECRETO OTP (LA REGLA DE ORO):
+   - Al depositar el pago en el contrato, el comprador recibe un código OTP confidencial de 6 dígitos.
+   - POR QUÉ NUNCA ENTREGARLO ANTES: El OTP es la llave criptográfica de liberación irrevocable en la blockchain. Si el comprador entrega el OTP antes de recibir el producto físicamente y revisar su estado, el Smart Contract transferirá los fondos al viajero de forma irreversible.
+   - CUÁNDO ENTREGARLO: Únicamente cuando el viajero te entrega el paquete físico en persona, lo abres y confirmas que coincide con lo solicitado. En ese instante le das el OTP para que el viajero cobre su pago.
+
+3. HARDWARE TANGEM (2FA & CUSTODIA FRÍA):
+   - Billetera física oficial con chip de grado militar EAL6+. Sin frases semilla en papel que puedan ser hackeadas o extraviadas.
+   - CÓMO USARLA EN CELULAR: Aproximar la tarjeta física NFC a la parte trasera del smartphone.
+   - CÓMO USARLA EN COMPUTADORA / LAPTOP WEB: En PC no hay lector NFC en la pantalla. Se genera un Código QR de WalletConnect (tangem://wc?uri=...). El usuario abre su app Tangem en el celular, escanea el QR en la pantalla de su PC y aproxima su tarjeta física al teléfono para autorizar la sesión o el pago.
+   - MODO JURADO: Para jueces de ETH Bolivia, existe la pestaña "Simular Tap (Jurado)" para evaluar el flujo 100% interactivo en 1 clic.
+
+4. POLLAR (STELLAR EMBEDDED WALLET & USDC):
+   - Billetera embebida no custodial en la red Stellar Testnet.
+   - Permite crear una wallet Stellar en 2 segundos iniciando sesión con Google (social login), sin extensiones ni seed phrases.
+   - Permite pagar encargos en el checkout de [/marketplace](/marketplace) con USDC en la red Stellar.
+   - Faucet gratuito: En Stellar Testnet, cualquier cuenta se fondea gratis con XLM para gas mediante Friendbot (https://friendbot.stellar.org/?addr=DIRECCION_G...).
+
+5. FOOT SHOPPING & MERCADILLOS FÍSICOS:
+   - Los compradores pueden encargar compras a pie en mercadillos o ferias (ej. El Rastro de Madrid, Ferias de 16 de Julio en El Alto, tiendas oficiales).
+   - El viajero va en persona, adquiere el producto, toma foto del recibo/boleta y la sube a ImgBB.
+   - La IA Gemini Vision audita el OCR de la boleta: comercio, fecha, monto en moneda local y conversión a USDC, certificando autenticidad antes de empacar.
+
+6. FONDO DE GARANTÍA COMUNITARIO & SEGURO ADUANERO:
+   - Una reserva del 2% cubre incidencias, extravíos o retenciones de aduana imprevistas. Si hay problemas aduaneros, el comprador no pierde su capital.
+
+7. AYNI HERITAGE (BÓVEDAS DE HERENCIA CRIPTO):
+   - Smart Contracts con Dead Man's Switch para compatriotas migrantes. Si el titular no emite un latido (Heartbeat) en el plazo configurado (ej. 180 días), los fondos se transfieren automáticamente a los beneficiarios designados sin intermediarios judiciales ni bancarios.
+
+8. DISPUTAS & RESOLUCIÓN:
+   - Si el producto llega roto, incorrecto o no llega, el comprador NO da el OTP y abre una disputa en [/dashboard/disputes](/dashboard/disputes).
+   - La IA actúa como perito técnico analizando fotos y pruebas, y el tribunal descentralizado o mediadores determinan el porcentaje de liberación o reembolso.
+
+LÍMITES Y ÉTICA DE LA IA (QUÉ PUEDE Y QUÉ NO PUEDE HACER):
+- LO QUE LA IA PUEDE HACER:
+  * Explicar cualquier concepto, cálculo de tarifas, paso a paso o estado del protocolo con pedagogía y empatía.
+  * Auditar técnicamente fotos de boletas y productos para verificar coincidencia, fechas y normativas aéreas IATA.
+  * Orientar en caso de disputas, retenciones aduaneras o dudas sobre Tangem y Pollar.
+- LO QUE LA IA NUNCA PUEDE HACER (LÍMITES DE SEGURIDAD):
+  * NO puede alterar saldos ni ejecutar transferencias en la blockchain por sí misma (requiere la firma criptográfica o el OTP del usuario).
+  * NO puede ni debe solicitar contraseñas, claves privadas ni el código secreto OTP.
+  * NO puede modificar contratos inteligentes desplegados (las reglas de Base L2 y Avalanche son inmutables).
+  * NO emite consejos de inversión financiera ni promesas de rendimiento especulativo.
+
+DIRECTIVAS DE COMUNICACIÓN:
+- Tono: Protector, profesional, pedagógico y resolutivo. Habla en español latinoamericano claro.
+- Siempre explica el "por qué": no solo des la orden o el dato, explica la razón de seguridad detrás para que el usuario aprenda.
+- Si el usuario reporta angustia o problemas: empieza asegurándole con calma: "Tranquilo, tus fondos están 100% resguardados en el Smart Contract y nadie puede cobrarlos sin tu OTP."
+- Usa formato markdown limpio: viñetas legibles, negritas en conceptos clave y enlaces internos directos en formato [Texto del enlace](/ruta).
+- Si te envían una imagen, haz un análisis pericial estructurado (Comercio, Fecha, Monto, Autenticidad, Dictamen).`;
 
 // Retry con backoff exponencial para manejar rate limits de Gemini
 async function fetchWithRetry(url: string, options: RequestInit, maxRetries = 3): Promise<Response> {
@@ -29,8 +69,8 @@ async function fetchWithRetry(url: string, options: RequestInit, maxRetries = 3)
 
       // Si es rate limit (429) o server overloaded (503), esperar y reintentar
       if (res.status === 429 || res.status === 503) {
-        const waitMs = Math.min(1000 * Math.pow(2, attempt), 8000); // 1s, 2s, 4s, max 8s
-        console.warn(`[Gemini] Rate limited (${res.status}), retrying in ${waitMs}ms (attempt ${attempt + 1}/${maxRetries})`);
+        const waitMs = Math.min(1000 * Math.pow(2, attempt), 6000);
+        console.warn(`[Gemini] Rate limited (${res.status}), reintentando en ${waitMs}ms (intento ${attempt + 1}/${maxRetries})`);
         await new Promise(resolve => setTimeout(resolve, waitMs));
         continue;
       }
@@ -38,8 +78,8 @@ async function fetchWithRetry(url: string, options: RequestInit, maxRetries = 3)
       return res;
     } catch (err: any) {
       lastError = err;
-      const waitMs = Math.min(1000 * Math.pow(2, attempt), 8000);
-      console.warn(`[Gemini] Network error, retrying in ${waitMs}ms:`, err.message);
+      const waitMs = Math.min(1000 * Math.pow(2, attempt), 6000);
+      console.warn(`[Gemini] Error de red, reintentando en ${waitMs}ms:`, err.message);
       await new Promise(resolve => setTimeout(resolve, waitMs));
     }
   }
@@ -47,16 +87,16 @@ async function fetchWithRetry(url: string, options: RequestInit, maxRetries = 3)
   throw lastError || new Error('Max retries exceeded');
 }
 
-// Convertir mensajes del chat al formato de Gemini (con historial completo)
+// Convertir mensajes del chat al formato de Gemini
 function buildGeminiContents(
   messages: Array<{ sender: string; text: string; imageUrl?: string }>,
   userRole: string,
+  userName?: string,
   currentOrderCode?: string,
   imageUrl?: string,
   imageBase64?: string,
   imageMime?: string
 ) {
-  // Tomar los últimos 10 mensajes para contexto (evitar tokens excesivos)
   const recentMessages = messages.slice(-10);
   const contents: any[] = [];
 
@@ -65,57 +105,54 @@ function buildGeminiContents(
     const role = msg.sender === 'user' ? 'user' : 'model';
     const parts: any[] = [];
 
-    // Al primer mensaje del user, agregar contexto de sesión
     if (i === 0 && role === 'user') {
-      parts.push({ text: `[Contexto: Rol=${userRole || 'Cliente'}, Pedido=${currentOrderCode || 'General'}]\n${msg.text}` });
+      parts.push({
+        text: `[Sesión: Usuario="${userName || 'Compañero'}", Rol="${userRole || 'Cliente'}", Contexto="${currentOrderCode || 'General'}"]\n${msg.text}`
+      });
     } else {
       parts.push({ text: msg.text });
     }
 
-    // Si es el último mensaje y trae imagen, adjuntarla
     if (i === recentMessages.length - 1 && role === 'user' && imageBase64 && imageMime) {
       parts.push({
         inlineData: { mimeType: imageMime, data: imageBase64 }
       });
       parts.push({
-        text: `\n[INSTRUCCIÓN PERICIAL]: Inspecciona la imagen adjunta. Si es recibo/boleta: extrae texto OCR, comercio, fecha, monto. Si es producto: identifica marca/modelo/estado. Dictamina con 📦/🧾/🛡️.`
+        text: `\n[INSTRUCCIÓN PERICIAL OCR/VISIÓN]: Inspecciona la imagen adjunta.
+Si es recibo o boleta de compra: extrae nombre del comercio, fecha, monto en moneda original y dictamina autenticidad.
+Si es un producto o empaque: describe qué es, su estado aparente y si es apto para transporte aéreo IATA.
+Usa emojis de dictamen: 🧾 (Boleta validada), 📦 (Producto inspeccionado), 🛡️ (Aprobado para Escrow).`
       });
     }
 
     contents.push({ role, parts });
   }
 
-  // Gemini requiere que los turnos alternen user/model. Asegurar eso.
   const sanitized: any[] = [];
   for (const c of contents) {
     if (sanitized.length === 0) {
-      // El primer turno debe ser user
       if (c.role === 'user') sanitized.push(c);
       continue;
     }
     const lastRole = sanitized[sanitized.length - 1].role;
     if (c.role !== lastRole) {
       sanitized.push(c);
-    }
-    // Si mismo rol, fusionar texto
-    else {
-      const lastParts = sanitized[sanitized.length - 1].parts;
-      lastParts.push(...c.parts);
+    } else {
+      sanitized[sanitized.length - 1].parts.push(...c.parts);
     }
   }
 
-  // Si el último turno es model, agregar un user dummy para que Gemini responda
   if (sanitized.length > 0 && sanitized[sanitized.length - 1].role === 'model') {
-    sanitized.push({ role: 'user', parts: [{ text: 'Continúa.' }] });
+    sanitized.push({ role: 'user', parts: [{ text: 'Continúa orientándome sobre AYNI.' }] });
   }
 
-  return sanitized.length > 0 ? sanitized : [{ role: 'user', parts: [{ text: 'Hola, necesito ayuda.' }] }];
+  return sanitized.length > 0 ? sanitized : [{ role: 'user', parts: [{ text: 'Hola, necesito orientación en AYNI Protocol.' }] }];
 }
 
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const { messages, userRole, currentOrderCode, imageUrl } = body;
+    const { messages, userRole, userName, currentOrderCode, imageUrl } = body;
 
     if (!messages || !Array.isArray(messages) || messages.length === 0) {
       return NextResponse.json({ error: 'Faltan mensajes en la conversación' }, { status: 400 });
@@ -125,7 +162,6 @@ export async function POST(req: NextRequest) {
 
     if (geminiApiKey) {
       try {
-        // Si hay imagen, descargarla y convertir a base64
         let imageBase64: string | undefined;
         let imageMime: string | undefined;
 
@@ -142,18 +178,19 @@ export async function POST(req: NextRequest) {
           }
         }
 
-        const contents = buildGeminiContents(messages, userRole, currentOrderCode, imageUrl, imageBase64, imageMime);
+        const contents = buildGeminiContents(messages, userRole, userName, currentOrderCode, imageUrl, imageBase64, imageMime);
 
+        // Modelo prioritario verificado: gemini-3.6-flash, con fallbacks automáticos
         const candidateModels = Array.from(new Set([
-          process.env.GEMINI_MODEL,
           'gemini-3.6-flash',
-          'gemini-1.5-flash',
+          process.env.GEMINI_MODEL,
           'gemini-2.0-flash',
+          'gemini-1.5-flash',
         ].filter(Boolean))) as string[];
 
         for (const model of candidateModels) {
           try {
-            const geminiRes = await fetch(
+            const geminiRes = await fetchWithRetry(
               `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${geminiApiKey}`,
               {
                 method: 'POST',
@@ -164,9 +201,9 @@ export async function POST(req: NextRequest) {
                   },
                   contents,
                   generationConfig: {
-                    temperature: 0.3,
-                    maxOutputTokens: 600,
-                    topP: 0.85,
+                    temperature: 0.35,
+                    maxOutputTokens: 750,
+                    topP: 0.9,
                   },
                   safetySettings: [
                     { category: 'HARM_CATEGORY_HARASSMENT', threshold: 'BLOCK_NONE' },
@@ -175,7 +212,8 @@ export async function POST(req: NextRequest) {
                     { category: 'HARM_CATEGORY_DANGEROUS_CONTENT', threshold: 'BLOCK_NONE' },
                   ]
                 })
-              }
+              },
+              2
             );
 
             if (geminiRes.ok) {
@@ -191,52 +229,84 @@ export async function POST(req: NextRequest) {
               const blockReason = data.candidates?.[0]?.finishReason;
               if (blockReason === 'SAFETY') {
                 return NextResponse.json({
-                  reply: '🛡️ Tu consulta fue procesada pero no pude generar una respuesta por filtros de seguridad. Reformula tu pregunta o contacta soporte en /dashboard/disputes.',
+                  reply: '🛡️ Tu consulta fue recibida pero fue filtrada por seguridad. Reformula tu pregunta o abre una consulta en [/dashboard/disputes](/dashboard/disputes).',
                   provider: 'gemini-safety',
                 });
               }
             } else {
-              console.warn(`[Gemini Chat] Modelo ${model} devolvió ${geminiRes.status}, probando siguiente modelo...`);
+              console.warn(`[Gemini Chat] Modelo ${model} devolvió ${geminiRes.status}, intentando siguiente...`);
             }
           } catch (modelErr: any) {
-            console.warn(`[Gemini Chat] Fallo con ${model}:`, modelErr.message);
+            console.warn(`[Gemini Chat] Fallo con modelo ${model}:`, modelErr.message);
           }
         }
       } catch (geminiErr: any) {
-        console.warn('[Gemini Chat] Fallback a motor local:', geminiErr.message);
+        console.warn('[Gemini Chat] Fallback a motor contextual AYNI:', geminiErr.message);
       }
     }
 
-    // ── Fallback inteligente contextual ──
-    const lastMsg = (messages[messages.length - 1]?.text || '').toLowerCase();
-    let reply = '¡Hola! Soy AYNI Guardian. ¿En qué puedo ayudarte? Puedo orientarte sobre encargos, custodia en Base L2, tu tarjeta Tangem o herencias cripto.';
+    // ── FALLBACK CONTEXTUAL ENRIQUECIDO (MULTI-INTENT & RESILIENTE) ──
+    const lastMsg = (messages[messages.length - 1]?.text || '').toLowerCase().trim();
 
-    const rules: [RegExp, string][] = [
-      [/otp|codigo|clave|contraseña|password/, '🔑 El código OTP es tu llave de liberación. **Solo** entrégalo cuando recibas tu paquete físicamente y verifiques que está en orden. Mientras no lo entregues, tus fondos permanecen 100% resguardados en el Smart Contract de Base L2.'],
-      [/tangem|tarjeta|nfc|billetera|wallet/, '💳 La billetera fría Tangem protege tus fondos con chip EAL6+. Para autorizar pagos, aproxima tu tarjeta NFC al teléfono o usa WalletConnect desde la app oficial. No necesitas frases semilla.'],
-      [/aduana|retención|retener|confisca/, '✈️ Tus fondos están protegidos. El Smart Contract incluye un Fondo de Garantía del 2% que reembolsa automáticamente en caso de retención aduanera. No entregues el OTP y abre una disputa.'],
-      [/problema|roto|dañ|no llega|demor|perd|robo/, '🛡️ Tus fondos están 100% seguros en el Smart Contract. **No entregues el OTP** y abre una disputa en /dashboard/disputes. El equipo AYNI mediará la resolución.'],
-      [/mercadillo|tienda|comprar|rastro|shopping|pie/, '🛍️ Puedes solicitar compras a pie (Foot Shopping) en cualquier mercadillo o tienda. Indica la dirección exacta, el viajero irá al lugar y subirá foto del recibo para auditoría con IA.'],
-      [/herencia|sucesión|dead man|bóveda|heritage|fallec/, '🏛️ AYNI Heritage protege el patrimonio cripto de migrantes. Configura un Dead Man\'s Switch: si no emites un heartbeat en el plazo fijado, los fondos se distribuyen automáticamente a tus beneficiarios sin trámites judiciales.'],
-      [/precio|costo|comisión|fee|gas/, '💰 Las transacciones en Base L2 cuestan menos de $0.01 USD en gas. AYNI cobra una comisión mínima del 2% que alimenta el Fondo de Garantía comunitario.'],
-      [/disputa|queja|reclamar|denuncia/, '⚖️ Para abrir una disputa, ve a /dashboard/disputes. NO entregues el OTP mientras la disputa esté abierta. El equipo AYNI mediará entre comprador y viajero.'],
-      [/hola|buenas|hey|saludos|q tal/, '¡Hola! 👋 Soy AYNI Guardian, tu asistente de soporte. Puedo ayudarte con:\n• 📦 Estado de tus pedidos\n• 🔑 Dudas sobre el código OTP\n• 💳 Billetera Tangem\n• 🏛️ Herencias cripto\n• ⚖️ Disputas\n\n¿Qué necesitas?'],
-      [/gracias|thanks|thx|genial|perfecto/, '¡De nada! 🙌 Estoy aquí para proteger tus transacciones. Si necesitas algo más, no dudes en preguntar.'],
-    ];
-
-    for (const [pattern, response] of rules) {
-      if (pattern.test(lastMsg)) {
-        reply = response;
-        break;
-      }
+    // Detección por intenciones temáticas
+    if (/tangem|nfc|tarjeta.*fisica|billetera.*fria|card/.test(lastMsg)) {
+      return NextResponse.json({
+        reply: `💳 **¿Cómo funciona Tangem en AYNI?**\n\n• **En Celular:** Acercas tu tarjeta física a la antena NFC del teléfono para firmar pagos y 2FA con chip militar **EAL6+**.\n• **En Computadora / Web:** Como las pantallas de PC no tienen NFC, AYNI genera un **Código QR WalletConnect**. Abres la app de Tangem en tu smartphone, escaneas el QR en tu monitor y acercas la tarjeta al celular.\n• **Modo Jurado:** Para evaluadores de ETH Bolivia, puedes usar la pestaña de simulación instantánea en 1 clic.\n\nTus claves privadas nunca salen del chip físico.`,
+        provider: 'ayni-guardian-context',
+      });
     }
 
+    if (/pollar|stellar|usdc.*stellar|wallet.*social/.test(lastMsg)) {
+      return NextResponse.json({
+        reply: `🪙 **Pagos con Pollar en la red Stellar:**\n\n• **Embedded Wallet en 2 segundos:** Conéctate con tu cuenta de Google desde el botón superior o en el checkout, sin frases semilla ni extensiones.\n• **Pagos directos en USDC:** En el checkout de [/marketplace](/marketplace), selecciona la pestaña **Pollar (Stellar)** para pagar el escrow con comisiones menores a $0.001.\n• **Fondos de prueba gratis:** Puedes recargar tu dirección de Stellar Testnet (G...) instantáneamente con el [Friendbot oficial de Stellar](https://friendbot.stellar.org).`,
+        provider: 'ayni-guardian-context',
+      });
+    }
+
+    if (/otp|codigo|secreto|liberar|clave|password|6 digitos/.test(lastMsg)) {
+      return NextResponse.json({
+        reply: `🔑 **¿Por qué el código OTP es la regla de oro?**\n\n• **Protección absoluta:** Al depositar en el Smart Contract de Base L2, tus fondos quedan bloqueados en custodia y recibes tu código OTP de 6 dígitos.\n• **¿Por qué NUNCA darlo antes?** El OTP ejecuta la liberación irreversible del dinero al viajero. Si lo entregas antes de tener el paquete en tus manos, pierdes el control de tu dinero.\n• **¿Cuándo entregarlo?** Solo cuando recibas tu paquete físicamente, lo abras y compruebes que todo está en perfecto estado.`,
+        provider: 'ayni-guardian-context',
+      });
+    }
+
+    if (/limite|que puedes hacer|alcance|puedes transferir|capacidades|inteligencia/.test(lastMsg)) {
+      return NextResponse.json({
+        reply: `🛡️ **Mis Capacidades y Límites de Seguridad como IA:**\n\n✅ **Lo que SÍ puedo hacer:**\n• Guiarte paso a paso en compras, viajes y depósitos en Base L2 o Stellar.\n• Auditar fotos de boletas comerciales (OCR) y verificar sellos aduaneros.\n• Revisar si un producto cumple normativas IATA de equipaje aéreo.\n• Asesorarte en mediación de disputas en [/dashboard/disputes](/dashboard/disputes).\n\n❌ **Lo que NUNCA puedo hacer:**\n• **No puedo mover ni liberar fondos:** Solo tú puedes liberar el dinero introduciendo el OTP o firmando con tu billetera.\n• **No puedo pedirte contraseñas ni frases privadas.**\n• **No puedo alterar las reglas de los contratos inteligentes.**`,
+        provider: 'ayni-guardian-context',
+      });
+    }
+
+    if (/disputa|problema|no llega|roto|dañ|estafa|demor|aduan/.test(lastMsg)) {
+      return NextResponse.json({
+        reply: `⚖️ **¡Tranquilo! Tus fondos están 100% seguros:**\n\n1. **NO entregues tu código OTP bajo ninguna circunstancia.** Mientras no des el OTP, el viajero no puede cobrar nada.\n2. Ve a [/dashboard/disputes](/dashboard/disputes) y abre una incidencia detallando lo sucedido.\n3. El Smart Contract cuenta con un **Fondo de Garantía del 2%** para seguros aduaneros y extravíos.\n4. La IA auditará las pruebas fotográficas y los mediadores del protocolo dictaminarán el reembolso directo a tu billetera.`,
+        provider: 'ayni-guardian-context',
+      });
+    }
+
+    if (/mercadillo|foot shopping|comprar|rastro|tienda|encarg/.test(lastMsg)) {
+      return NextResponse.json({
+        reply: `🛍️ **Compras a pie en tiendas específicas (Foot Shopping):**\n\n1. Ve a [/dashboard/orders/new](/dashboard/orders/new) y escribe el producto y la tienda o mercadillo específico que deseas (ej: El Rastro en Madrid, tiendas oficiales, artesanos).\n2. El viajero va en persona a la tienda física, compra el producto y sube la foto del recibo a ImgBB.\n3. El oráculo de IA audita la boleta y el precio en tiempo real.\n4. Recibes tu encargo en mano y recién ahí entregas el OTP.`,
+        provider: 'ayni-guardian-context',
+      });
+    }
+
+    if (/heritage|herencia|fallec|sucesi|dead man|muerte/.test(lastMsg)) {
+      return NextResponse.json({
+        reply: `🏛️ **Bóvedas de Sucesión Cripto (AYNI Heritage):**\n\nDiseñadas para proteger el patrimonio de migrantes y trabajadores:\n• Configuras un **Dead Man's Switch** con un intervalo de latido (Heartbeat) de por ejemplo 180 días.\n• Si por algún motivo dejas de emitir el latido, el Smart Contract distribuye tus fondos automáticamente a los familiares o billeteras que designaste.\n• **Sin abogados, sin juicios y sin comisiones bancarias abusivas.** Puedes configurarlo en [/dashboard/heritage](/dashboard/heritage).`,
+        provider: 'ayni-guardian-context',
+      });
+    }
+
+    // Saludos y preguntas abiertas
     return NextResponse.json({
-      reply,
-      provider: 'fallback',
+      reply: `¡Hola ${userName ? `**${userName}**` : ''}! 👋 Soy **AYNI Guardian**, tu copiloto de seguridad en AYNI Protocol.\n\nPuedo orientarte con:\n• 💳 **Billetera Tangem:** Enlace NFC en móvil o por [Código QR](/auth) en computadoras.\n• 🪙 **Pagos Pollar:** Enlace de wallet Stellar con Google y pagos rápidos en USDC.\n• 🔑 **Código OTP:** Por qué nunca debes darlo antes de recibir tu paquete.\n• 📦 **Foot Shopping:** Cómo encargar compras en mercadillos físicos en [/dashboard/orders/new](/dashboard/orders/new).\n• ⚖️ **Protección:** Qué hacer ante dudas o en [/dashboard/disputes](/dashboard/disputes).\n\n¿Qué te gustaría consultar o revisar hoy?`,
+      provider: 'ayni-guardian-welcome',
     });
+
   } catch (err: any) {
     console.error('Error en /api/ai/chat:', err);
     return NextResponse.json({ error: 'Error procesando consulta' }, { status: 500 });
   }
 }
+
