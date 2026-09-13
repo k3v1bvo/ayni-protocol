@@ -44,7 +44,7 @@ const NAV_ITEMS = {
 function SidebarContent({ onClose }: { onClose?: () => void }) {
   const pathname = usePathname();
   const router = useRouter();
-  const { user, role, signOut, switchRole } = useAuth();
+  const { user, role, signOut, switchRole, isDemoAccount } = useAuth();
   const [showRoleMenu, setShowRoleMenu] = useState(false);
 
   const roleItems = NAV_ITEMS[role] || [];
@@ -141,7 +141,7 @@ function SidebarContent({ onClose }: { onClose?: () => void }) {
                 <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)', padding: '4px 8px' }}>
                   Cambiar rol activo:
                 </div>
-                {(['client', 'traveler', 'merchant', 'admin'] as const).map(r => (
+                {(isDemoAccount ? (['client', 'traveler', 'merchant', 'admin'] as const) : (['client', 'traveler', 'merchant'] as const)).map(r => (
                   <button
                     key={r}
                     type="button"

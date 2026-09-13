@@ -45,7 +45,9 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Missing id or email' }, { status: 400 });
     }
 
-    const validRole = ['client', 'traveler', 'merchant', 'admin'].includes(role) ? role : 'client';
+    // El rol admin nunca se otorga por esta ruta publica (autoasignacion en el primer
+    // login). Se asigna manualmente en la base de datos.
+    const validRole = ['client', 'traveler', 'merchant'].includes(role) ? role : 'client';
     const supabase = getSupabaseServerClient();
 
     const { error } = await supabase
@@ -94,7 +96,9 @@ export async function PUT(req: NextRequest) {
         allowed[key] = val || null;
       }
     }
-    if (fields.role && ['client', 'traveler', 'merchant', 'admin'].includes(fields.role)) {
+    // El rol admin nunca se otorga por esta ruta publica (autoasignacion). Se asigna
+    // manualmente en la base de datos.
+    if (fields.role && ['client', 'traveler', 'merchant'].includes(fields.role)) {
       allowed.role = fields.role;
     }
 

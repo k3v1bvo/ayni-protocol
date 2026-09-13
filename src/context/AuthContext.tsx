@@ -15,6 +15,8 @@ interface AuthContextType {
   signOut: () => Promise<void>;
   setDemoUser: (role: UserRole) => void;
   switchRole: (role: UserRole) => void;
+  /** true solo si la cuenta activa es una de las 4 personas fijas de demo (jurado). */
+  isDemoAccount: boolean;
 }
 
 const TEST_PROFILES: Record<UserRole, UserProfile> = {
@@ -495,6 +497,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       return;
     }
 
+    // Una cuenta real (no demo) nunca puede autoasignarse el rol admin desde aca.
+    if (targetRole === 'admin') return;
+
     const updated: UserProfile = { ...user, role: targetRole };
     setUser(updated);
     if (typeof window !== 'undefined') {
@@ -509,6 +514,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
+  const isDemoAccount = Boolean(user && Object.values(TEST_PROFILES).some(p => p.id === user.id));
+
   return (
     <AuthContext.Provider
       value={{
@@ -522,6 +529,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         signOut,
         setDemoUser,
         switchRole,
+        isDemoAccount,
       }}
     >
       {children}

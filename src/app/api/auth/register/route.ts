@@ -25,7 +25,9 @@ export async function POST(req: NextRequest) {
 
     const cleanEmail = String(email).toLowerCase().trim();
     const cleanName = String(fullName).trim().slice(0, 150);
-    const validRole = ['client', 'traveler', 'merchant', 'admin'].includes(role) ? role : 'client';
+    // El rol admin nunca se otorga por registro publico (autoasignacion). Se asigna
+    // manualmente en la base de datos.
+    const validRole = ['client', 'traveler', 'merchant'].includes(role) ? role : 'client';
 
     if (password.length < 6) {
       return NextResponse.json(

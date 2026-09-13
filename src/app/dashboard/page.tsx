@@ -46,7 +46,7 @@ function StatusBadge({ status }: { status: string }) {
 }
 
 export default function DashboardPage() {
-  const { user, role, switchRole } = useAuth();
+  const { user, role, switchRole, isDemoAccount } = useAuth();
   const [quickOtpInput, setQuickOtpInput] = useState('');
   const [otpVerifyState, setOtpVerifyState] = useState<'idle' | 'verifying' | 'success' | 'error'>('idle');
 
@@ -205,23 +205,27 @@ export default function DashboardPage() {
           >
             🏪 Comercio
           </button>
-          <button
-            type="button"
-            onClick={() => switchRole('admin')}
-            style={{
-              padding: '6px 12px',
-              borderRadius: '8px',
-              border: 'none',
-              background: role === 'admin' ? 'var(--brand-purple)' : 'transparent',
-              color: role === 'admin' ? '#ffffff' : 'var(--text-secondary)',
-              fontWeight: 700,
-              fontSize: '0.78rem',
-              cursor: 'pointer',
-              transition: 'all 0.2s ease',
-            }}
-          >
-            🛡️ Auditor
-          </button>
+          {/* Auditor/Admin solo es seleccionable desde las 4 personas demo (jurado).
+              Una cuenta real (Google, registro) no puede autoasignarse este rol. */}
+          {isDemoAccount && (
+            <button
+              type="button"
+              onClick={() => switchRole('admin')}
+              style={{
+                padding: '6px 12px',
+                borderRadius: '8px',
+                border: 'none',
+                background: role === 'admin' ? 'var(--brand-purple)' : 'transparent',
+                color: role === 'admin' ? '#ffffff' : 'var(--text-secondary)',
+                fontWeight: 700,
+                fontSize: '0.78rem',
+                cursor: 'pointer',
+                transition: 'all 0.2s ease',
+              }}
+            >
+              🛡️ Auditor
+            </button>
+          )}
         </div>
       </div>
 
