@@ -16,13 +16,23 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
   const [searchQuery, setSearchQuery] = useState('');
   const router = useRouter();
   const pathname = usePathname();
-  const { user, role, isLoading, setDemoUser } = useAuth();
+  const { user, role, isLoading, isConfigured, setDemoUser } = useAuth();
 
   useEffect(() => {
     if (!user && !isLoading) {
-      setDemoUser('traveler');
+      // Sin Supabase configurado (desarrollo local sin credenciales) no hay
+      // forma de tener una sesion real, asi que usamos una cuenta demo.
+      // Con Supabase configurado, un usuario sin sesion debe ir a iniciar
+      // sesion, NUNCA reemplazar silenciosamente su identidad por una demo
+      // (esto causaba que una cuenta real de Google terminara mostrando el
+      // nombre de "Alejandro" por una carrera con la deteccion de sesion).
+      if (!isConfigured) {
+        setDemoUser('traveler');
+      } else {
+        router.replace('/auth');
+      }
     }
-  }, [user, isLoading, setDemoUser]);
+  }, [user, isLoading, isConfigured, setDemoUser, router]);
 
   if (isLoading || !user) {
     return (

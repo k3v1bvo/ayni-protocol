@@ -129,19 +129,27 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
               localStorage.setItem('ayni_active_profile', JSON.stringify(profile));
             }
           } else if (isMounted) {
+            const meta = session.user.user_metadata || {};
             const fallback: UserProfile = {
               id: session.user.id,
               email: session.user.email || '',
-              full_name: session.user.user_metadata?.full_name || session.user.email?.split('@')[0],
-              role: (session.user.user_metadata?.role as UserRole) || 'client',
+              full_name: meta.full_name || meta.name || session.user.email?.split('@')[0],
+              role: (meta.role as UserRole) || 'client',
               reputation_score: 5.0,
               guarantee_balance: 0.0,
-              avatar_url: session.user.user_metadata?.avatar_url,
+              avatar_url: meta.avatar_url || meta.picture,
             };
             setUser(fallback);
             if (typeof window !== 'undefined') {
               localStorage.setItem('ayni_active_profile', JSON.stringify(fallback));
             }
+            // Crea la fila en profiles si aun no existe (ej. primer login con
+            // Google) para que futuras compras/ordenes con FK a profiles funcionen.
+            fetch('/api/profile', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(fallback),
+            }).catch(() => {});
           }
         } else {
           // Usuario no autenticado en Supabase ni perfil guardado
