@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { useAuth } from '@/context/AuthContext';
-import { getSupabaseBrowserClient, isSupabaseConfigured } from '@/lib/supabase/client';
+import { isSupabaseConfigured } from '@/lib/supabase/client';
 import {
   Package, Plus, Edit2, Trash2, CheckCircle2, Eye, AlertTriangle,
   Sparkles, Search, Loader2, X, Save, DollarSign
@@ -52,17 +52,22 @@ export default function ProductsPage() {
 
     if (isSupabaseConfigured) {
       try {
-        const supabase = getSupabaseBrowserClient();
-        // Find store
-        const { data: store } = await supabase.from('stores').select('id').eq('owner_id', user.id).single();
-        if (store) {
-          setStoreId(store.id);
-          const { data: prods } = await supabase
-            .from('products')
-            .select('*')
-            .eq('store_id', store.id)
-            .order('created_at', { ascending: false });
-          if (prods) { setProducts(prods); setLoading(false); return; }
+        // Find store(s) owned by this merchant
+        const resStore = await fetch(`/api/stores?owner_id=${user.id}`);
+        if (resStore.ok) {
+          const storeData = await resStore.json();
+          const stores = storeData.stores || [];
+          if (stores.length > 0) {
+            setStoreId(stores[0].id);
+            const results = await Promise.all(
+              stores.map((s: any) => fetch(`/api/products?store_id=${s.id}`).then(r => r.ok ? r.json() : { products: [] }))
+            );
+            const allProducts = results.flatMap(r => r.products || []);
+            allProducts.sort((a: any, b: any) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+            setProducts(allProducts);
+            setLoading(false);
+            return;
+          }
         }
       } catch (e) {
         console.warn('Supabase product load error:', e);
