@@ -125,33 +125,45 @@ Responde estrictamente en formato JSON con la siguiente estructura:
         const parts: any[] = [{ text: prompt }];
         if (imagePart) parts.push(imagePart);
 
-        const geminiModel = process.env.GEMINI_MODEL || 'gemini-1.5-flash';
-        const geminiRes = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${geminiModel}:generateContent?key=${geminiApiKey}`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            contents: [{ parts }],
-            generationConfig: { responseMimeType: 'application/json' }
-          })
-        });
+        const candidateModels = Array.from(new Set([
+          process.env.GEMINI_MODEL,
+          'gemini-3.6-flash',
+          'gemini-1.5-flash',
+          'gemini-2.0-flash',
+        ].filter(Boolean))) as string[];
 
-        if (geminiRes.ok) {
-          const geminiData = await geminiRes.json();
-          const rawText = geminiData.candidates?.[0]?.content?.parts?.[0]?.text;
-          if (rawText) {
-            const parsed = JSON.parse(rawText);
-            return NextResponse.json({
-              success: true,
-              verdict: parsed.verdict || verdict,
-              confidenceScore: parsed.confidenceScore || `${confidence}%`,
-              rationale: parsed.rationale || rationale,
-              recommendedPayout: parsed.recommendedPayout || recommendedPayout,
-              photoMatchesClaim: parsed.photoMatchesClaim ?? null,
-              photoFindings: parsed.photoFindings ?? null,
-              photoAnalyzed: Boolean(imagePart),
-              oracleProvider: 'Google Gemini 1.5 Flash Vision + Chainlink Functions',
-              executionTimeMs: 820,
+        for (const geminiModel of candidateModels) {
+          try {
+            const geminiRes = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${geminiModel}:generateContent?key=${geminiApiKey}`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                contents: [{ parts }],
+                generationConfig: { responseMimeType: 'application/json' }
+              })
             });
+
+            if (geminiRes.ok) {
+              const geminiData = await geminiRes.json();
+              const rawText = geminiData.candidates?.[0]?.content?.parts?.[0]?.text;
+              if (rawText) {
+                const parsed = JSON.parse(rawText);
+                return NextResponse.json({
+                  success: true,
+                  verdict: parsed.verdict || verdict,
+                  confidenceScore: parsed.confidenceScore || `${confidence}%`,
+                  rationale: parsed.rationale || rationale,
+                  recommendedPayout: parsed.recommendedPayout || recommendedPayout,
+                  photoMatchesClaim: parsed.photoMatchesClaim ?? null,
+                  photoFindings: parsed.photoFindings ?? null,
+                  photoAnalyzed: Boolean(imagePart),
+                  oracleProvider: `Google Gemini (${geminiModel}) + Chainlink Functions`,
+                  executionTimeMs: 820,
+                });
+              }
+            }
+          } catch (mErr) {
+            console.warn(`[Gemini Disputes] Model ${geminiModel} failed:`, mErr);
           }
         }
       } catch (geminiErr) {
