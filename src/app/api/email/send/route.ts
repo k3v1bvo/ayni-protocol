@@ -10,6 +10,7 @@ import {
   getDisputeVerdictEmail,
   getPayoutReleasedEmail,
   getRemittanceLockedEmail,
+  getTwoFactorCodeEmail,
 } from '@/lib/email/templates';
 
 /**
@@ -214,6 +215,23 @@ export async function POST(req: NextRequest) {
           occasion,
           releaseDateText,
           claimUrl,
+        });
+        break;
+      }
+
+      case 'two_factor': {
+        const {
+          recipientName = 'Usuario AYNI',
+          code = '849201',
+          purpose = 'verificación de seguridad 2FA',
+          expiresInMinutes = 10,
+        } = data;
+
+        emailContent = getTwoFactorCodeEmail({
+          recipientName,
+          code: String(code),
+          purpose,
+          expiresInMinutes: Number(expiresInMinutes),
         });
         break;
       }

@@ -5,7 +5,7 @@ import { Mail, Send, CheckCircle, AlertCircle, RefreshCw, Key, Shield, Clock, Sp
 
 export function EmailNotificationTester() {
   const [targetEmail, setTargetEmail] = useState('');
-  const [emailType, setEmailType] = useState<'otp' | 'new_order' | 'heritage' | 'notification'>('otp');
+  const [emailType, setEmailType] = useState<'otp' | 'new_order' | 'heritage' | 'notification' | 'two_factor' | 'welcome' | 'reset_password'>('otp');
   const [status, setStatus] = useState<{
     configured: boolean;
     connected?: boolean;
@@ -235,6 +235,9 @@ export function EmailNotificationTester() {
             >
               <option value="otp">🔑 Código Secreto OTP de Entrega ($195 USDC)</option>
               <option value="new_order">📦 Confirmación de Orden & Fondos Escrow</option>
+              <option value="two_factor">🛡️ Código 2FA de Doble Factor (Gmail OTP)</option>
+              <option value="welcome">🎉 Bienvenida Oficial a AYNI Protocol</option>
+              <option value="reset_password">🔑 Enlace de Recuperación de Contraseña</option>
               <option value="heritage">⚠️ Dead Man's Switch (Alerta de Bóveda Herencia)</option>
               <option value="notification">🔔 Notificación General del Sistema</option>
             </select>
